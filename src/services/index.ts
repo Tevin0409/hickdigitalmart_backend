@@ -1,2 +1,3 @@
 import { userService } from "./user.Service";
-export {userService}
+import { roleService } from "./role.Service";
+export { userService, roleService };

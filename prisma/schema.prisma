@@ -1,21 +1,43 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
+
 model User {
-  id   String @unique @id @default(uuid())
-  phoneNumber String? @unique @db.VarChar(15)
-  email      String @unique  @db.VarChar(320)
-  password String
-  firstName String
-  lastName String
-  otpHash    String? 
-  otpExpiresAt DateTime?
-  inCorrectAttempts Int @default(0)
-  createdAt DateTime  @default(now())
+  id               String     @unique @id @default(uuid())
+  phoneNumber      String?    @unique @db.VarChar(15)
+  email            String     @unique @db.VarChar(320)
+  password         String
+  firstName        String
+  lastName         String
+  otpHash          String?
+  otpExpiresAt     DateTime?
+  inCorrectAttempts Int       @default(0)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @default(now())
+  roleId           String?
+  role             Role?      @relation(fields: [roleId], references: [id])
+  permissions      Permission[] @relation("UserPermissions")
+}
+
+model Role {
+  id         String  @unique @id @default(uuid())
+  name       String  @unique
+  description String?
+  createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
+  users      User[]
+}
+
+model Permission {
+  id          String  @unique @id @default(uuid())
+  name        String  @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  users       User[] @relation("UserPermissions")
 }

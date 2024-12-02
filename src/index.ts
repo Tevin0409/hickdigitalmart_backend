@@ -8,6 +8,7 @@ import cors from "cors";
 
 import { requestLogger, errorLogger, errorResponder, invalidPathHandler } from './middleware'
 import { userRouter } from "./routes";
+import { roleRouter } from "./routes";
 
 const app = express();
 
@@ -19,6 +20,8 @@ app.use(requestLogger);
 app.get("/", (req,res) => { res.json("Hello there")});
 
 app.use("/auth", userRouter);
+
+app.use("/role", roleRouter);
 
 app.use(errorLogger)
 
