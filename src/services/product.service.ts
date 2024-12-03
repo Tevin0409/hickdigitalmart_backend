@@ -46,8 +46,8 @@ export const productService = {
           },
         },
       });
-    } catch (error) {
-      throw new AppError(500, "Failed to create product");
+    } catch (error: any) {
+      throw new AppError(500, "Failed to create product" + error.message);
     }
   },
 
@@ -67,8 +67,8 @@ export const productService = {
           },
         },
       });
-    } catch (error) {
-      throw new AppError(500, "Failed to update product");
+    } catch (error: any) {
+      throw new AppError(500, "Failed to update product" + error.message);
     }
   },
 
@@ -92,8 +92,8 @@ export const productService = {
   createCategory: async (data: CreateCategoryDTO) => {
     try {
       return await prisma.category.create({ data });
-    } catch (error) {
-      throw new AppError(500, "Failed to create category");
+    } catch (error: any) {
+      throw new AppError(500, "Failed to create category" + error.message);
     }
   },
 
@@ -164,8 +164,8 @@ export const productService = {
       }
 
       return inventory;
-    } catch (error) {
-      throw new AppError(500, "Failed to add stock to product");
+    } catch (error: any) {
+      throw new AppError(500, "Failed to add stock to product" + error.message);
     }
   },
 
@@ -177,7 +177,7 @@ export const productService = {
           productId,
         },
         data: {
-          quantity: quantityToUpdate, // Update the stock with the new quantity
+          quantity: quantityToUpdate,
         },
       });
 
@@ -186,8 +186,8 @@ export const productService = {
       }
 
       return inventory;
-    } catch (error) {
-      throw new AppError(500, "Failed to update stock");
+    } catch (error: any) {
+      throw new AppError(500, "Failed to update stock " + error.message);
     }
   },
 
@@ -205,8 +205,11 @@ export const productService = {
       }
 
       return inventory.quantity;
-    } catch (error) {
-      throw new AppError(500, "Failed to retrieve stock information");
+    } catch (error: any) {
+      throw new AppError(
+        500,
+        "Failed to retrieve stock information" + error.message
+      );
     }
   },
 };

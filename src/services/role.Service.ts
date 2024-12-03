@@ -16,7 +16,7 @@ export const roleService = {
       });
       return role;
     } catch (error) {
-      throw new AppError( 500,"Failed to create role");
+      throw new AppError( 500,"Failed to create role ");
     }
   },
 
