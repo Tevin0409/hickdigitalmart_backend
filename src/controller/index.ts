@@ -1,3 +1,4 @@
 import { userController } from "./user.controller";
 import { roleController } from "./role.controller";
-export { userController, roleController };
+import { permissionController } from "./permission.controller";
+export { userController, roleController, permissionController };

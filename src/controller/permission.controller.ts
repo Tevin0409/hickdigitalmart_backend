@@ -1,39 +1,39 @@
 import express from "express";
 import { RoleDTO } from "../interface/user";
-import { roleService } from "../services";
+import { permissionService } from "../services";
 import { IUserRequest } from "../middleware";
 
-export const roleController = {
-  // Get all roles
-  getAllRoles: async (
+export const permissionController = {
+  // Get all permissions
+  getAllpermissions: async (
     req: IUserRequest,
     res: express.Response,
     next: express.NextFunction
   ) => {
     try {
-      const roles = await roleService.getAllRoles();
-      res.status(200).json(roles);
+      const permissions = await permissionService.getAllPermissions();
+      res.status(200).json(permissions);
     } catch (error) {
       next(error);
     }
   },
 
-  // Create a new role
-  createrole: async (
+  // Create a new permission
+  createpermission: async (
     req: express.Request,
     res: express.Response,
     next: express.NextFunction
   ) => {
     try {
       const data: RoleDTO = req.body;
-      const role = await roleService.createRole(data);
-      res.status(201).json(role);
+      const permission = await permissionService.createPermission(data);
+      res.status(201).json(permission);
     } catch (error) {
       next(error);
     }
   },
 
-  updateRole: async (
+  updatepermission: async (
     req: express.Request<{ id: string }, any, Partial<RoleDTO>>,
     res: express.Response,
     next: express.NextFunction
@@ -41,34 +41,34 @@ export const roleController = {
     try {
       const { id } = req.params;
       const data = req.body;
-      const updatedRole = await roleService.updateRole(id, data);
+      const updatedpermission = await permissionService.updatePermission(id, data);
 
-      if (!updatedRole) {
-        res.status(404).json({ message: "Role not found" });
+      if (!updatedpermission) {
+        res.status(404).json({ message: "permission not found" });
         return;
       }
-      res.status(200).json(updatedRole);
+      res.status(200).json(updatedpermission);
       return;
     } catch (error) {
       next(error);
     }
   },
 
-  // Delete a role by ID
-  deleteRole: async (
+  // Delete a permission by ID
+  deletepermission: async (
     req: express.Request,
     res: express.Response,
     next: express.NextFunction
   ) => {
     try {
       const { id } = req.params;
-      const deleted = await roleService.deleteRole(id);
+      const deleted = await permissionService.deletePermission(id);
 
       if (!deleted) {
-        res.status(404).json({ message: "Role not found" });
+        res.status(404).json({ message: "permission not found" });
         return;
       }
-      res.status(200).json({ message: "Role deleted successfully" });
+      res.status(200).json({ message: "permission deleted successfully" });
       return;
     } catch (error) {
       next(error);
