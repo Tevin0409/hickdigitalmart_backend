@@ -22,4 +22,9 @@ productRouter.post("/subcategories/create", authMiddleware, productController.cr
 productRouter.patch("/subcategories/update/:id", authMiddleware, productController.updateSubCategory);
 productRouter.delete("/subcategories/delete/:id", authMiddleware, productController.deleteSubCategory);
 
+//inventory
+productRouter.post("/add-stock", productController.addStockToProduct);
+productRouter.patch("/update-stock", productController.updateStock);
+productRouter.get("/check-stock/:productId", productController.checkStock);
+
 export { productRouter };

@@ -47,8 +47,18 @@ model Product {
   subCategory SubCategory    @relation(fields: [subCategoryId], references: [id])
   subCategoryId String
   features    ProductFeature[]
+   inventory    Inventory[] 
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @default(now())
+}
+
+model Inventory {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model ProductFeature {

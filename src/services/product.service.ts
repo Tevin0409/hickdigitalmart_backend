@@ -21,12 +21,13 @@ export const productService = {
             category: true,
           },
         },
-        features: true, 
+        features: true,
+        inventory: true,
       },
     });
   },
 
-  createProduct: async (data: CreateProductDTO) => {
+  createProduct: async (data: CreateProductDTO, inventoryQuantity: number) => {
     try {
       // Explicitly type 'feature' as an object with 'description' property
       return await prisma.product.create({
@@ -37,6 +38,11 @@ export const productService = {
             create: data.features.map((feature: { description: string }) => ({
               description: feature.description,
             })),
+          },
+          inventory: {
+            create: {
+              quantity: inventoryQuantity || 0,
+            },
           },
         },
       });
@@ -137,6 +143,70 @@ export const productService = {
       return await prisma.subCategory.delete({ where: { id } });
     } catch (error) {
       throw new AppError(500, "Failed to delete subcategory");
+    }
+  },
+
+  addStockToProduct: async (productId: string, quantityToAdd: number) => {
+    try {
+      const inventory = await prisma.inventory.updateMany({
+        where: {
+          productId,
+        },
+        data: {
+          quantity: {
+            increment: quantityToAdd, // Increment the existing stock by the given quantity
+          },
+        },
+      });
+
+      if (inventory.count === 0) {
+        throw new AppError(404, "Inventory not found for this product");
+      }
+
+      return inventory;
+    } catch (error) {
+      throw new AppError(500, "Failed to add stock to product");
+    }
+  },
+
+  // Update stock (e.g., decrease stock after a sale)
+  updateStock: async (productId: string, quantityToUpdate: number) => {
+    try {
+      const inventory = await prisma.inventory.updateMany({
+        where: {
+          productId,
+        },
+        data: {
+          quantity: quantityToUpdate, // Update the stock with the new quantity
+        },
+      });
+
+      if (inventory.count === 0) {
+        throw new AppError(404, "Inventory not found for this product");
+      }
+
+      return inventory;
+    } catch (error) {
+      throw new AppError(500, "Failed to update stock");
+    }
+  },
+
+  // Check current stock of a product
+  checkStock: async (productId: string) => {
+    try {
+      const inventory = await prisma.inventory.findFirst({
+        where: {
+          productId,
+        },
+      });
+
+      if (!inventory) {
+        throw new AppError(404, "No inventory record found for this product");
+      }
+
+      return inventory.quantity;
+    } catch (error) {
+      throw new AppError(500, "Failed to retrieve stock information");
     }
   },
 };
