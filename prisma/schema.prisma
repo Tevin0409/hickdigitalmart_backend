@@ -41,3 +41,37 @@ model Permission {
   updatedAt   DateTime @default(now())
   users       User[] @relation("UserPermissions")
 }
+model Product {
+  id          String         @id @default(uuid())
+  name        String         @db.VarChar(255)
+  subCategory SubCategory    @relation(fields: [subCategoryId], references: [id])
+  subCategoryId String
+  features    ProductFeature[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @default(now())
+}
+
+model ProductFeature {
+  id          String   @id @default(uuid())
+  description String   @db.Text
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+}
+
+model SubCategory {
+  id          String       @id @default(uuid())
+  name        String       @db.VarChar(255)
+  category    Category     @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  products    Product[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now())
+}
+
+model Category {
+  id          String       @id @default(uuid())
+  name        String       @db.VarChar(255)
+  subCategories SubCategory[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now())
+}
