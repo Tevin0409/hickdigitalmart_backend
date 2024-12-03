@@ -4,6 +4,7 @@ export interface CreateUserDTO {
   phoneNumber: string;
   firstName: string;
   lastName: string;
+  roleId: string;
 }
 export interface LoginDTO {
   email: string;
