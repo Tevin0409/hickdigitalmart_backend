@@ -8,20 +8,22 @@ datasource db {
 }
 
 model User {
-  id               String     @unique @id @default(uuid())
-  phoneNumber      String?    @unique @db.VarChar(15)
-  email            String     @unique @db.VarChar(320)
-  password         String
-  firstName        String
-  lastName         String
-  otpHash          String?
-  otpExpiresAt     DateTime?
-  inCorrectAttempts Int       @default(0)
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @default(now())
-  roleId           String?
-  role             Role?      @relation(fields: [roleId], references: [id])
-  permissions      Permission[] @relation("UserPermissions")
+  id                String         @unique @id @default(uuid())
+  phoneNumber       String?        @unique @db.VarChar(15)
+  email             String         @unique @db.VarChar(320)
+  password          String
+  firstName         String
+  lastName          String
+  otpHash           String?
+  otpExpiresAt      DateTime?
+  inCorrectAttempts Int            @default(0)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @default(now())
+  roleId            String?
+  role              Role?          @relation(fields: [roleId], references: [id])
+  permissions       Permission[]   @relation("UserPermissions")
+  carts             Cart[]
+  wishlists         Wishlist[]
 }
 
 model Role {
@@ -41,15 +43,18 @@ model Permission {
   updatedAt   DateTime @default(now())
   users       User[] @relation("UserPermissions")
 }
+
 model Product {
   id          String         @id @default(uuid())
   name        String         @db.VarChar(255)
   subCategory SubCategory    @relation(fields: [subCategoryId], references: [id])
   subCategoryId String
   features    ProductFeature[]
-   inventory    Inventory[] 
+  inventory   Inventory[] 
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @default(now())
+  cartItems   Cart[]
+  wishlists   Wishlist[]
 }
 
 model Inventory {
@@ -84,4 +89,25 @@ model Category {
   subCategories SubCategory[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now())
+}
+
+model Cart {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+}
+
+model Wishlist {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }

@@ -79,6 +79,7 @@ export const userService = {
 
       // Create JWT token
       const jwtData = {
+        id: existingUser.id,
         email: existingUser.email,
         firstName: existingUser.firstName,
         time: new Date(),

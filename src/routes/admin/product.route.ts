@@ -27,4 +27,5 @@ productRouter.post("/add-stock", productController.addStockToProduct);
 productRouter.patch("/update-stock", productController.updateStock);
 productRouter.get("/check-stock/:productId", productController.checkStock);
 
+
 export { productRouter };

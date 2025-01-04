@@ -193,6 +193,7 @@ export const productController = {
   ) => {
     try {
       const { productId, quantityToUpdate } = req.body;
+      console.log("product id",productId)
 
       // Update stock for the product
       const updatedInventory = await productService.updateStock(
@@ -219,6 +220,109 @@ export const productController = {
       const currentStock = await productService.checkStock(productId);
 
       res.status(200).json({ currentStock });
+    } catch (error) {
+      next(error);
+    }
+  },
+  getCartItems: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      const cartItems = await productService.getCartItems(userId);
+      res.status(200).json(cartItems);
+    } catch (error) {
+      next(error);
+    }
+  },
+  addToCart: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      const { productId, quantity } = req.body;
+      const cartItem = await productService.addToCart(userId, productId, quantity);
+      res.status(201).json(cartItem);
+    } catch (error) {
+      next(error);
+    }
+  },
+  updateCartItem: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      const cartId = req.params.cartId;
+      const { quantity } = req.body;
+      const updatedCartItem = await productService.updateCartItem(
+        userId,
+        cartId,
+        quantity
+      );
+      res.status(200).json(updatedCartItem);
+    } catch (error) {
+      next(error);
+    }
+  },
+  removeFromCart: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      const cartId = req.params.cartId;
+      await productService.removeFromCart(userId, cartId);
+      res.status(200).json({ message: "Item removed from cart successfully" });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Wishlist Handlers
+  getWishlistItems: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      const wishlistItems = await productService.getWishlistItems(userId);
+      res.status(200).json(wishlistItems);
+    } catch (error) {
+      next(error);
+    }
+  },
+  addToWishlist: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      const { productId } = req.body;
+      const wishlistItem = await productService.addToWishlist(userId, productId);
+      res.status(201).json(wishlistItem);
+    } catch (error) {
+      next(error);
+    }
+  },
+  removeFromWishlist: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      const wishlistId = req.params.wishlistId;
+      await productService.removeFromWishlist(userId, wishlistId);
+      res.status(200).json({ message: "Item removed from wishlist successfully" });
     } catch (error) {
       next(error);
     }
