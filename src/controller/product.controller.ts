@@ -10,7 +10,11 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      const products = await productService.getAllProducts();
+      const { searchTerm, categoryId } = req.query;
+      const products = await productService.getAllProducts(
+        searchTerm as string | undefined,
+        categoryId as string | undefined
+      );
       res.status(200).json(products);
     } catch (error) {
       next(error);
@@ -193,7 +197,7 @@ export const productController = {
   ) => {
     try {
       const { productId, quantityToUpdate } = req.body;
-      console.log("product id",productId)
+      console.log("product id", productId);
 
       // Update stock for the product
       const updatedInventory = await productService.updateStock(
@@ -245,7 +249,11 @@ export const productController = {
     try {
       const userId = req.user?.id;
       const { productId, quantity } = req.body;
-      const cartItem = await productService.addToCart(userId, productId, quantity);
+      const cartItem = await productService.addToCart(
+        userId,
+        productId,
+        quantity
+      );
       res.status(201).json(cartItem);
     } catch (error) {
       next(error);
@@ -307,7 +315,10 @@ export const productController = {
     try {
       const userId = req.user?.id;
       const { productId } = req.body;
-      const wishlistItem = await productService.addToWishlist(userId, productId);
+      const wishlistItem = await productService.addToWishlist(
+        userId,
+        productId
+      );
       res.status(201).json(wishlistItem);
     } catch (error) {
       next(error);
@@ -322,7 +333,9 @@ export const productController = {
       const userId = req.user?.id;
       const wishlistId = req.params.wishlistId;
       await productService.removeFromWishlist(userId, wishlistId);
-      res.status(200).json({ message: "Item removed from wishlist successfully" });
+      res
+        .status(200)
+        .json({ message: "Item removed from wishlist successfully" });
     } catch (error) {
       next(error);
     }

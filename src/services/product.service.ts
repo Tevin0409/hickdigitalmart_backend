@@ -13,8 +13,41 @@ const prisma = new PrismaClient();
 
 export const productService = {
   // Product Services
-  getAllProducts: async () => {
+  getAllProducts: async (searchTerm?: string, categoryId?: string) => {
     return prisma.product.findMany({
+      where: {
+        AND: [
+          searchTerm
+            ? {
+                OR: [
+                  {
+                    subCategory: {
+                      name: { contains: searchTerm, mode: "insensitive" },
+                    },
+                  },
+                  {
+                    subCategory: {
+                      category: {
+                        name: { contains: searchTerm, mode: "insensitive" },
+                      },
+                    },
+                  },
+                  {
+                    features: {
+                      some: {
+                        description: {
+                          contains: searchTerm,
+                          mode: "insensitive",
+                        },
+                      },
+                    },
+                  },
+                ],
+              }
+            : {},
+          categoryId ? { subCategory: { categoryId } } : {},
+        ],
+      },
       include: {
         subCategory: {
           include: {
@@ -178,11 +211,11 @@ export const productService = {
           productId: productId, // Use productId to find the inventory
         },
       });
-  
+
       if (!inventory) {
         throw new AppError(404, "Inventory not found for this product");
       }
-  
+
       // Update inventory quantity
       const updatedInventory = await prisma.inventory.update({
         where: {
@@ -192,12 +225,12 @@ export const productService = {
           quantity: quantityToUpdate,
         },
       });
-  
+
       return updatedInventory;
     } catch (error: any) {
       throw new AppError(500, "Failed to update stock " + error.message);
     }
-  },  
+  },
   // Check current stock of a product
   checkStock: async (productId: string) => {
     try {
@@ -219,108 +252,114 @@ export const productService = {
       );
     }
   },
-    // Wishlist Services
-    addToWishlist: async (userId: string, productId: string) => {
-      try {
-        return await prisma.wishlist.create({
-          data: {
-            userId,
-            productId,
-          },
-        });
-      } catch (error: any) {
-        throw new AppError(500, "Failed to add to wishlist: " + error.message);
-      }
-    },
-  
-    removeFromWishlist: async (userId: string, productId: string) => {
-      try {
-        return await prisma.wishlist.deleteMany({
-          where: {
-            userId,
-            productId,
-          },
-        });
-      } catch (error: any) {
-        throw new AppError(500, "Failed to remove from wishlist: " + error.message);
-      }
-    },
-  
-    getWishlistItems: async (userId: string) => {
-      try {
-        return await prisma.wishlist.findMany({
-          where: { userId },
-          include: {
-            product: true,
-          },
-        });
-      } catch (error: any) {
-        throw new AppError(500, "Failed to fetch wishlist: " + error.message);
-      }
-    },
-  
-    // Cart Services
-    addToCart: async (userId: string, productId: string, quantity: number) => {
-      try {
-        const existingCartItem = await prisma.cart.findFirst({
-          where: { userId, productId },
-        });
-  
-        if (existingCartItem) {
-          return await prisma.cart.update({
-            where: { id: existingCartItem.id },
-            data: { quantity: { increment: quantity } },
-          });
-        }
-  
-        return await prisma.cart.create({
-          data: {
-            userId,
-            productId,
-            quantity,
-          },
-        });
-      } catch (error: any) {
-        throw new AppError(500, "Failed to add to cart: " + error.message);
-      }
-    },
-  
-    removeFromCart: async (userId: string, productId: string) => {
-      try {
-        return await prisma.cart.deleteMany({
-          where: {
-            userId,
-            productId,
-          },
-        });
-      } catch (error: any) {
-        throw new AppError(500, "Failed to remove from cart: " + error.message);
-      }
-    },
-  
-    updateCartItem: async (userId: string, productId: string, quantity: number) => {
-      try {
-        return await prisma.cart.updateMany({
-          where: {
-            userId,
-            productId,
-          },
-          data: {
-            quantity,
-          },
-        });
-      } catch (error: any) {
-        throw new AppError(500, "Failed to update cart item: " + error.message);
-      }
-    },
-  
-    getCartItems: async (userId: string) => {
-      return await prisma.cart.findMany({
+  // Wishlist Services
+  addToWishlist: async (userId: string, productId: string) => {
+    try {
+      return await prisma.wishlist.create({
+        data: {
+          userId,
+          productId,
+        },
+      });
+    } catch (error: any) {
+      throw new AppError(500, "Failed to add to wishlist: " + error.message);
+    }
+  },
+
+  removeFromWishlist: async (userId: string, productId: string) => {
+    try {
+      return await prisma.wishlist.deleteMany({
+        where: {
+          userId,
+          productId,
+        },
+      });
+    } catch (error: any) {
+      throw new AppError(
+        500,
+        "Failed to remove from wishlist: " + error.message
+      );
+    }
+  },
+
+  getWishlistItems: async (userId: string) => {
+    try {
+      return await prisma.wishlist.findMany({
         where: { userId },
         include: {
           product: true,
         },
       });
-    },
-  
+    } catch (error: any) {
+      throw new AppError(500, "Failed to fetch wishlist: " + error.message);
+    }
+  },
+
+  // Cart Services
+  addToCart: async (userId: string, productId: string, quantity: number) => {
+    try {
+      const existingCartItem = await prisma.cart.findFirst({
+        where: { userId, productId },
+      });
+
+      if (existingCartItem) {
+        return await prisma.cart.update({
+          where: { id: existingCartItem.id },
+          data: { quantity: { increment: quantity } },
+        });
+      }
+
+      return await prisma.cart.create({
+        data: {
+          userId,
+          productId,
+          quantity,
+        },
+      });
+    } catch (error: any) {
+      throw new AppError(500, "Failed to add to cart: " + error.message);
+    }
+  },
+
+  removeFromCart: async (userId: string, productId: string) => {
+    try {
+      return await prisma.cart.deleteMany({
+        where: {
+          userId,
+          productId,
+        },
+      });
+    } catch (error: any) {
+      throw new AppError(500, "Failed to remove from cart: " + error.message);
+    }
+  },
+
+  updateCartItem: async (
+    userId: string,
+    productId: string,
+    quantity: number
+  ) => {
+    try {
+      return await prisma.cart.updateMany({
+        where: {
+          userId,
+          productId,
+        },
+        data: {
+          quantity,
+        },
+      });
+    } catch (error: any) {
+      throw new AppError(500, "Failed to update cart item: " + error.message);
+    }
+  },
+
+  getCartItems: async (userId: string) => {
+    return await prisma.cart.findMany({
+      where: { userId },
+      include: {
+        product: true,
+      },
+    });
+  },
 };
