@@ -123,7 +123,7 @@ export const userService = {
   getAllUsers: async () => {
     try {
       const users = await prisma.user.findMany({
-        include: { role: true }, // Include role information if needed
+        include: { role: true }, 
       });
       return users;
     } catch (err: any) {
@@ -138,7 +138,7 @@ export const userService = {
     try {
       const user = await prisma.user.findUnique({
         where: { id },
-        include: { role: true }, // Include role information if needed
+        include: { role: true },
       });
 
       if (!user) {
@@ -156,7 +156,7 @@ export const userService = {
     try {
       const user = await prisma.user.findUnique({
         where: { email },
-        include: { role: true }, // Include role information if needed
+        include: { role: true }, 
       });
 
       if (!user) {

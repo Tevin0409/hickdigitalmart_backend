@@ -340,4 +340,108 @@ export const productController = {
       next(error);
     }
   },
+  createOrder: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      const { products } = req.body;
+
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+
+      const order = await productService.createOrder(userId, products);
+      res.status(201).json(order);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Update order status
+  updateOrderStatus: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { orderId } = req.params;
+      const { status } = req.body;
+
+      const updatedOrder = await productService.updateOrderStatus(
+        orderId,
+        status
+      );
+      res.status(200).json(updatedOrder);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Get orders (for a specific user or all orders)
+  getOrders: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      const orders = await productService.getOrders(userId);
+      res.status(200).json(orders);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Cancel an order
+  cancelOrder: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { orderId } = req.params;
+      const { restoreStock } = req.body;
+
+      const cancelledOrder = await productService.cancelOrder(
+        orderId,
+        restoreStock
+      );
+      res.status(200).json(cancelledOrder);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Get a single order by ID
+  getOrder: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { orderId } = req.params;
+      const order = await productService.getOrder(orderId);
+      res.status(200).json(order);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Delete an order by ID
+  deleteOrder: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { orderId } = req.params;
+      const result = await productService.deleteOrder(orderId);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 };

@@ -362,4 +362,168 @@ export const productService = {
       },
     });
   },
+
+  createOrder: async (
+    userId: string,
+    products: { productId: string; quantity: number }[]
+  ) => {
+    try {
+      // Check stock for each product
+      for (const { productId, quantity } of products) {
+        const inventory = await prisma.inventory.findFirst({
+          where: { productId },
+        });
+
+        if (!inventory || inventory.quantity < quantity) {
+          throw new AppError(
+            400,
+            `Insufficient stock for product ID: ${productId}`
+          );
+        }
+      }
+
+      // Create the order and update inventory
+      return await prisma.$transaction(async (tx) => {
+        // Create order
+        const order = await tx.order.create({
+          data: {
+            userId,
+            orderItems: {
+              create: products.map(({ productId, quantity }) => ({
+                productId,
+                quantity,
+              })),
+            },
+          },
+          include: { orderItems: true },
+        });
+
+        // Reduce inventory
+        for (const { productId, quantity } of products) {
+          await tx.inventory.updateMany({
+            where: { productId },
+            data: { quantity: { decrement: quantity } },
+          });
+        }
+
+        return order;
+      });
+    } catch (error: any) {
+      throw new AppError(500, "Failed to create order: " + error.message);
+    }
+  },
+
+  updateOrderStatus: async (orderId: string, status: string) => {
+    try {
+      return await prisma.order.update({
+        where: { id: orderId },
+        data: { status },
+      });
+    } catch (error: any) {
+      throw new AppError(500, "Failed to update order status: " + error.message);
+    }
+  },
+
+  getOrders: async (userId?: string) => {
+    try {
+      return await prisma.order.findMany({
+        where: userId ? { userId } : {},
+        include: {
+          orderItems: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+    } catch (error: any) {
+      throw new AppError(500, "Failed to retrieve orders: " + error.message);
+    }
+  },
+
+  cancelOrder: async (orderId: string, restoreStock = false) => {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({
+          where: { id: orderId },
+          include: { orderItems: true },
+        });
+
+        if (!order) {
+          throw new AppError(404, "Order not found");
+        }
+
+        if (restoreStock) {
+          for (const { productId, quantity } of order.orderItems) {
+            await tx.inventory.updateMany({
+              where: { productId },
+              data: { quantity: { increment: quantity } },
+            });
+          }
+        }
+
+        return await tx.order.update({
+          where: { id: orderId },
+          data: { status: "Cancelled" },
+        });
+      });
+    } catch (error: any) {
+      throw new AppError(500, "Failed to cancel order: " + error.message);
+    }
+  },
+  getOrder: async (orderId: string) => {
+    try {
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          orderItems: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+      
+      if (!order) {
+        throw new AppError(404, "Order not found");
+      }
+      
+      return order;
+    } catch (error: any) {
+      throw new AppError(500, "Failed to retrieve order: " + error.message);
+    }
+  },
+
+  // Delete an order
+  deleteOrder: async (orderId: string) => {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({
+          where: { id: orderId },
+          include: { orderItems: true },
+        });
+
+        if (!order) {
+          throw new AppError(404, "Order not found");
+        }
+
+        // Restore stock if needed (when cancelling an order)
+        for (const { productId, quantity } of order.orderItems) {
+          await tx.inventory.updateMany({
+            where: { productId },
+            data: { quantity: { increment: quantity } },
+          });
+        }
+
+        // Delete the order
+        await tx.order.delete({
+          where: { id: orderId },
+        });
+
+        return { message: "Order deleted successfully" };
+      });
+    } catch (error: any) {
+      throw new AppError(500, "Failed to delete order: " + error.message);
+    }
+  },
 };

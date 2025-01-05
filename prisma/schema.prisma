@@ -24,6 +24,7 @@ model User {
   permissions       Permission[]   @relation("UserPermissions")
   carts             Cart[]
   wishlists         Wishlist[]
+  orders            Order[]
 }
 
 model Role {
@@ -55,6 +56,7 @@ model Product {
   updatedAt   DateTime       @default(now())
   cartItems   Cart[]
   wishlists   Wishlist[]
+  orderItems  OrderItem[]
 }
 
 model Inventory {
@@ -110,4 +112,25 @@ model Wishlist {
   product    Product  @relation(fields: [productId], references: [id])
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
+  status      String      @default("Pending")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now()) @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }

@@ -1,5 +1,5 @@
 import express from "express";
-import { productController } from "../../controller";
+import { productController } from "../../controller"; 
 import { authMiddleware } from "../../middleware";
 
 const userProductRouter = express.Router();
@@ -21,5 +21,10 @@ userProductRouter.get("/wishlist", authMiddleware, productController.getWishlist
 userProductRouter.post("/wishlist/add", authMiddleware, productController.addToWishlist);
 userProductRouter.delete("/wishlist/remove/:wishlistId", authMiddleware, productController.removeFromWishlist);
 
+// Order Routes
+userProductRouter.post("/orders", authMiddleware, productController.createOrder);
+userProductRouter.get("/orders", authMiddleware, productController.getOrders); 
+userProductRouter.get("/orders/:orderId", authMiddleware, productController.getOrder);
+userProductRouter.delete("/orders/:orderId", authMiddleware, productController.deleteOrder); 
 
 export { userProductRouter };
