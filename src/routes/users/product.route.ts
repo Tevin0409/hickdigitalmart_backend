@@ -6,6 +6,7 @@ const userProductRouter = express.Router();
 
 // Product Routes
 userProductRouter.get("/", productController.getAllProducts);
+userProductRouter.get("/by-id/:id", authMiddleware, productController.getProduct);
 
 // Category Routes
 userProductRouter.get("/categories", authMiddleware, productController.getAllCategories);

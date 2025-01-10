@@ -36,6 +36,18 @@ export const productController = {
       next(error);
     }
   },
+  getProduct: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const product = await productService.getProductById(req.params.id);
+      res.status(200).json(product);
+    } catch (error) {
+      next(error);
+    }
+  },
   updateProduct: async (
     req: express.Request,
     res: express.Response,

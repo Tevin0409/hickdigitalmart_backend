@@ -60,6 +60,26 @@ export const productService = {
     });
   },
 
+  getProductById: async (id: string) => {
+    try {
+      return await prisma.product.findUnique({
+        where: {
+          id: id,
+        },
+        include: {
+          subCategory: {
+            include: {
+              category: true,
+            },
+          },
+          features: true,
+          inventory: true,
+        },
+      });
+    } catch (error: any) {
+      throw new AppError(500, "Failed to update product" + error.message);
+    }
+  },
   createProduct: async (data: CreateProductDTO, inventoryQuantity: number) => {
     try {
       // Explicitly type 'feature' as an object with 'description' property
@@ -420,7 +440,10 @@ export const productService = {
         data: { status },
       });
     } catch (error: any) {
-      throw new AppError(500, "Failed to update order status: " + error.message);
+      throw new AppError(
+        500,
+        "Failed to update order status: " + error.message
+      );
     }
   },
 
@@ -483,11 +506,11 @@ export const productService = {
           },
         },
       });
-      
+
       if (!order) {
         throw new AppError(404, "Order not found");
       }
-      
+
       return order;
     } catch (error: any) {
       throw new AppError(500, "Failed to retrieve order: " + error.message);

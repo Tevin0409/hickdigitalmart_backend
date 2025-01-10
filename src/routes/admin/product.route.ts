@@ -9,6 +9,7 @@ productRouter.get("/", productController.getAllProducts);
 productRouter.post("/create", authMiddleware, productController.createProduct);
 productRouter.patch("/update/:id", authMiddleware, productController.updateProduct);
 productRouter.delete("/delete/:id", authMiddleware, productController.deleteProduct);
+productRouter.get("/by-id/:id", authMiddleware, productController.getProduct);
 
 // Category Routes
 productRouter.get("/categories", authMiddleware, productController.getAllCategories);
