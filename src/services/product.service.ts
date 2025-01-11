@@ -24,6 +24,9 @@ export const productService = {
               ? {
                   OR: [
                     {
+                      name: { contains: searchTerm, mode: "insensitive" },
+                    },
+                    {
                       subCategory: {
                         name: { contains: searchTerm, mode: "insensitive" },
                       },
