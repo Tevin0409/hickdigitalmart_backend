@@ -287,14 +287,29 @@ export const productService = {
   // Wishlist Services
   addToWishlist: async (userId: string, productId: string) => {
     try {
-      return await prisma.wishlist.create({
-        data: {
-          userId,
-          productId,
-        },
+      // Check if the wishlist entry exists
+      const existingEntry = await prisma.wishlist.findFirst({
+        where: { userId, productId },
       });
+
+      if (existingEntry) {
+        // If the entry exists, delete it
+        await prisma.wishlist.delete({
+          where: { id: existingEntry.id },
+        });
+        return { message: "Wishlist item removed." };
+      } else {
+        // If the entry does not exist, add a new one
+        await prisma.wishlist.create({
+          data: {
+            userId,
+            productId,
+          },
+        });
+        return { message: "Wishlist item added." };
+      }
     } catch (error: any) {
-      throw new AppError(500, "Failed to add to wishlist: " + error.message);
+      throw new AppError(500, "Failed to manage wishlist: " + error.message);
     }
   },
 
