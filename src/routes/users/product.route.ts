@@ -6,10 +6,10 @@ const userProductRouter = express.Router();
 
 // Product Routes
 userProductRouter.get("/", productController.getAllProducts);
-userProductRouter.get("/by-id/:id", authMiddleware, productController.getProduct);
+userProductRouter.get("/by-id/:id", productController.getProduct);
 
 // Category Routes
-userProductRouter.get("/categories", authMiddleware, productController.getAllCategories);
+userProductRouter.get("/categories", productController.getAllCategories);
 
 // Cart Routes
 userProductRouter.get("/cart", authMiddleware, productController.getCartItems);
