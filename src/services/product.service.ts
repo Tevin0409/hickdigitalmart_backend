@@ -14,52 +14,64 @@ const prisma = new PrismaClient();
 export const productService = {
   // Product Services
   getAllProducts: async (searchTerm?: string, categoryId?: string) => {
-    return prisma.product.findMany({
-      where: {
-        AND: [
-          searchTerm
-            ? {
-                OR: [
-                  {
-                    subCategory: {
-                      name: { contains: searchTerm, mode: "insensitive" },
-                    },
-                  },
-                  {
-                    subCategory: {
-                      category: {
+    try {
+      console.log("Search Term:", searchTerm, "Category ID:", categoryId);
+
+      return await prisma.product.findMany({
+        where: {
+          AND: [
+            searchTerm
+              ? {
+                  OR: [
+                    {
+                      subCategory: {
                         name: { contains: searchTerm, mode: "insensitive" },
                       },
                     },
-                  },
-                  {
-                    features: {
-                      some: {
-                        description: {
-                          contains: searchTerm,
-                          mode: "insensitive",
+                    {
+                      subCategory: {
+                        category: {
+                          name: { contains: searchTerm, mode: "insensitive" },
                         },
                       },
                     },
+                    {
+                      features: {
+                        some: {
+                          description: {
+                            contains: searchTerm,
+                            mode: "insensitive",
+                          },
+                        },
+                      },
+                    },
+                  ],
+                }
+              : {},
+            categoryId
+              ? {
+                  subCategory: {
+                    categoryId: { equals: categoryId },
                   },
-                ],
-              }
-            : {},
-          categoryId ? { subCategory: { categoryId } } : {},
-        ],
-      },
-      include: {
-        subCategory: {
-          include: {
-            category: true,
-          },
+                }
+              : {},
+          ],
         },
-        features: true,
-        inventory: true,
-      },
-    });
+        include: {
+          subCategory: {
+            include: {
+              category: true,
+            },
+          },
+          features: true,
+          inventory: true,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      throw error;
+    }
   },
-
   getProductById: async (id: string) => {
     try {
       return await prisma.product.findUnique({
