@@ -18,9 +18,11 @@ export const userService = {
     }
 
     try {
-      const existingUser = await prisma.user.findUnique({
-        where: { email },
-      });
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [{ email }, { phoneNumber }],
+        },
+      })
 
       if (existingUser) {
         throw new AppError(400, "This email is already registered with us");
@@ -123,7 +125,7 @@ export const userService = {
   getAllUsers: async () => {
     try {
       const users = await prisma.user.findMany({
-        include: { role: true }, 
+        include: { role: true },
       });
       return users;
     } catch (err: any) {
@@ -156,7 +158,7 @@ export const userService = {
     try {
       const user = await prisma.user.findUnique({
         where: { email },
-        include: { role: true }, 
+        include: { role: true },
       });
 
       if (!user) {
