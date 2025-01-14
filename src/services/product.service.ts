@@ -102,6 +102,7 @@ export const productService = {
         data: {
           name: data.name,
           subCategoryId: data.subCategoryId,
+          defaultPrice:data.defaultPrice,
           features: {
             create: data.features.map((feature: { description: string }) => ({
               description: feature.description,

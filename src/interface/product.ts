@@ -3,6 +3,7 @@
 // Product DTOs
 export interface CreateProductDTO {
   name: string;
+  defaultPrice:number;
   subCategoryId: string;
   features: {
     description: string;
