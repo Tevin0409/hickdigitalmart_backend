@@ -7,7 +7,7 @@ const roleRouter = express.Router();
 
 roleRouter.get("/", authMiddleware, roleController.getAllRoles);
 
-roleRouter.post("/create-role",authMiddleware, roleController.createrole);
+roleRouter.post("/create-role", roleController.createrole);
 
 roleRouter.patch("/update/:id",authMiddleware, roleController.updateRole);
 
