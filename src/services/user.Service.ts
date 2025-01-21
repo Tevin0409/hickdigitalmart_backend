@@ -4,6 +4,7 @@ import { AppError } from "../middleware";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
+import { generateToken } from "../utils/jwt";
 
 const prisma = new PrismaClient();
 
@@ -22,7 +23,7 @@ export const userService = {
         where: {
           OR: [{ email }, { phoneNumber }],
         },
-      })
+      });
 
       if (existingUser) {
         throw new AppError(400, "This email is already registered with us");
@@ -60,35 +61,42 @@ export const userService = {
 
   loginUser: async (loginData: LoginDTO) => {
     const { email, password } = loginData;
-
+  
     try {
       const existingUser = await prisma.user.findUnique({
         where: { email },
       });
-
+  
       if (!existingUser) {
         throw new AppError(400, `No user found with email: ${email}`);
       }
-      const isPasswordValid = await bcrypt.compare(
-        password,
-        existingUser.password
-      );
-
+  
+      const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+  
       if (!isPasswordValid) {
-        // Increment the failed login attempts here if tracking them
+        // Increment failed login attempts
+        await prisma.user.update({
+          where: { email },
+          data: { inCorrectAttempts: (existingUser.inCorrectAttempts || 0) + 1 },
+        });
+  
         throw new AppError(401, "Invalid credentials");
       }
-
-      // Create JWT token
-      const jwtData = {
-        id: existingUser.id,
-        email: existingUser.email,
-        firstName: existingUser.firstName,
-        time: new Date(),
-      };
-      const token = jwt.sign(jwtData, JWT_SECRET, { expiresIn: "24h" });
-
-      return { token, user: existingUser };
+  
+      // Generate tokens
+      const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken } = generateToken(existingUser);
+  
+      // Reset failed attempts & store refresh token in DB
+      await prisma.user.update({
+        where: { email },
+        data: {
+          inCorrectAttempts: 0,
+          refreshToken,
+          refreshTokenExpiresAt,
+        },
+      });
+  
+      return { accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, user: existingUser };
     } catch (err: any) {
       throw new AppError(500, `Failed to login: ${err.message}`);
     }
