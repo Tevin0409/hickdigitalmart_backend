@@ -1,10 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 import { CreateUserDTO, LoginDTO } from "../interface/user";
 import { AppError } from "../middleware";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
-import { generateToken } from "../utils/jwt";
+import { generateToken, verifyToken } from "../utils/jwt";
 
 const prisma = new PrismaClient();
 
@@ -61,31 +61,41 @@ export const userService = {
 
   loginUser: async (loginData: LoginDTO) => {
     const { email, password } = loginData;
-  
+
     try {
       const existingUser = await prisma.user.findUnique({
         where: { email },
       });
-  
+
       if (!existingUser) {
         throw new AppError(400, `No user found with email: ${email}`);
       }
-  
-      const isPasswordValid = await bcrypt.compare(password, existingUser.password);
-  
+
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        existingUser.password
+      );
+
       if (!isPasswordValid) {
         // Increment failed login attempts
         await prisma.user.update({
           where: { email },
-          data: { inCorrectAttempts: (existingUser.inCorrectAttempts || 0) + 1 },
+          data: {
+            inCorrectAttempts: (existingUser.inCorrectAttempts || 0) + 1,
+          },
         });
-  
+
         throw new AppError(401, "Invalid credentials");
       }
-  
+
       // Generate tokens
-      const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken } = generateToken(existingUser);
-  
+      const {
+        accessToken,
+        accessTokenExpiresAt,
+        refreshTokenExpiresAt,
+        refreshToken,
+      } = generateToken(existingUser);
+
       // Reset failed attempts & store refresh token in DB
       await prisma.user.update({
         where: { email },
@@ -95,8 +105,57 @@ export const userService = {
           refreshTokenExpiresAt,
         },
       });
-  
-      return { accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, user: existingUser };
+
+      return {
+        accessToken,
+        accessTokenExpiresAt,
+        refreshToken,
+        refreshTokenExpiresAt,
+        user: existingUser,
+      };
+    } catch (err: any) {
+      throw new AppError(500, `Failed to login: ${err.message}`);
+    }
+  },
+  refresh: async (id: string, refresh_token: string) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id, refreshToken: refresh_token },
+      });
+
+      if (!user) {
+        throw new AppError(400, `No user found `);
+      }
+      const isValid = verifyToken(refresh_token, "refresh");
+
+      if (!isValid) {
+        throw new AppError(401, "Invalid refresh token ,Please log in");
+      }
+
+      // Generate tokens
+      const {
+        accessToken,
+        accessTokenExpiresAt,
+        refreshTokenExpiresAt,
+        refreshToken,
+      } = generateToken(user);
+
+      // Reset failed attempts & store refresh token in DB
+      await prisma.user.update({
+        where: { email: user.email },
+        data: {
+          refreshToken,
+          refreshTokenExpiresAt,
+        },
+      });
+
+      return {
+        accessToken,
+        accessTokenExpiresAt,
+        refreshToken,
+        refreshTokenExpiresAt,
+        user: user,
+      };
     } catch (err: any) {
       throw new AppError(500, `Failed to login: ${err.message}`);
     }

@@ -5,6 +5,6 @@ const authRouter = express.Router();
 
 authRouter.post("/create-user", userController.createUser);
 authRouter.post("/login", userController.login);
-
+authRouter.post("/refresh", userController.refresh);
 
 export { authRouter };

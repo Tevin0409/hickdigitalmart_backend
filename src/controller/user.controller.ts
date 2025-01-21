@@ -32,6 +32,22 @@ export const userController = {
       next(error);
     }
   },
+  // User login
+  refresh: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const user = await userService.refresh(
+        req.body.id,
+        req.body.refreshToken
+      );
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  },
 
   // Update an existing user
   updateUser: async (
