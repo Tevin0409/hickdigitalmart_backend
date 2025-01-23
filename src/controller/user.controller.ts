@@ -32,6 +32,19 @@ export const userController = {
       next(error);
     }
   },
+  verify: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const data = req.body;
+      const user = await userService.verifyUser(data);
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  },
   // User login
   refresh: async (
     req: express.Request,

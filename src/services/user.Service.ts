@@ -5,6 +5,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
 import { generateToken, verifyToken } from "../utils/jwt";
+import { generateOTP } from "../utils/util";
+import { sendOTPEmail } from "./email.Service";
 
 const prisma = new PrismaClient();
 
@@ -26,7 +28,10 @@ export const userService = {
       });
 
       if (existingUser) {
-        throw new AppError(400, "This email is already registered with us");
+        throw new AppError(
+          400,
+          "This email or phone number is already registered with us"
+        );
       }
 
       // Validate roleId exists in the Role table
@@ -40,6 +45,9 @@ export const userService = {
 
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
+      const otp = generateOTP();
+      const otpHash = await bcrypt.hash(otp, 10);
+      const otpExpiresAt = new Date(Date.now() + 60 * 30 * 1000);
 
       // Create the user
       const result = await prisma.user.create({
@@ -48,12 +56,16 @@ export const userService = {
           lastName,
           email,
           phoneNumber,
+          otpHash,
+          otpExpiresAt,
           password: hashedPassword,
           roleId,
         },
       });
 
-      return result;
+      await sendOTPEmail(result.email, otp);
+
+      return `Please check your email to verify Account`;
     } catch (err: any) {
       throw new AppError(500, `Failed to create user: ${err.message}`);
     }
@@ -88,6 +100,29 @@ export const userService = {
         throw new AppError(401, "Invalid credentials");
       }
 
+      //check if verified
+
+      if (!existingUser.isVerified) {
+        const otp = generateOTP();
+        const otpHash = await bcrypt.hash(otp, 10);
+        const otpExpiresAt = new Date(Date.now() + 60 * 30 * 1000);
+
+        await prisma.user.update({
+          where: { email },
+          data: {
+            otpHash,
+            otpExpiresAt,
+          },
+        });
+
+        await sendOTPEmail(existingUser.email, otp);
+
+        throw new AppError(
+          401,
+          "This account is not yet verified , check your email for an otp to verify your account "
+        );
+      }
+
       // Generate tokens
       const {
         accessToken,
@@ -116,6 +151,62 @@ export const userService = {
     } catch (err: any) {
       throw new AppError(500, `Failed to login: ${err.message}`);
     }
+  },
+  verifyUser: async (verifyData: { email: string; otp: string }) => {
+    if (!verifyData.email || !verifyData.otp) {
+      throw new Error("Email and otp are required");
+    }
+    const existingUser = await prisma.user.findUnique({
+      where: { email: verifyData.email },
+    });
+
+    if (!existingUser || !existingUser.otpHash) {
+      throw new Error("User not found");
+    }
+
+    // Check if OTP is valid
+    const isOTPValid = await bcrypt.compare(
+      verifyData.otp,
+      existingUser.otpHash
+    );
+    if (!isOTPValid) {
+      throw new Error("Invalid OTP");
+    }
+
+    // Check if OTP has expired
+    if (
+      existingUser.otpExpiresAt &&
+      new Date(existingUser.otpExpiresAt) < new Date()
+    ) {
+      throw new Error("OTP has expired");
+    }
+
+    // Generate authentication tokens
+    const {
+      accessToken,
+      accessTokenExpiresAt,
+      refreshToken,
+      refreshTokenExpiresAt,
+    } = generateToken(existingUser);
+
+    // Reset incorrect attempts & store refresh token in the database
+    await prisma.user.update({
+      where: { email: verifyData.email },
+      data: {
+        inCorrectAttempts: 0,
+        refreshToken,
+        refreshTokenExpiresAt,
+        isVerified: true,
+      },
+    });
+
+    return {
+      accessToken,
+      accessTokenExpiresAt,
+      refreshToken,
+      refreshTokenExpiresAt,
+      user: existingUser,
+    };
   },
   refresh: async (id: string, refresh_token: string) => {
     try {

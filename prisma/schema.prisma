@@ -16,6 +16,7 @@ model User {
   lastName              String
   otpHash               String?
   otpExpiresAt          DateTime?
+  isVerified            Boolean       @default(false)
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
   inCorrectAttempts     Int          @default(0)
