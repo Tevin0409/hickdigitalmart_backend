@@ -8,25 +8,25 @@ datasource db {
 }
 
 model User {
-  id                String       @id @unique @default(uuid())
-  phoneNumber       String?      @unique @db.VarChar(15)
-  email             String       @unique @db.VarChar(320)
-  password          String
-  firstName         String
-  lastName          String
-  otpHash           String?
-  otpExpiresAt      DateTime?
-  refreshToken      String?
+  id                    String       @id @unique @default(uuid())
+  phoneNumber           String?      @unique @db.VarChar(15)
+  email                 String       @unique @db.VarChar(320)
+  password              String
+  firstName             String
+  lastName              String
+  otpHash               String?
+  otpExpiresAt          DateTime?
+  refreshToken          String?
   refreshTokenExpiresAt DateTime?
-  inCorrectAttempts Int          @default(0)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @default(now())
-  roleId            String?
-  role              Role?        @relation(fields: [roleId], references: [id])
-  permissions       Permission[] @relation("UserPermissions")
-  carts             Cart[]
-  wishlists         Wishlist[]
-  orders            Order[]
+  inCorrectAttempts     Int          @default(0)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @default(now())
+  roleId                String?
+  role                  Role?        @relation(fields: [roleId], references: [id])
+  permissions           Permission[] @relation("UserPermissions")
+  carts                 Cart[]
+  wishlists             Wishlist[]
+  orders                Order[]
 }
 
 model Role {
@@ -53,31 +53,67 @@ model Product {
   name            String            @db.VarChar(255)
   subCategory     SubCategory       @relation(fields: [subCategoryId], references: [id])
   subCategoryId   String
-  features        ProductFeature[]
   defaultPrice    Float
-  inventory       Inventory[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @default(now())
   cartItems       Cart[]
   wishlists       Wishlist[]
   orderItems      OrderItem[]
   PricePercentage PricePercentage[]
+  models          ProductModel[]
+}
+
+model ProductModel {
+  id          String           @id @default(uuid())
+  productId   String
+  product     Product          @relation(fields: [productId], references: [id])
+  name        String           @db.VarChar(255)
+  description String?          @db.Text
+  price       Float
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
+  features    ProductFeature[]
+  inventory   Inventory?
+  OrderItem   OrderItem[]
 }
 
 model Inventory {
-  id        String   @id @default(uuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
+  id        String       @id @default(uuid())
+  modelId   String       @unique
+  model     ProductModel @relation(fields: [modelId], references: [id])
   quantity  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @default(now()) @updatedAt
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+  status     String      @default("Pending")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @default(now()) @updatedAt
+}
+
+model OrderItem {
+  id             String       @id @default(uuid())
+  orderId        String
+  order          Order        @relation(fields: [orderId], references: [id])
+  productModelId String
+  productModel   ProductModel @relation(fields: [productModelId], references: [id])
+  quantity       Int
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now()) @updatedAt
+  Product        Product?     @relation(fields: [productId], references: [id])
+  productId      String?
 }
 
 model ProductFeature {
-  id          String  @id @default(uuid())
-  description String  @db.Text
-  product     Product @relation(fields: [productId], references: [id])
-  productId   String
+  id          String       @id @default(uuid())
+  description String       @db.Text
+  modelId     String
+  model       ProductModel @relation(fields: [modelId], references: [id])
 }
 
 model SubCategory {
@@ -115,27 +151,6 @@ model Wishlist {
   user      User     @relation(fields: [userId], references: [id])
   productId String
   product   Product  @relation(fields: [productId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-}
-
-model Order {
-  id         String      @id @default(uuid())
-  userId     String
-  user       User        @relation(fields: [userId], references: [id])
-  orderItems OrderItem[]
-  status     String      @default("Pending")
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @default(now()) @updatedAt
-}
-
-model OrderItem {
-  id        String   @id @default(uuid())
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }

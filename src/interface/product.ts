@@ -3,12 +3,21 @@
 // Product DTOs
 export interface CreateProductDTO {
   name: string;
-  defaultPrice:number;
+  defaultPrice: number;
   subCategoryId: string;
-  features: {
-    description: string;
+  models: {
+    name: string;
+    description?: string;
+    price: number;
+    features: {
+      description: string;
+    }[];
+    inventory: {
+      quantity: number;
+    };
   }[];
 }
+
 
 export interface UpdateProductDTO {
   name?: string;

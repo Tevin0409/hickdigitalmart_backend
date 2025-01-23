@@ -23,9 +23,7 @@ export const productService = {
             searchTerm
               ? {
                   OR: [
-                    {
-                      name: { contains: searchTerm, mode: "insensitive" },
-                    },
+                    { name: { contains: searchTerm, mode: "insensitive" } },
                     {
                       subCategory: {
                         name: { contains: searchTerm, mode: "insensitive" },
@@ -39,11 +37,15 @@ export const productService = {
                       },
                     },
                     {
-                      features: {
+                      models: {
                         some: {
-                          description: {
-                            contains: searchTerm,
-                            mode: "insensitive",
+                          features: {
+                            some: {
+                              description: {
+                                contains: searchTerm,
+                                mode: "insensitive",
+                              },
+                            },
                           },
                         },
                       },
@@ -62,12 +64,14 @@ export const productService = {
         },
         include: {
           subCategory: {
+            include: { category: true },
+          },
+          models: {
             include: {
-              category: true,
+              features: true,
+              inventory: true,
             },
           },
-          features: true,
-          inventory: true,
         },
       });
     } catch (error) {
@@ -75,48 +79,62 @@ export const productService = {
       throw error;
     }
   },
+
   getProductById: async (id: string) => {
     try {
       return await prisma.product.findUnique({
-        where: {
-          id: id,
-        },
+        where: { id },
         include: {
           subCategory: {
+            include: { category: true },
+          },
+          models: {
             include: {
-              category: true,
+              features: true,
+              inventory: true,
             },
           },
-          features: true,
-          inventory: true,
         },
       });
     } catch (error: any) {
-      throw new AppError(500, "Failed to update product" + error.message);
+      throw new AppError(500, "Failed to fetch product: " + error.message);
     }
   },
-  createProduct: async (data: CreateProductDTO, inventoryQuantity: number) => {
+
+  createProduct: async (data: CreateProductDTO) => {
     try {
-      // Explicitly type 'feature' as an object with 'description' property
       return await prisma.product.create({
         data: {
           name: data.name,
           subCategoryId: data.subCategoryId,
-          defaultPrice:data.defaultPrice,
-          features: {
-            create: data.features.map((feature: { description: string }) => ({
-              description: feature.description,
-            })),
-          },
-          inventory: {
-            create: {
-              quantity: inventoryQuantity || 0,
-            },
+          defaultPrice: data.defaultPrice,
+          models: {
+            create: data.models.map(
+              (model: {
+                name: string;
+                description?: string;
+                price: number;
+                features: { description: string }[];
+                inventory: { quantity: number };
+              }) => ({
+                name: model.name,
+                description: model.description,
+                price: model.price,
+                features: {
+                  create: model.features.map((feature) => ({
+                    description: feature.description,
+                  })),
+                },
+                inventory: {
+                  create: { quantity: model.inventory.quantity || 0 },
+                },
+              })
+            ),
           },
         },
       });
     } catch (error: any) {
-      throw new AppError(500, "Failed to create product" + error.message);
+      throw new AppError(500, "Failed to create product: " + error.message);
     }
   },
 
@@ -127,17 +145,39 @@ export const productService = {
         data: {
           name: data.name,
           subCategoryId: data.subCategoryId,
-          features: {
-            upsert: data.features.map((feature: { description: string }) => ({
-              where: { description: feature.description },
-              update: { description: feature.description },
-              create: { description: feature.description },
-            })),
+          models: {
+            update: data.models.map(
+              (model: {
+                id: string;
+                name: string;
+                description?: string;
+                price: number;
+                features: { id?: string; description: string }[];
+                inventory: { quantity: number };
+              }) => ({
+                where: { id: model.id },
+                data: {
+                  name: model.name,
+                  description: model.description,
+                  price: model.price,
+                  features: {
+                    upsert: model.features.map((feature) => ({
+                      where: { id: feature.id || "" },
+                      update: { description: feature.description },
+                      create: { description: feature.description },
+                    })),
+                  },
+                  inventory: {
+                    update: { quantity: model.inventory.quantity || 0 },
+                  },
+                },
+              })
+            ),
           },
         },
       });
     } catch (error: any) {
-      throw new AppError(500, "Failed to update product" + error.message);
+      throw new AppError(500, "Failed to update product: " + error.message);
     }
   },
 
@@ -215,11 +255,12 @@ export const productService = {
     }
   },
 
-  addStockToProduct: async (productId: string, quantityToAdd: number) => {
+  addStockToProduct: async (modelId: string, quantityToAdd: number) => {
     try {
+      // Update inventory for a specific model
       const inventory = await prisma.inventory.updateMany({
         where: {
-          productId,
+          modelId: modelId, // Update inventory for the specific model
         },
         data: {
           quantity: {
@@ -229,65 +270,74 @@ export const productService = {
       });
 
       if (inventory.count === 0) {
-        throw new AppError(404, "Inventory not found for this product");
+        throw new AppError(404, "Inventory not found for this product model");
       }
 
       return inventory;
     } catch (error: any) {
-      throw new AppError(500, "Failed to add stock to product" + error.message);
+      throw new AppError(
+        500,
+        "Failed to add stock to product model: " + error.message
+      );
     }
   },
-
   // Update stock (e.g., decrease stock after a sale)
-  updateStock: async (productId: string, quantityToUpdate: number) => {
+  updateStock: async (modelId: string, quantityToUpdate: number) => {
     try {
-      // Find inventory by productId
+      // Find inventory by modelId (for specific product model)
       const inventory = await prisma.inventory.findFirst({
         where: {
-          productId: productId, // Use productId to find the inventory
+          modelId: modelId, // Use productModelId to find the inventory for the specific model
         },
       });
 
       if (!inventory) {
-        throw new AppError(404, "Inventory not found for this product");
+        throw new AppError(404, "Inventory not found for this product model");
       }
 
-      // Update inventory quantity
+      // Update inventory quantity for the specific product model
       const updatedInventory = await prisma.inventory.update({
         where: {
           id: inventory.id, // Use the id of the found inventory
         },
         data: {
-          quantity: quantityToUpdate,
+          quantity: quantityToUpdate, // Set the updated quantity
         },
       });
 
       return updatedInventory;
     } catch (error: any) {
-      throw new AppError(500, "Failed to update stock " + error.message);
+      throw new AppError(
+        500,
+        "Failed to update stock for the product model: " + error.message
+      );
     }
   },
-  // Check current stock of a product
-  checkStock: async (productId: string) => {
+  checkStock: async (modelId: string) => {
     try {
       const inventory = await prisma.inventory.findFirst({
         where: {
-          productId,
+          modelId: modelId, // Use productModelId to check stock for the specific model
         },
       });
 
       if (!inventory) {
-        throw new AppError(404, "No inventory record found for this product");
+        throw new AppError(
+          404,
+          "No inventory record found for this product model"
+        );
       }
 
       return inventory.quantity;
     } catch (error: any) {
       throw new AppError(
         500,
-        "Failed to retrieve stock information" + error.message
+        "Failed to retrieve stock information for the product model: " +
+          error.message
       );
     }
   },
+
   // Wishlist Services
   addToWishlist: async (userId: string, productId: string) => {
     try {
@@ -416,32 +466,32 @@ export const productService = {
 
   createOrder: async (
     userId: string,
-    products: { productId: string; quantity: number }[]
+    products: { productModelId: string; quantity: number }[] // Using productModelId instead of modelId
   ) => {
     try {
-      // Check stock for each product
-      for (const { productId, quantity } of products) {
+      // Check stock for each product model
+      for (const { productModelId, quantity } of products) {
         const inventory = await prisma.inventory.findFirst({
-          where: { productId },
+          where: { modelId: productModelId }, // Using productModelId
         });
 
         if (!inventory || inventory.quantity < quantity) {
           throw new AppError(
             400,
-            `Insufficient stock for product ID: ${productId}`
+            `Insufficient stock for product model ID: ${productModelId}` // Updated error message
           );
         }
       }
 
       // Create the order and update inventory
       return await prisma.$transaction(async (tx) => {
-        // Create order
+        // Create the order
         const order = await tx.order.create({
           data: {
             userId,
             orderItems: {
-              create: products.map(({ productId, quantity }) => ({
-                productId,
+              create: products.map(({ productModelId, quantity }) => ({
+                productModel: { connect: { id: productModelId } }, // Connecting to ProductModel
                 quantity,
               })),
             },
@@ -450,9 +500,9 @@ export const productService = {
         });
 
         // Reduce inventory
-        for (const { productId, quantity } of products) {
+        for (const { productModelId, quantity } of products) {
           await tx.inventory.updateMany({
-            where: { productId },
+            where: { modelId: productModelId }, // Using productModelId
             data: { quantity: { decrement: quantity } },
           });
         }
@@ -485,7 +535,7 @@ export const productService = {
         include: {
           orderItems: {
             include: {
-              product: true,
+              productModel: true, // Updated to reference ProductModel
             },
           },
         },
@@ -494,7 +544,7 @@ export const productService = {
       throw new AppError(500, "Failed to retrieve orders: " + error.message);
     }
   },
-
+  
   cancelOrder: async (orderId: string, restoreStock = false) => {
     try {
       return await prisma.$transaction(async (tx) => {
@@ -502,20 +552,20 @@ export const productService = {
           where: { id: orderId },
           include: { orderItems: true },
         });
-
+  
         if (!order) {
           throw new AppError(404, "Order not found");
         }
-
+  
         if (restoreStock) {
-          for (const { productId, quantity } of order.orderItems) {
+          for (const { productModelId, quantity } of order.orderItems) { // Changed productId to productModelId
             await tx.inventory.updateMany({
-              where: { productId },
+              where: { modelId: productModelId }, // Updated to use productModelId
               data: { quantity: { increment: quantity } },
             });
           }
         }
-
+  
         return await tx.order.update({
           where: { id: orderId },
           data: { status: "Cancelled" },
@@ -525,6 +575,7 @@ export const productService = {
       throw new AppError(500, "Failed to cancel order: " + error.message);
     }
   },
+  
   getOrder: async (orderId: string) => {
     try {
       const order = await prisma.order.findUnique({
@@ -532,22 +583,22 @@ export const productService = {
         include: {
           orderItems: {
             include: {
-              product: true,
+              productModel: true, // Updated to reference ProductModel
             },
           },
         },
       });
-
+  
       if (!order) {
         throw new AppError(404, "Order not found");
       }
-
+  
       return order;
     } catch (error: any) {
       throw new AppError(500, "Failed to retrieve order: " + error.message);
     }
   },
-
+  
   // Delete an order
   deleteOrder: async (orderId: string) => {
     try {
@@ -556,28 +607,29 @@ export const productService = {
           where: { id: orderId },
           include: { orderItems: true },
         });
-
+  
         if (!order) {
           throw new AppError(404, "Order not found");
         }
-
-        // Restore stock if needed (when cancelling an order)
-        for (const { productId, quantity } of order.orderItems) {
+  
+        // Restore stock if needed (when deleting an order)
+        for (const { productModelId, quantity } of order.orderItems) { // Changed productId to productModelId
           await tx.inventory.updateMany({
-            where: { productId },
+            where: { modelId: productModelId }, // Updated to use productModelId
             data: { quantity: { increment: quantity } },
           });
         }
-
+  
         // Delete the order
         await tx.order.delete({
           where: { id: orderId },
         });
-
+  
         return { message: "Order deleted successfully" };
       });
     } catch (error: any) {
       throw new AppError(500, "Failed to delete order: " + error.message);
     }
-  },
+  }
+  
 };

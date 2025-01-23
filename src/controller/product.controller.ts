@@ -26,11 +26,8 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      const { productData, inventoryQuantity } = req.body;
-      const product = await productService.createProduct(
-        productData,
-        inventoryQuantity
-      );
+      const { productData } = req.body;
+      const product = await productService.createProduct(productData);
       res.status(201).json(product);
     } catch (error) {
       next(error);
