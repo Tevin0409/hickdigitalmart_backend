@@ -3,26 +3,36 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
+import fileUpload from "express-fileupload";
 
-
-
-import { requestLogger, errorLogger, errorResponder, invalidPathHandler } from './middleware'
+import {
+  requestLogger,
+  errorLogger,
+  errorResponder,
+  invalidPathHandler,
+} from "./middleware";
 import router from "./routes";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+  })
+);
 
 app.use(requestLogger);
 
 app.use("/api", router);
 
-app.use(errorLogger)
+app.use(errorLogger);
 
-app.use(errorResponder)
+app.use(errorResponder);
 
-app.use(invalidPathHandler)
+app.use(invalidPathHandler);
 
 const port = process.env.PORT || 4500;
 

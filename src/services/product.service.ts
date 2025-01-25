@@ -8,6 +8,8 @@ import {
   CreateSubCategoryDTO,
   UpdateSubCategoryDTO,
 } from "../interface/product";
+import { UploadedFile } from "express-fileupload";
+import { uploadImages } from "../config/claudinary.config";
 
 const prisma = new PrismaClient();
 
@@ -544,7 +546,7 @@ export const productService = {
       throw new AppError(500, "Failed to retrieve orders: " + error.message);
     }
   },
-  
+
   cancelOrder: async (orderId: string, restoreStock = false) => {
     try {
       return await prisma.$transaction(async (tx) => {
@@ -552,20 +554,21 @@ export const productService = {
           where: { id: orderId },
           include: { orderItems: true },
         });
-  
+
         if (!order) {
           throw new AppError(404, "Order not found");
         }
-  
+
         if (restoreStock) {
-          for (const { productModelId, quantity } of order.orderItems) { // Changed productId to productModelId
+          for (const { productModelId, quantity } of order.orderItems) {
+            // Changed productId to productModelId
             await tx.inventory.updateMany({
               where: { modelId: productModelId }, // Updated to use productModelId
               data: { quantity: { increment: quantity } },
             });
           }
         }
-  
+
         return await tx.order.update({
           where: { id: orderId },
           data: { status: "Cancelled" },
@@ -575,7 +578,7 @@ export const productService = {
       throw new AppError(500, "Failed to cancel order: " + error.message);
     }
   },
-  
+
   getOrder: async (orderId: string) => {
     try {
       const order = await prisma.order.findUnique({
@@ -588,17 +591,17 @@ export const productService = {
           },
         },
       });
-  
+
       if (!order) {
         throw new AppError(404, "Order not found");
       }
-  
+
       return order;
     } catch (error: any) {
       throw new AppError(500, "Failed to retrieve order: " + error.message);
     }
   },
-  
+
   // Delete an order
   deleteOrder: async (orderId: string) => {
     try {
@@ -607,29 +610,45 @@ export const productService = {
           where: { id: orderId },
           include: { orderItems: true },
         });
-  
+
         if (!order) {
           throw new AppError(404, "Order not found");
         }
-  
+
         // Restore stock if needed (when deleting an order)
-        for (const { productModelId, quantity } of order.orderItems) { // Changed productId to productModelId
+        for (const { productModelId, quantity } of order.orderItems) {
+          // Changed productId to productModelId
           await tx.inventory.updateMany({
             where: { modelId: productModelId }, // Updated to use productModelId
             data: { quantity: { increment: quantity } },
           });
         }
-  
+
         // Delete the order
         await tx.order.delete({
           where: { id: orderId },
         });
-  
+
         return { message: "Order deleted successfully" };
       });
     } catch (error: any) {
       throw new AppError(500, "Failed to delete order: " + error.message);
     }
-  }
-  
+  },
+  uploadFile: async (files: UploadedFile | UploadedFile[]) => {
+    const filesArray = Array.isArray(files) ? files : [files];
+
+    const imageUrls: string[] = [];
+    const publicIds: string[] = [];
+
+    // Process each file
+    filesArray.forEach((file, index) => {
+      imageUrls.push(file.tempFilePath);
+      publicIds.push(`products`);
+    });
+
+    const uploadResults = await uploadImages(imageUrls, publicIds);
+
+    return uploadResults;
+  },
 };

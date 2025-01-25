@@ -1,6 +1,7 @@
 import express from "express";
 import { productService } from "../services";
 import { IUserRequest } from "../middleware";
+import { UploadedFile } from "express-fileupload";
 
 export const productController = {
   // Product Handlers
@@ -449,6 +450,28 @@ export const productController = {
       const { orderId } = req.params;
       const result = await productService.deleteOrder(orderId);
       res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  uploadFile: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      if (!req.files || !req.files.file) {
+        throw new Error("No file uploaded");
+      }
+
+      const files = Array.isArray(req.files.file)
+        ? req.files.file
+        : [req.files.file];
+
+      const results = await productService.uploadFile(files as UploadedFile[]);
+
+      res.status(200).json(results);
     } catch (error) {
       next(error);
     }

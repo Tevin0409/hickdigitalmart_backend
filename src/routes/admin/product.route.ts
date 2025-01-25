@@ -24,9 +24,12 @@ productRouter.patch("/subcategories/update/:id", authMiddleware, productControll
 productRouter.delete("/subcategories/delete/:id", authMiddleware, productController.deleteSubCategory);
 
 //inventory
-productRouter.post("/add-stock", productController.addStockToProduct);
-productRouter.patch("/update-stock", productController.updateStock);
-productRouter.get("/check-stock/:productId", productController.checkStock);
+productRouter.post("/add-stock",authMiddleware, productController.addStockToProduct);
+productRouter.patch("/update-stock",authMiddleware, productController.updateStock);
+productRouter.get("/check-stock/:productId",authMiddleware, productController.checkStock);
+
+//upload
+productRouter.post('/upload',authMiddleware,productController.uploadFile)
 
 
 export { productRouter };
