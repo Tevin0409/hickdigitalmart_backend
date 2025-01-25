@@ -26,10 +26,13 @@ productRouter.delete("/subcategories/delete/:id", authMiddleware, productControl
 //inventory
 productRouter.post("/add-stock",authMiddleware, productController.addStockToProduct);
 productRouter.patch("/update-stock",authMiddleware, productController.updateStock);
-productRouter.get("/check-stock/:productId",authMiddleware, productController.checkStock);
+productRouter.get("/check-stock/:productModelId",authMiddleware, productController.checkStock);
 
-//upload
+//upload images
 productRouter.post('/upload',authMiddleware,productController.uploadFile)
+productRouter.post('/add-images',authMiddleware,productController.addProductImages)
+productRouter.post('/set-primary-image',authMiddleware,productController.setPrimaryImage)
+productRouter.delete('/remove-image/:imageId',authMiddleware,productController.removeImage)
 
 
 export { productRouter };

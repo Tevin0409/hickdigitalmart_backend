@@ -1,7 +1,7 @@
 import express from "express";
 import { productService } from "../services";
 import { IUserRequest } from "../middleware";
-import { UploadedFile } from "express-fileupload";
+import { FileArray, UploadedFile } from "express-fileupload";
 
 export const productController = {
   // Product Handlers
@@ -185,11 +185,11 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      const { productId, quantityToAdd } = req.body;
+      const { productModelId, quantityToAdd } = req.body;
 
       // Add stock to the product
       const updatedInventory = await productService.addStockToProduct(
-        productId,
+        productModelId,
         quantityToAdd
       );
 
@@ -206,12 +206,11 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      const { productId, quantityToUpdate } = req.body;
-      console.log("product id", productId);
+      const { productModelId, quantityToUpdate } = req.body;
 
       // Update stock for the product
       const updatedInventory = await productService.updateStock(
-        productId,
+        productModelId,
         quantityToUpdate
       );
 
@@ -228,10 +227,10 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      const { productId } = req.params;
+      const { productModelId } = req.params;
 
       // Check stock of the product
-      const currentStock = await productService.checkStock(productId);
+      const currentStock = await productService.checkStock(productModelId);
 
       res.status(200).json({ currentStock });
     } catch (error) {
@@ -476,4 +475,64 @@ export const productController = {
       next(error);
     }
   },
+  addProductImages: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      if (!req.files || Object.keys(req.files).length === 0) {
+        throw new Error("No files uploaded");
+      }
+
+      // Convert `req.files` to correct type
+      const filesData = req.files as FileArray;
+
+      // Ensure type safety for service
+      const formattedFiles: Record<string, UploadedFile | UploadedFile[]> = {};
+
+      for (const key of Object.keys(filesData)) {
+        formattedFiles[key] = Array.isArray(filesData[key])
+          ? (filesData[key] as UploadedFile[])
+          : (filesData[key] as UploadedFile);
+      }
+
+      const results = await productService.addProductImages(formattedFiles);
+
+      res.status(200).json(results);
+    } catch (error) {
+      next(error);
+    }
+  },
+  setPrimaryImage: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { imageId, productModelId } = req.body;
+      const product = await productService.setPrimaryImage(
+        imageId,
+        productModelId
+      );
+      res.status(201).json(product);
+    } catch (error) {
+      next(error);
+    }
+  },
+  removeImage: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { imageId } = req.params;
+      const product = await productService.removeImage(
+        imageId
+      );
+      res.status(201).json(product);
+    } catch (error) {
+      next(error);
+    }
+  }
 };

@@ -72,6 +72,7 @@ export const productService = {
             include: {
               features: true,
               inventory: true,
+              images: true,
             },
           },
         },
@@ -94,6 +95,7 @@ export const productService = {
             include: {
               features: true,
               inventory: true,
+              images: true,
             },
           },
         },
@@ -105,6 +107,12 @@ export const productService = {
 
   createProduct: async (data: CreateProductDTO) => {
     try {
+      const categoryExist = await prisma.subCategory.findUnique({
+        where: { id: data.subCategoryId },
+      });
+      if (!categoryExist) {
+        throw new Error("Subcategory not found");
+      }
       return await prisma.product.create({
         data: {
           name: data.name,
@@ -650,5 +658,146 @@ export const productService = {
     const uploadResults = await uploadImages(imageUrls, publicIds);
 
     return uploadResults;
+  },
+  addProductImages: async (
+    filesData: Record<string, UploadedFile | UploadedFile[]>
+  ) => {
+    try {
+      if (!filesData || Object.keys(filesData).length === 0) {
+        throw new Error("No files uploaded");
+      }
+
+      const savedImages: any[] = [];
+
+      // Loop through each productModelId dynamically
+      for (const productModelId of Object.keys(filesData)) {
+        const filesArray = Array.isArray(filesData[productModelId])
+          ? filesData[productModelId]
+          : [filesData[productModelId]];
+
+        // Extract file paths for Cloudinary upload
+        const imageUrls = filesArray.map((file) => file.tempFilePath); // Express-fileupload uses tempFilePath
+        const publicIds = filesArray.map(() => `products`);
+
+        // Upload images to Cloudinary
+        const uploadResults = await uploadImages(imageUrls, publicIds);
+
+        // Check if there's already a primary image for this productModelId
+        const existingPrimaryImageCount = await prisma.productImage.count({
+          where: {
+            productModelId,
+            isPrimary: true,
+          },
+        });
+
+        // Set `isPrimary` for the first image if no primary image exists, otherwise set all to false
+        const images = await Promise.all(
+          uploadResults.map(async (upload, index) => {
+            if (!upload) {
+              throw new Error("Failed to upload image.");
+            }
+
+            // If no primary image exists, mark the first image as primary
+            const isPrimary = existingPrimaryImageCount === 0 && index === 0;
+            console.log("productModelId", isPrimary);
+
+            // Now create the image in the database, all images after the first will be `isPrimary: false`
+            return prisma.productImage.create({
+              data: {
+                productModelId,
+                uploadUrl: upload.uploadUrl,
+                optimizeUrl: upload.optimizeUrl,
+                autoCropUrl: upload.autoCropUrl,
+                isPrimary,
+              },
+            });
+          })
+        );
+
+        savedImages.push(...images);
+      }
+
+      return { message: "Images uploaded successfully", images: savedImages };
+    } catch (error: any) {
+      throw new Error(
+        error.message || "An error occurred while uploading images."
+      );
+    }
+  },
+  setPrimaryImage: async (imageId: string, productModelId: string) => {
+    try {
+      const existingPrimaryImage = await prisma.productImage.findFirst({
+        where: {
+          productModelId,
+          isPrimary: true,
+        },
+      });
+      if (existingPrimaryImage) {
+        await prisma.productImage.update({
+          where: {
+            id: existingPrimaryImage.id,
+          },
+          data: {
+            isPrimary: false,
+          },
+        });
+      }
+      const updatedImage = await prisma.productImage.update({
+        where: {
+          id: imageId,
+        },
+        data: {
+          isPrimary: true,
+        },
+      });
+
+      return {
+        message: "Primary image updated successfully",
+        image: updatedImage,
+      };
+    } catch (error: any) {
+      throw new Error(
+        error.message || "An error occurred while setting the primary image."
+      );
+    }
+  },
+
+  removeImage: async (imageId: string) => {
+    try {
+      // Step 1: Find the image to be deleted
+      const imageToDelete = await prisma.productImage.findUnique({
+        where: { id: imageId },
+      });
+
+      if (!imageToDelete) {
+        throw new Error("Image not found");
+      }
+
+      if (imageToDelete.isPrimary) {
+        const anotherImage = await prisma.productImage.findFirst({
+          where: {
+            productModelId: imageToDelete.productModelId,
+            NOT: { id: imageId },
+          },
+        });
+
+        if (anotherImage) {
+          await prisma.productImage.update({
+            where: { id: anotherImage.id },
+            data: { isPrimary: true },
+          });
+        }
+      }
+
+      await prisma.productImage.delete({
+        where: { id: imageId },
+      });
+
+      return { message: "Image removed successfully" };
+    } catch (error: any) {
+      throw new Error(
+        error.message || "An error occurred while removing the image."
+      );
+    }
   },
 };
