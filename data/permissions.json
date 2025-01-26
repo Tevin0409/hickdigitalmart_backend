@@ -1,0 +1,19 @@
+[
+    { "name": "CREATEUSER", "description": "Permission to create users" },
+    { "name": "VIEWUSER", "description": "Permission to view users" },
+    { "name": "UPDATEUSER", "description": "Permission to update users" },
+    { "name": "DELETEUSER", "description": "Permission to delete users" },
+    { "name": "CREATEPRODUCT", "description": "Permission to create products" },
+    { "name": "VIEWPRODUCT", "description": "Permission to view products" },
+    { "name": "UPDATEPRODUCT", "description": "Permission to update products" },
+    { "name": "DELETEPRODUCT", "description": "Permission to delete products" },
+    { "name": "CREATEROLE", "description": "Permission to create roles" },
+    { "name": "VIEWROLE", "description": "Permission to view roles" },
+    { "name": "UPDATEROLE", "description": "Permission to update roles" },
+    { "name": "DELETEROLE", "description": "Permission to delete roles" },
+    { "name": "CREATEORDER", "description": "Permission to create orders" },
+    { "name": "VIEWORDER", "description": "Permission to view orders" },
+    { "name": "UPDATEORDER", "description": "Permission to update orders" },
+    { "name": "DELETEORDER", "description": "Permission to delete orders" }
+  ]
+  

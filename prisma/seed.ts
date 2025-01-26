@@ -1,79 +1,64 @@
 import { PrismaClient } from '@prisma/client';
+import fs from 'fs'
 
 const prisma = new PrismaClient();
 
-async function main() {
-  // Define roles and their descriptions
-  const roles = [
-    { name: 'SUDO', description: 'Super user with all privileges' },
-    { name: 'ADMIN', description: 'Administrator with high-level privileges' },
-    { name: 'USER', description: 'Regular user with basic privileges' },
-    { name: 'TECHNICIAN', description: 'Technician with specific work-related privileges' },
-    { name: 'WHOLESALER', description: 'Wholesaler with access to bulk orders' },
-    { name: 'RETAILER', description: 'Retailer with access to retail-level orders' },
-  ];
+// Function to read JSON files
+const readJsonFile = (filePath: string) => JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
-  // Define permissions and their descriptions
-  const permissions = [
-    { name: 'CREATEUSER', description: 'Permission to create users' },
-    { name: 'VIEWUSER', description: 'Permission to view users' },
-    { name: 'UPDATEUSER', description: 'Permission to update users' },
-    { name: 'DELETEUSER', description: 'Permission to delete users' },
-    { name: 'CREATEPRODUCT', description: 'Permission to create products' },
-    { name: 'VIEWPRODUCT', description: 'Permission to view products' },
-    { name: 'UPDATEPRODUCT', description: 'Permission to update products' },
-    { name: 'DELETEPRODUCT', description: 'Permission to delete products' },
-    { name: 'CREATEROLE', description: 'Permission to create roles' },
-    { name: 'VIEWROLE', description: 'Permission to view roles' },
-    { name: 'UPDATEROLE', description: 'Permission to update roles' },
-    { name: 'DELETEROLE', description: 'Permission to delete roles' },
-    { name: 'CREATEORDER', description: 'Permission to create orders' },
-    { name: 'VIEWORDER', description: 'Permission to view orders' },
-    { name: 'UPDATEORDER', description: 'Permission to update orders' },
-    { name: 'DELETEORDER', description: 'Permission to delete orders' },
-  ];
+async function main() {
+  // Load JSON data
+  const roles = readJsonFile('./data/roles.json');
+  const permissions = readJsonFile('./data/permissions.json');
+  const categories = readJsonFile('./data/categories.json');
+  const subcategories = readJsonFile('./data/subcategories.json');
 
   // Seed roles
   for (const role of roles) {
-    const existingRole = await prisma.role.findUnique({
-      where: { name: role.name },
-    });
-
+    const existingRole = await prisma.role.findUnique({ where: { name: role.name } });
     if (!existingRole) {
-      await prisma.role.create({
-        data: {
-          name: role.name,
-          description: role.description,
-        },
-      });
+      await prisma.role.create({ data: role });
       console.log(`Created role: ${role.name}`);
-    } else {
-      console.log(`Role ${role.name} already exists`);
     }
   }
 
   // Seed permissions
   for (const permission of permissions) {
-    const existingPermission = await prisma.permission.findUnique({
-      where: { name: permission.name },
-    });
-
+    const existingPermission = await prisma.permission.findUnique({ where: { name: permission.name } });
     if (!existingPermission) {
-      await prisma.permission.create({
-        data: {
-          name: permission.name,
-          description: permission.description,
-        },
-      });
+      await prisma.permission.create({ data: permission });
       console.log(`Created permission: ${permission.name}`);
-    } else {
-      console.log(`Permission ${permission.name} already exists`);
+    }
+  }
+
+  // Seed categories
+  for (const category of categories) {
+    let existingCategory = await prisma.category.findFirst({ where: { name: category } });
+    if (!existingCategory) {
+      existingCategory = await prisma.category.create({ data: { name: category } });
+      console.log(`Created category: ${category}`);
+    }
+
+    // Seed subcategories
+    if (subcategories[category]) {
+      for (const subcategory of subcategories[category]) {
+        const existingSubcategory = await prisma.subCategory.findFirst({
+          where: { name: subcategory, categoryId: existingCategory.id },
+        });
+
+        if (!existingSubcategory) {
+          await prisma.subCategory.create({
+            data: { name: subcategory, categoryId: existingCategory.id },
+          });
+          console.log(`Created subcategory: ${subcategory} under ${category}`);
+        }
+      }
     }
   }
 }
 
 main()
-  .catch(e => {
+  .catch((e) => {
     console.error(e);
     process.exit(1);
   })

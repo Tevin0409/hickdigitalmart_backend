@@ -1,0 +1,9 @@
+[
+    { "name": "SUDO", "description": "Super user with all privileges" },
+    { "name": "ADMIN", "description": "Administrator with high-level privileges" },
+    { "name": "USER", "description": "Regular user with basic privileges" },
+    { "name": "TECHNICIAN", "description": "Technician with specific work-related privileges" },
+    { "name": "WHOLESALER", "description": "Wholesaler with access to bulk orders" },
+    { "name": "RETAILER", "description": "Retailer with access to retail-level orders" }
+  ]
+  
