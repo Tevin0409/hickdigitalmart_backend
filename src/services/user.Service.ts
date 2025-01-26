@@ -65,7 +65,10 @@ export const userService = {
 
       await sendOTPEmail(result.email, otp);
 
-      return `Please check your email to verify Account`;
+      return {
+        message:
+          "User created successfully. Please check your email to verify Account",
+      };
     } catch (err: any) {
       throw new AppError(500, `Failed to create user: ${err.message}`);
     }
