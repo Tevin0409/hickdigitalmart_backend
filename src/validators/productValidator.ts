@@ -21,7 +21,7 @@ export const productSchema = Joi.object({
   productData: Joi.object({
     name: Joi.string().min(3).required(),
     subCategoryId: Joi.string().uuid().required(),
-    defaultPrice: Joi.number().greater(0).required(),
+    // defaultPrice: Joi.number().greater(0).required(),
     models: Joi.array().items(modelSchema).min(1).required(),
   }).required(),
 });

@@ -2,6 +2,9 @@ import express from "express";
 import { productService } from "../services";
 import { IUserRequest } from "../middleware";
 import { FileArray, UploadedFile } from "express-fileupload";
+import xlsx from "xlsx";
+import { create } from "domain";
+import { CreateProductDTO } from "../interface/product";
 
 export const productController = {
   // Product Handlers
@@ -539,12 +542,110 @@ export const productController = {
   ) => {
     try {
       const { imageId } = req.params;
-      const product = await productService.removeImage(
-        imageId
-      );
+      const product = await productService.removeImage(imageId);
       res.status(201).json(product);
     } catch (error) {
       next(error);
     }
-  }
+  },
+  uploadBulkProducts: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      // Step 1: Check if a file is uploaded
+      if (!req.files || !req.files.file) {
+        throw new Error("No file uploaded");
+      }
+  
+      // Handle both single file or array of files
+      const file = Array.isArray(req.files.file) ? req.files.file[0] : req.files.file;
+  
+      // Step 2: Read the uploaded Excel file
+      const workbook = xlsx.readFile(file.tempFilePath);
+      const sheetName = workbook.SheetNames[0];  // Assume first sheet is the one we need
+      const sheet = workbook.Sheets[sheetName];
+  
+      // Step 3: Extract headers and validate them
+      const headers = xlsx.utils.sheet_to_json(sheet, { header: 1 })[0] as string[];
+      console.log("Headers from file:", headers);  // Log the headers to debug
+      
+      const expectedHeaders = [
+        "PRODUCT", "CATEGORY", "SUBCATEGORY", "MODEL_NAME", "MODEL_DESCRIPTION",
+        "MODEL_PRICE", "MODEL_FEATURES", "INVENTORY_QUANTITY"
+      ];
+  
+      // Trim spaces from headers before comparison
+      const trimmedHeaders = headers.map(header => header.trim());
+      const trimmedExpectedHeaders = expectedHeaders.map(header => header.trim());
+  
+      // Validate headers
+      const headersMatch = trimmedExpectedHeaders.every((header, index) => header.toUpperCase() === trimmedHeaders[index]?.toUpperCase());
+  
+      if (!headersMatch) {
+        throw new Error(`Invalid file format: Header names do not match expected format. Found: ${trimmedHeaders.join(', ')}`);
+      }
+  
+      // Step 4: Process rows and create product data
+      const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, range: 1 }) as (string | number)[][];  // Skip header row
+  
+      // Temporary map to store product aggregation
+      const productMap = new Map<string, CreateProductDTO>();
+  
+      for (const row of rows) {
+        const [
+          productName, 
+          category, 
+          subCategory, 
+          modelName, 
+          modelDescription, 
+          modelPrice, 
+          modelFeatures, 
+          inventoryQuantity
+        ] = row as (string | number)[];
+  
+        // Convert possible numbers to string for consistency
+        const subCat = await productService.getSubCategorryByName(String(subCategory));
+        if (!subCat) {
+          throw new Error(`Subcategory '${subCategory}' not found.`);
+        }
+  
+        // Cast productName to string for map key consistency
+        const productNameString = String(productName);
+  
+        // Check if product already exists in map
+        if (!productMap.has(productNameString)) {
+          productMap.set(productNameString, {
+            name: productNameString,
+            subCategoryId: subCat.id,  // Assign the subcategory ID
+            models: []
+          });
+        }
+  
+        // Prepare model data
+        const features = (String(modelFeatures)).split(',').map((feature: string) => ({ description: feature.trim() }));
+        const modelData = {
+          name: String(modelName),
+          description: String(modelDescription),
+          price: parseFloat(String(modelPrice)),
+          features,
+          inventory: { quantity: parseInt(String(inventoryQuantity)) }
+        };
+  
+        // Add model to the product (cast productName to string)
+        productMap.get(productNameString)?.models.push(modelData);
+      }
+  
+      // Step 5: Save products into database or through service
+      for (const product of productMap.values()) {
+        // Directly pass product details as per CreateProductDTO structure
+        await productService.createProduct(product);
+      }
+  
+      res.status(200).json({ message: "Products uploaded successfully." });
+    } catch (error) {
+      next(error);
+    }
+  },
 };

@@ -55,7 +55,6 @@ model Product {
   name            String            @db.VarChar(255)
   subCategory     SubCategory       @relation(fields: [subCategoryId], references: [id])
   subCategoryId   String
-  defaultPrice    Float
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @default(now())
   cartItems       Cart[]

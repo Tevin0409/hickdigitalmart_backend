@@ -144,7 +144,6 @@ export const productService = {
         data: {
           name: data.name,
           subCategoryId: data.subCategoryId,
-          defaultPrice: data.defaultPrice,
           models: {
             create: data.models.map(
               (model: {
@@ -271,6 +270,14 @@ export const productService = {
   createSubCategory: async (data: CreateSubCategoryDTO) => {
     try {
       return await prisma.subCategory.create({ data });
+    } catch (error) {
+      throw new AppError(500, "Failed to create subcategory");
+    }
+  },
+
+  getSubCategorryByName: async (name: string) => {
+    try {
+      return await prisma.subCategory.findFirst({ where: { name } });
     } catch (error) {
       throw new AppError(500, "Failed to create subcategory");
     }

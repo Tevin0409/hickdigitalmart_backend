@@ -36,5 +36,10 @@ productRouter.post('/add-images',authAdminMiddleware,productController.addProduc
 productRouter.post('/set-primary-image',authAdminMiddleware,productController.setPrimaryImage)
 productRouter.delete('/remove-image/:imageId',authAdminMiddleware,productController.removeImage)
 
+//bulk upload 
+
+productRouter.post('/upload-xslx',authAdminMiddleware,productController.uploadBulkProducts)
+
+
 
 export { productRouter };
