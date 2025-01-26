@@ -113,6 +113,15 @@ export const productService = {
       if (!categoryExist) {
         throw new Error("Subcategory not found");
       }
+      const existingProductModel = await prisma.productModel.findFirst({
+        where: {
+          name: { in: data.models.map((model) => model.name) }, // map the names properly
+        },
+      });
+
+      if (existingProductModel) {
+        throw new AppError(400, `${existingProductModel.name} already exists`);
+      }
       return await prisma.product.create({
         data: {
           name: data.name,

@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { RoleDTO } from "../interface/user"; 
-import { AppError } from "../middleware";  
+import { RoleDTO } from "../interface/user";
+import { AppError } from "../middleware";
 
 const prisma = new PrismaClient();
 
@@ -8,15 +8,25 @@ export const roleService = {
   // Create a new role
   createRole: async (roleData: RoleDTO) => {
     try {
+      const roleName = roleData.name.toUpperCase();
+
+      const existingRole = await prisma.role.findFirst({
+        where: { name: roleName },
+      });
+
+      if (existingRole) {
+        throw new AppError(400, "Role name already exists");
+      }
       const role = await prisma.role.create({
         data: {
-          name: roleData.name,
-          description: roleData.description,  
+          name: roleName,
+          description: roleData.description,
         },
       });
+
       return role;
     } catch (error) {
-      throw new AppError( 500,"Failed to create role ");
+      throw new AppError(500, "Failed to create role");
     }
   },
 
@@ -26,7 +36,7 @@ export const roleService = {
       const roles = await prisma.role.findMany();
       return roles;
     } catch (error) {
-      throw new AppError(500,"Failed to retrieve roles"); 
+      throw new AppError(500, "Failed to retrieve roles");
     }
   },
 
@@ -39,7 +49,7 @@ export const roleService = {
       });
       return updatedRole;
     } catch (error) {
-      throw new AppError(500,"Failed to update role"); 
+      throw new AppError(500, "Failed to update role");
     }
   },
 
@@ -51,8 +61,7 @@ export const roleService = {
       });
       return deletedRole;
     } catch (error) {
-      throw new AppError(500,"Failed to delete role");
+      throw new AppError(500, "Failed to delete role");
     }
   },
 };
-

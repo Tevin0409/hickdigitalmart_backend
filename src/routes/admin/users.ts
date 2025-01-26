@@ -1,10 +1,11 @@
 import express from "express";
 import { userController } from "../../controller";
-import { authMiddleware } from "../../middleware";
+import { authMiddleware, validate } from "../../middleware";
+import { createUserSchema } from "../../validators/userValidator";
 
 const userAdminRouter = express.Router();
 
-userAdminRouter.post("/create-user", authMiddleware, userController.createUser);
+userAdminRouter.post("/create-user", validate(createUserSchema),authMiddleware, userController.createUser);
 userAdminRouter.post("/login", userController.login);
 userAdminRouter.put(
   "/update-user/:id",

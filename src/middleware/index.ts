@@ -1,6 +1,7 @@
 import { type Request, type Response, type NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
+import { ObjectSchema } from "joi";
 
 export interface IUserRequest extends Request {
   user?: any;
@@ -9,12 +10,19 @@ export interface IUserRequest extends Request {
 // Error object used in error handling middleware function
 export class AppError extends Error {
   statusCode: number;
+  errors: string[]; // To hold multiple error messages
 
-  constructor(statusCode: number, message: string) {
-    super(message);
+  constructor(statusCode: number, message: string | string[]) {
+    if (Array.isArray(message)) {
+      super(message.join(", ")); // Convert array to a comma-separated string for Error's message
+      this.errors = message;
+    } else {
+      super(message);
+      this.errors = [message]; // Wrap a single message into an array
+    }
 
     Object.setPrototypeOf(this, new.target.prototype);
-    this.name = Error.name;
+    this.name = "AppError";
     this.statusCode = statusCode;
     Error.captureStackTrace(this);
   }
@@ -56,11 +64,14 @@ export const errorResponder = (
   response.header("Content-Type", "application/json");
 
   const status = error.statusCode || 400;
-  const message = error.message || "something went wrong";
+  const message = error.message || "Something went wrong";
+  const errors = error.errors || [message];
+
   response.status(status).json({
     error: {
       status,
       message,
+      errors,
     },
   });
 };
@@ -105,7 +116,6 @@ export const authMiddleware = (
 
   jwt.verify(token.trim(), JWT_SECRET!, (err, decodeToken: any) => {
     if (err) {
-      console.log(err);
       throw new AppError(401, err.message);
     }
 
@@ -116,4 +126,17 @@ export const authMiddleware = (
     req.user = decodeToken;
     next();
   });
+};
+
+export const validate = (schema: ObjectSchema) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const { error } = schema.validate(req.body, { abortEarly: false });
+
+    if (error) {
+      const errMessages = error.details.map((err) => err.message);
+      throw new AppError(400, errMessages);
+    }
+
+    next();
+  };
 };

@@ -1,12 +1,13 @@
 import express from "express";
 import { productController } from "../../controller";
-import { authMiddleware } from "../../middleware";
+import { authMiddleware, validate } from "../../middleware";
+import { productSchema } from "../../validators/productValidator";
 
 const productRouter = express.Router();
 
 // Product Routes
 productRouter.get("/", productController.getAllProducts);
-productRouter.post("/create", authMiddleware, productController.createProduct);
+productRouter.post("/create",validate(productSchema), authMiddleware, productController.createProduct);
 productRouter.patch("/update/:id", authMiddleware, productController.updateProduct);
 productRouter.delete("/delete/:id", authMiddleware, productController.deleteProduct);
 productRouter.get("/by-id/:id", authMiddleware, productController.getProduct);

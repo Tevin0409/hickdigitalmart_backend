@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { RoleDTO } from "../interface/user"; 
-import { AppError } from "../middleware";  
+import { RoleDTO } from "../interface/user";
+import { AppError } from "../middleware";
 
 const prisma = new PrismaClient();
 
@@ -8,15 +8,25 @@ export const permissionService = {
   // Create a new permission
   createPermission: async (permissionData: RoleDTO) => {
     try {
+      const permissionName = permissionData.name.toUpperCase();
+
+      const existingPermission = await prisma.permission.findFirst({
+        where: { name: permissionName },
+      });
+
+      if (existingPermission) {
+        throw new AppError(400, "Permission name already exists");
+      }
       const permission = await prisma.permission.create({
         data: {
-          name: permissionData.name,
-          description: permissionData.description,  
+          name: permissionName,
+          description: permissionData.description,
         },
       });
+
       return permission;
     } catch (error) {
-      throw new AppError( 500,"Failed to create permission");
+      throw new AppError(500, "Failed to create permission");
     }
   },
 
@@ -26,7 +36,7 @@ export const permissionService = {
       const permissions = await prisma.permission.findMany();
       return permissions;
     } catch (error) {
-      throw new AppError(500,"Failed to retrieve permissions"); 
+      throw new AppError(500, "Failed to retrieve permissions");
     }
   },
 
@@ -39,7 +49,7 @@ export const permissionService = {
       });
       return updatedpermission;
     } catch (error) {
-      throw new AppError(500,"Failed to update permission"); 
+      throw new AppError(500, "Failed to update permission");
     }
   },
 
@@ -51,8 +61,7 @@ export const permissionService = {
       });
       return deletedpermission;
     } catch (error) {
-      throw new AppError(500,"Failed to delete permission");
+      throw new AppError(500, "Failed to delete permission");
     }
   },
 };
-

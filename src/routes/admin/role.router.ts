@@ -1,13 +1,14 @@
 import express from "express";
 
 import { roleController } from "../../controller";
-import { authMiddleware } from "../../middleware";
+import { authMiddleware, validate } from "../../middleware";
+import { createRoleSchema } from "../../validators/userValidator";
 
 const roleRouter = express.Router();
 
 roleRouter.get("/", authMiddleware, roleController.getAllRoles);
 
-roleRouter.post("/create-role", roleController.createrole);
+roleRouter.post("/create-role", validate(createRoleSchema),roleController.createrole);
 
 roleRouter.patch("/update/:id",authMiddleware, roleController.updateRole);
 
