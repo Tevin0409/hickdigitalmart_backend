@@ -148,4 +148,16 @@ export const userController = {
       next(error);
     }
   },
+  addTechnicianQuestionnaire: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const user = await userService.addTechnicianQuestionnaire(req.body);
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  },
 };

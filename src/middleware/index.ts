@@ -99,34 +99,38 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers["authorization"];
+  try {
+    const authHeader = req.headers["authorization"];
 
-  if (!authHeader) {
-    throw new AppError(401, "Please authenticate");
-  }
-
-  if (!authHeader.startsWith("Bearer ")) {
-    throw new AppError(401, "Invalid authorization format");
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    throw new AppError(401, "Token is required");
-  }
-
-  jwt.verify(token.trim(), JWT_SECRET!, (err, decodeToken: any) => {
-    if (err) {
-      throw new AppError(401, err.message);
+    if (!authHeader) {
+      return next(new AppError(401, "Please authenticate"));
     }
 
-    if (!decodeToken) {
-      throw new AppError(401, "Problem decoding token");
+    if (!authHeader.startsWith("Bearer ")) {
+      return next(new AppError(401, "Invalid authorization format"));
     }
 
-    req.user = decodeToken;
-    next();
-  });
+    const token = authHeader.split(" ")[1];
+
+    if (!token) {
+      return next(new AppError(401, "Token is required"));
+    }
+
+    jwt.verify(token.trim(), JWT_SECRET!, (err, decodeToken: any) => {
+      if (err) {
+        return next(new AppError(401, err.message));
+      }
+
+      if (!decodeToken) {
+        return next(new AppError(401, "Problem decoding token"));
+      }
+
+      req.user = decodeToken;
+      next();
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const authAdminMiddleware = async (
@@ -134,41 +138,44 @@ export const authAdminMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers["authorization"];
+  try {
+    const authHeader = req.headers["authorization"];
 
-  if (!authHeader) {
-    throw new AppError(401, "Please authenticate");
-  }
-
-  if (!authHeader.startsWith("Bearer ")) {
-    throw new AppError(401, "Invalid authorization format");
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    throw new AppError(401, "Token is required");
-  }
-
-  jwt.verify(token.trim(), JWT_SECRET!, async (err, decodeToken: any) => {
-    if (err) {
-      throw new AppError(401, err.message);
+    if (!authHeader) {
+      return next(new AppError(401, "Please authenticate"));
     }
 
-    if (!decodeToken) {
-      throw new AppError(401, "Problem decoding token");
+    if (!authHeader.startsWith("Bearer ")) {
+      return next(new AppError(401, "Invalid authorization format"));
     }
 
-    //check if user is Admin
+    const token = authHeader.split(" ")[1];
 
-    const isAdmin = await userService.isUserAdmin(decodeToken.email);
-    if (!isAdmin) {
-      throw new AppError(401, "You should not be here");
+    if (!token) {
+      return next(new AppError(401, "Token is required"));
     }
 
-    req.user = decodeToken;
-    next();
-  });
+    jwt.verify(token.trim(), JWT_SECRET!, async (err, decodeToken: any) => {
+      if (err) {
+        return next(new AppError(401, err.message));
+      }
+
+      if (!decodeToken) {
+        return next(new AppError(401, "Problem decoding token"));
+      }
+
+      // Check if user is Admin
+      const isAdmin = await userService.isUserAdmin(decodeToken.email);
+      if (!isAdmin) {
+        return next(new AppError(401, "You should not be here"));
+      }
+
+      req.user = decodeToken;
+      next();
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const validate = (schema: ObjectSchema) => {

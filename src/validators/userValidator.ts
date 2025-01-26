@@ -26,3 +26,18 @@ export const createRoleSchema = Joi.object({
   name: Joi.string().min(3).max(50).required(),
   description: Joi.string().min(3).max(200).required(),
 });
+
+export const technicianQuestionnaireSchema = Joi.object({
+  businessName: Joi.string().required(),
+  phoneNumber: Joi.string().required(),
+  email: Joi.string().email().required(),
+  location: Joi.string().required(),
+  businessType: Joi.string().required(),
+  experienceYears: Joi.number().allow(null),
+  experienceAreas: Joi.array().items(Joi.string()).optional(),
+  brandsWorkedWith: Joi.array().items(Joi.string()).optional(),
+  integrationExperience: Joi.string().required(),
+  purchaseSource: Joi.string().required(),
+  purchaseHikvision: Joi.string().valid('Yes', 'No').required(),
+  requiresTraining: Joi.string().valid('Yes', 'No').required(),
+});

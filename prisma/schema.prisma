@@ -17,6 +17,7 @@ model User {
   otpHash               String?
   otpExpiresAt          DateTime?
   isVerified            Boolean       @default(false)
+  technicianVerified            Boolean       @default(false)
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
   inCorrectAttempts     Int          @default(0)
@@ -178,3 +179,20 @@ model PricePercentage {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt
 }
+model TechnicianQuestionnaire {
+  id                    Int      @id @default(autoincrement())
+  businessName          String
+  phoneNumber           String
+  email                 String   @unique
+  location              String
+  businessType          String
+  experienceYears       Int?
+  experienceAreas       String[]
+  brandsWorkedWith      String[]
+  integrationExperience String
+  purchaseSource        String
+  purchaseHikvision     String
+  requiresTraining      String
+}
+
+

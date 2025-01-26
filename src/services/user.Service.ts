@@ -1,5 +1,5 @@
 import { PrismaClient, User } from "@prisma/client";
-import { CreateUserDTO, LoginDTO } from "../interface/user";
+import { CreateUserDTO, LoginDTO, TechnicianDTO } from "../interface/user";
 import { AppError } from "../middleware";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -80,10 +80,23 @@ export const userService = {
     try {
       const existingUser = await prisma.user.findUnique({
         where: { email },
+        include: { role: true },
       });
 
       if (!existingUser) {
         throw new AppError(400, `No user found with email: ${email}`);
+      }
+
+      if (
+        existingUser &&
+        existingUser.role &&
+        existingUser.role.name === "TECHNICIAN" &&
+        !existingUser.technicianVerified
+      ) {
+        throw new AppError(
+          401,
+          `Your Technician account is still pending approval. Please check back later or contact support for more information`
+        );
       }
 
       const isPasswordValid = await bcrypt.compare(
@@ -286,7 +299,7 @@ export const userService = {
   getAllUsers: async () => {
     try {
       const users = await prisma.user.findMany({
-        include: { role: true ,permissions:true},
+        include: { role: true, permissions: true },
       });
       return users;
     } catch (err: any) {
@@ -301,7 +314,7 @@ export const userService = {
     try {
       const user = await prisma.user.findUnique({
         where: { id },
-        include: { role: true,permissions:true },
+        include: { role: true, permissions: true },
       });
 
       if (!user) {
@@ -319,7 +332,7 @@ export const userService = {
     try {
       const user = await prisma.user.findUnique({
         where: { email },
-        include: { role: true,permissions:true },
+        include: { role: true, permissions: true },
       });
 
       if (!user) {
@@ -376,7 +389,6 @@ export const userService = {
                   },
                 },
               });
-            
             }
           } else {
             console.log(`Permission ${permissionName} does not exist`);
@@ -405,7 +417,6 @@ export const userService = {
                   },
                 },
               });
-             
             }
           } else {
             console.log(`Permission ${permissionName} does not exist`);
@@ -414,8 +425,50 @@ export const userService = {
       });
 
       return "Permissions updated successfully";
-    } catch (error:any) {
+    } catch (error: any) {
       throw new Error(`Failed to manage permissions ${error?.message}`);
+    }
+  },
+  addTechnicianQuestionnaire: async (technicianDTO: TechnicianDTO) => {
+    try {
+      // Check if the email already exists
+      const existingTechnician =
+        await prisma.technicianQuestionnaire.findUnique({
+          where: { email: technicianDTO.email },
+        });
+
+      if (existingTechnician) {
+        throw new Error(
+          "Email already exists. Please use a different email address."
+        );
+      }
+
+      // Create a new technician questionnaire
+      const newTechnicianQuestionnaire =
+        await prisma.technicianQuestionnaire.create({
+          data: {
+            businessName: technicianDTO.businessName,
+            phoneNumber: technicianDTO.phoneNumber,
+            email: technicianDTO.email,
+            location: technicianDTO.location,
+            businessType: technicianDTO.businessType,
+            experienceYears: technicianDTO.experienceYears,
+            experienceAreas: technicianDTO.experienceAreas || [],
+            brandsWorkedWith: technicianDTO.brandsWorkedWith || [],
+            integrationExperience: technicianDTO.integrationExperience,
+            purchaseSource: technicianDTO.purchaseSource,
+            purchaseHikvision: technicianDTO.purchaseHikvision,
+            requiresTraining: technicianDTO.requiresTraining,
+          },
+        });
+      return {
+        message:
+          "Your submission has been successfully recorded. Our team is currently reviewing and verifying the details. You will be notified once the process is complete.",
+      };
+    } catch (error: any) {
+      throw new Error(
+        error.message || "Error creating Technician Questionnaire"
+      );
     }
   },
 };
