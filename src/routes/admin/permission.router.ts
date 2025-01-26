@@ -1,16 +1,16 @@
 import express from "express";
 
 import { permissionController } from "../../controller";
-import { authMiddleware } from "../../middleware";
+import { authAdminMiddleware } from "../../middleware";
 
 const permissionRouter = express.Router();
 
-permissionRouter.get("/", authMiddleware, permissionController.getAllpermissions);
+permissionRouter.get("/", authAdminMiddleware, permissionController.getAllpermissions);
 
-permissionRouter.post("/create-permission",authMiddleware, permissionController.createpermission);
+permissionRouter.post("/create-permission",authAdminMiddleware, permissionController.createpermission);
 
-permissionRouter.patch("/update/:id",authMiddleware, permissionController.updatepermission);
+permissionRouter.patch("/update/:id",authAdminMiddleware, permissionController.updatepermission);
 
-permissionRouter.delete("/delete/:id",authMiddleware, permissionController.deletepermission);
+permissionRouter.delete("/delete/:id",authAdminMiddleware, permissionController.deletepermission);
 
 export { permissionRouter };

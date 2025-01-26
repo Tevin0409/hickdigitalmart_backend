@@ -104,6 +104,24 @@ export const productService = {
       throw new AppError(500, "Failed to fetch product: " + error.message);
     }
   },
+  getProductModelById: async (id: string) => {
+    try {
+      return await prisma.productModel.findUnique({
+        where: { id },
+
+        include: {
+          features: true,
+          inventory: true,
+          images: true,
+        },
+      });
+    } catch (error: any) {
+      throw new AppError(
+        500,
+        "Failed to fetch product model : " + error.message
+      );
+    }
+  },
 
   createProduct: async (data: CreateProductDTO) => {
     try {

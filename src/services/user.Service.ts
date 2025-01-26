@@ -328,4 +328,19 @@ export const userService = {
       throw new AppError(500, `Failed to retrieve user: ${err.message}`);
     }
   },
+  isUserAdmin: async (email: string) => {
+    const user = await prisma.user.findFirst({
+      where: { email },
+      include: { role: true },
+    });
+    if (
+      user &&
+      user.role &&
+      (user.role.name === "SUDO" || user.role.name === "ADMIN")
+    ) {
+      return true;
+    }
+
+    return false;
+  },
 };

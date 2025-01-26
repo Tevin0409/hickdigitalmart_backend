@@ -2,6 +2,7 @@ import { type Request, type Response, type NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
 import { ObjectSchema } from "joi";
+import { userService } from "../services";
 
 export interface IUserRequest extends Request {
   user?: any;
@@ -121,6 +122,48 @@ export const authMiddleware = (
 
     if (!decodeToken) {
       throw new AppError(401, "Problem decoding token");
+    }
+
+    req.user = decodeToken;
+    next();
+  });
+};
+
+export const authAdminMiddleware = async (
+  req: IUserRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const authHeader = req.headers["authorization"];
+
+  if (!authHeader) {
+    throw new AppError(401, "Please authenticate");
+  }
+
+  if (!authHeader.startsWith("Bearer ")) {
+    throw new AppError(401, "Invalid authorization format");
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    throw new AppError(401, "Token is required");
+  }
+
+  jwt.verify(token.trim(), JWT_SECRET!, async (err, decodeToken: any) => {
+    if (err) {
+      throw new AppError(401, err.message);
+    }
+
+    if (!decodeToken) {
+      throw new AppError(401, "Problem decoding token");
+    }
+
+    //check if user is Admin
+
+    const isAdmin = await userService.isUserAdmin(decodeToken.email);
+    if (!isAdmin) {
+      throw new AppError(401, "You should not be here");
     }
 
     req.user = decodeToken;

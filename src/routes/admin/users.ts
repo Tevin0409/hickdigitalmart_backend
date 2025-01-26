@@ -1,30 +1,30 @@
 import express from "express";
 import { userController } from "../../controller";
-import { authMiddleware, validate } from "../../middleware";
+import { authAdminMiddleware, validate } from "../../middleware";
 import { createUserSchema } from "../../validators/userValidator";
 
 const userAdminRouter = express.Router();
 
-userAdminRouter.post("/create-user", validate(createUserSchema),authMiddleware, userController.createUser);
+userAdminRouter.post("/create-user", validate(createUserSchema),authAdminMiddleware, userController.createUser);
 userAdminRouter.post("/login", userController.login);
 userAdminRouter.put(
   "/update-user/:id",
-  authMiddleware,
+  authAdminMiddleware,
   userController.updateUser
 );
 userAdminRouter.get(
   "/get-all-users",
-  authMiddleware,
+  authAdminMiddleware,
   userController.getAllUsers
 );
 userAdminRouter.get(
   "/get-user/:id",
-  authMiddleware,
+  authAdminMiddleware,
   userController.getUserById
 );
 userAdminRouter.get(
   "/get-user-by-email/:email",
-  authMiddleware,
+  authAdminMiddleware,
   userController.getUserByEmail
 );
 

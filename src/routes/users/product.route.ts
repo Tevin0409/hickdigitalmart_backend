@@ -7,6 +7,7 @@ const userProductRouter = express.Router();
 // Product Routes
 userProductRouter.get("/", productController.getAllProducts);
 userProductRouter.get("/by-id/:id", productController.getProduct);
+userProductRouter.get("/model/by-id/:id", productController.getProductModel);
 
 // Category Routes
 userProductRouter.get("/categories", productController.getAllCategories);

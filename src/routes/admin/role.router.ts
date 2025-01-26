@@ -1,17 +1,17 @@
 import express from "express";
 
 import { roleController } from "../../controller";
-import { authMiddleware, validate } from "../../middleware";
+import { authAdminMiddleware, validate } from "../../middleware";
 import { createRoleSchema } from "../../validators/userValidator";
 
 const roleRouter = express.Router();
 
-roleRouter.get("/", authMiddleware, roleController.getAllRoles);
+roleRouter.get("/", authAdminMiddleware, roleController.getAllRoles);
 
 roleRouter.post("/create-role", validate(createRoleSchema),roleController.createrole);
 
-roleRouter.patch("/update/:id",authMiddleware, roleController.updateRole);
+roleRouter.patch("/update/:id",authAdminMiddleware, roleController.updateRole);
 
-roleRouter.delete("/delete/:id",authMiddleware, roleController.deleteRole);
+roleRouter.delete("/delete/:id",authAdminMiddleware, roleController.deleteRole);
 
 export { roleRouter };
