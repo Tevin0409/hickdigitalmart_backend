@@ -6,7 +6,7 @@ import { productSchema } from "../../validators/productValidator";
 const productRouter = express.Router();
 
 // Product Routes
-productRouter.get("/", productController.getAllProducts);
+productRouter.get("/", authAdminMiddleware,productController.getAllProducts);
 productRouter.post("/create",validate(productSchema), authAdminMiddleware, productController.createProduct);
 productRouter.patch("/update/:id", authAdminMiddleware, productController.updateProduct);
 productRouter.delete("/delete/:id", authAdminMiddleware, productController.deleteProduct);

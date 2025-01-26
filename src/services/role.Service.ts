@@ -39,6 +39,22 @@ export const roleService = {
       throw new AppError(500, "Failed to retrieve roles");
     }
   },
+  getUserRoles: async () => {
+    try {
+      const roles = await prisma.role.findMany({
+        where: {
+          NOT: [
+            { name: 'SUDO' },
+            { name: 'ADMIN' },
+          ], // Exclude SUDO and ADMIN roles
+        },
+      });
+      return roles;
+    } catch (error) {
+      throw new AppError(500, "Failed to retrieve roles");
+    }
+  },
+  
 
   // Update a role by ID
   updateRole: async (id: string, roleData: Partial<RoleDTO>) => {

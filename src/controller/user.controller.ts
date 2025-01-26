@@ -1,6 +1,7 @@
 import express from "express";
 import { CreateUserDTO } from "../interface/user";
 import { userService } from "../services";
+import { IUserRequest } from "../middleware";
 
 export const userController = {
   // Create a new user
@@ -101,6 +102,18 @@ export const userController = {
     try {
       const { id } = req.params;
       const user = await userService.getUserById(id);
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  },
+  getUser: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const user = await userService.getUserByEmail(req.user.email);
       res.status(200).json(user);
     } catch (error) {
       next(error);

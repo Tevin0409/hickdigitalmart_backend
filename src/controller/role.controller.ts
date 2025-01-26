@@ -17,7 +17,18 @@ export const roleController = {
       next(error);
     }
   },
-
+  getUserRoles: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const roles = await roleService.getUserRoles();
+      res.status(200).json(roles);
+    } catch (error) {
+      next(error);
+    }
+  },
   // Create a new role
   createrole: async (
     req: express.Request,
