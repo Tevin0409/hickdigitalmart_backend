@@ -27,5 +27,10 @@ userAdminRouter.get(
   authAdminMiddleware,
   userController.getUserByEmail
 );
+userAdminRouter.post(
+  "/manage-permissions/:userId",
+  authAdminMiddleware,
+  userController.managePermissions
+);
 
 export { userAdminRouter };

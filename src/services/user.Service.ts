@@ -286,7 +286,7 @@ export const userService = {
   getAllUsers: async () => {
     try {
       const users = await prisma.user.findMany({
-        include: { role: true },
+        include: { role: true ,permissions:true},
       });
       return users;
     } catch (err: any) {
@@ -301,7 +301,7 @@ export const userService = {
     try {
       const user = await prisma.user.findUnique({
         where: { id },
-        include: { role: true },
+        include: { role: true,permissions:true },
       });
 
       if (!user) {
@@ -319,7 +319,7 @@ export const userService = {
     try {
       const user = await prisma.user.findUnique({
         where: { email },
-        include: { role: true },
+        include: { role: true,permissions:true },
       });
 
       if (!user) {
@@ -345,5 +345,77 @@ export const userService = {
     }
 
     return false;
+  },
+  managePermissions: async (
+    userId: string,
+    permissionsToAdd: string[],
+    permissionsToRemove: string[]
+  ) => {
+    try {
+      await prisma.$transaction(async (prisma) => {
+        for (const permissionName of permissionsToAdd) {
+          const permission = await prisma.permission.findUnique({
+            where: { name: permissionName },
+          });
+
+          if (permission) {
+            const user = await prisma.user.findUnique({
+              where: { id: userId },
+              include: { permissions: true },
+            });
+
+            if (
+              user &&
+              !user.permissions.some((perm) => perm.name === permissionName)
+            ) {
+              await prisma.user.update({
+                where: { id: userId },
+                data: {
+                  permissions: {
+                    connect: { id: permission.id },
+                  },
+                },
+              });
+            
+            }
+          } else {
+            console.log(`Permission ${permissionName} does not exist`);
+          }
+        }
+        for (const permissionName of permissionsToRemove) {
+          const permission = await prisma.permission.findUnique({
+            where: { name: permissionName },
+          });
+
+          if (permission) {
+            const user = await prisma.user.findUnique({
+              where: { id: userId },
+              include: { permissions: true },
+            });
+
+            if (
+              user &&
+              user.permissions.some((perm) => perm.name === permissionName)
+            ) {
+              await prisma.user.update({
+                where: { id: userId },
+                data: {
+                  permissions: {
+                    disconnect: { id: permission.id },
+                  },
+                },
+              });
+             
+            }
+          } else {
+            console.log(`Permission ${permissionName} does not exist`);
+          }
+        }
+      });
+
+      return "Permissions updated successfully";
+    } catch (error:any) {
+      throw new Error(`Failed to manage permissions ${error?.message}`);
+    }
   },
 };

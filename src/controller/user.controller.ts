@@ -134,4 +134,18 @@ export const userController = {
       next(error);
     }
   },
+  managePermissions: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { userId } = req.params;
+      const { permissionsToAdd, permissionsToRemove } = req.body;
+      const user = await userService.managePermissions(userId, permissionsToAdd, permissionsToRemove);
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  },
 };
