@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
 import { generateToken, verifyToken } from "../utils/jwt";
 import { generateOTP } from "../utils/util";
-import { sendOTPEmail } from "./email.Service";
+import { sendOTPEmail, sendPasswordChangeEmail } from "./email.Service";
 
 const prisma = new PrismaClient();
 
@@ -469,6 +469,150 @@ export const userService = {
       throw new Error(
         error.message || "Error creating Technician Questionnaire"
       );
+    }
+  },
+  changePassword: async (
+    email: string,
+    changePasswordDTO: {
+      oldPassword: string;
+      newPassword: string;
+      confirmNewPassword: string;
+    }
+  ) => {
+    try {
+      // Fetch the user from the database by email
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+      const isOldPasswordValid = await bcrypt.compare(
+        changePasswordDTO.oldPassword,
+        user.password
+      );
+      if (!isOldPasswordValid) {
+        throw new Error("Old password is incorrect");
+      }
+      if (
+        changePasswordDTO.newPassword !== changePasswordDTO.confirmNewPassword
+      ) {
+        throw new Error("New password and confirmation do not match");
+      }
+      const hashedNewPassword = await bcrypt.hash(
+        changePasswordDTO.newPassword,
+        10
+      );
+      await prisma.user.update({
+        where: { email },
+        data: {
+          password: hashedNewPassword,
+        },
+      });
+      sendPasswordChangeEmail(user.email, user.firstName);
+
+      return { message: "Password successfully updated" };
+    } catch (error: any) {
+      throw new Error(error.message || "Error changing password");
+    }
+  },
+  forgotPassword: async (email: string) => {
+    try {
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!existingUser) {
+        throw new AppError(400, `No user found with email: ${email}`);
+      }
+      const otp = generateOTP();
+      const otpHash = await bcrypt.hash(otp, 10);
+      const otpExpiresAt = new Date();
+      otpExpiresAt.setMinutes(otpExpiresAt.getMinutes() + 30);
+      await prisma.user.update({
+        where: { email },
+        data: {
+          otpHash,
+          otpExpiresAt,
+        },
+      });
+      await sendOTPEmail(existingUser.email, otp);
+      return {
+        message: "Please check your email for an OTP to reset your password.",
+      };
+    } catch (error) {
+      throw new AppError(
+        500,
+        "An error occurred while processing your request."
+      );
+    }
+  },
+  resetPassword: async (resetPassDTO: {
+    email: string;
+    otp: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }) => {
+    try {
+      // Validate required fields
+      const { email, otp, newPassword, confirmNewPassword } = resetPassDTO;
+      if (!email || !otp || !newPassword || !confirmNewPassword) {
+        throw new AppError(
+          400,
+          "Email, OTP, new password, and confirmation are required"
+        );
+      }
+
+      // Check if the user exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!existingUser || !existingUser.otpHash) {
+        throw new AppError(404, "User not found or OTP not generated");
+      }
+
+      // Validate OTP
+      const isOTPValid = await bcrypt.compare(otp, existingUser.otpHash);
+      if (!isOTPValid) {
+        throw new AppError(400, "Invalid OTP");
+      }
+
+      // Check if OTP has expired
+      if (
+        existingUser.otpExpiresAt &&
+        new Date(existingUser.otpExpiresAt) < new Date()
+      ) {
+        throw new AppError(400, "OTP has expired");
+      }
+
+      // Validate password match
+      if (newPassword !== confirmNewPassword) {
+        throw new AppError(400, "New password and confirmation do not match");
+      }
+
+      // Optionally: Check password strength (e.g., length, complexity) before hashing
+      if (newPassword.length < 8) {
+        throw new AppError(400, "Password must be at least 8 characters long");
+      }
+
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      await prisma.user.update({
+        where: { email: existingUser.email },
+        data: {
+          password: hashedNewPassword,
+          otpHash: null,
+          otpExpiresAt: null,
+        },
+      });
+
+      await sendPasswordChangeEmail(existingUser.email, existingUser.firstName);
+
+      return { message: "Password successfully updated" };
+    } catch (error: any) {
+      console.error("Error in resetPassword:", error);
+      throw new AppError(500, error.message || "An error occured");
     }
   },
 };

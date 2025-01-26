@@ -142,7 +142,11 @@ export const userController = {
     try {
       const { userId } = req.params;
       const { permissionsToAdd, permissionsToRemove } = req.body;
-      const user = await userService.managePermissions(userId, permissionsToAdd, permissionsToRemove);
+      const user = await userService.managePermissions(
+        userId,
+        permissionsToAdd,
+        permissionsToRemove
+      );
       res.status(200).json(user);
     } catch (error) {
       next(error);
@@ -155,6 +159,43 @@ export const userController = {
   ) => {
     try {
       const user = await userService.addTechnicianQuestionnaire(req.body);
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  },
+  ChangePassword: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const email = req.user.email;
+      const user = await userService.changePassword(email, req.body);
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  },
+  forgotPassword: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const user = await userService.forgotPassword(req.body.email);
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  },
+  resetPassword: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const user = await userService.resetPassword(req.body);
       res.status(200).json(user);
     } catch (error) {
       next(error);
