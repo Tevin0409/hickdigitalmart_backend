@@ -1,11 +1,13 @@
 import express from "express";
 import { productController } from "../../controller"; 
-import { authMiddleware } from "../../middleware";
+import { authMiddleware, validate } from "../../middleware";
+import { addCartSchema, addWhishlisttSchema, updateCartSchema } from "../../validators/productValidator";
 
 const userProductRouter = express.Router();
 
 // Product Routes
 userProductRouter.get("/", productController.getAllProducts);
+userProductRouter.get("/product-models", productController.getAllProductsModels);
 userProductRouter.get("/by-id/:id", productController.getProduct);
 userProductRouter.get("/model/by-id/:id", productController.getProductModel);
 
@@ -14,13 +16,13 @@ userProductRouter.get("/categories", productController.getAllCategories);
 
 // Cart Routes
 userProductRouter.get("/cart", authMiddleware, productController.getCartItems);
-userProductRouter.post("/cart/add", authMiddleware, productController.addToCart);
-userProductRouter.patch("/cart/update/:cartId", authMiddleware, productController.updateCartItem);
+userProductRouter.post("/cart/add",validate(addCartSchema), authMiddleware, productController.addToCart);
+userProductRouter.patch("/cart/update/:cartId",validate(updateCartSchema), authMiddleware, productController.updateCartItem);
 userProductRouter.delete("/cart/remove/:cartId", authMiddleware, productController.removeFromCart);
 
 // Wishlist Routes
 userProductRouter.get("/wishlist", authMiddleware, productController.getWishlistItems);
-userProductRouter.post("/wishlist/add", authMiddleware, productController.addToWishlist);
+userProductRouter.post("/wishlist/add", validate(addWhishlisttSchema),authMiddleware, productController.addToWishlist);
 userProductRouter.delete("/wishlist/remove/:wishlistId", authMiddleware, productController.removeFromWishlist);
 
 // Order Routes

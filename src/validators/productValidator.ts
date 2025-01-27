@@ -25,3 +25,17 @@ export const productSchema = Joi.object({
     models: Joi.array().items(modelSchema).min(1).required(),
   }).required(),
 });
+
+export const addCartSchema = Joi.object({
+  userId: Joi.string().uuid().required(),
+  productModelId: Joi.string().uuid().required(),
+  quantity: Joi.number().greater(0).required(),
+});
+export const updateCartSchema = Joi.object({
+  userId: Joi.string().uuid().required(),
+  productModelId: Joi.string().uuid().required(),
+  quantity: Joi.number().greater(0).required(),
+});
+export const addWhishlisttSchema = Joi.object({
+  productModelId: Joi.string().uuid().required(),
+});

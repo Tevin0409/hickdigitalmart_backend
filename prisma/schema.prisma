@@ -16,8 +16,8 @@ model User {
   lastName              String
   otpHash               String?
   otpExpiresAt          DateTime?
-  isVerified            Boolean       @default(false)
-  technicianVerified            Boolean       @default(false)
+  isVerified            Boolean      @default(false)
+  technicianVerified    Boolean      @default(false)
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
   inCorrectAttempts     Int          @default(0)
@@ -57,21 +57,18 @@ model Product {
   subCategoryId   String
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @default(now())
-  cartItems       Cart[]
-  wishlists       Wishlist[]
-  orderItems      OrderItem[]
   PricePercentage PricePercentage[]
   models          ProductModel[]
 }
 
 model ProductImage {
-  id          String       @id @default(uuid())
+  id             String       @id @default(uuid())
   productModelId String
-  productModel ProductModel @relation(fields: [productModelId], references: [id], onDelete: Cascade)
-  uploadUrl   String       @db.VarChar(255)
-  optimizeUrl String?      @db.VarChar(255)
-  autoCropUrl String?      @db.VarChar(255)
-  isPrimary   Boolean      @default(false)
+  productModel   ProductModel @relation(fields: [productModelId], references: [id], onDelete: Cascade)
+  uploadUrl      String       @db.VarChar(255)
+  optimizeUrl    String?      @db.VarChar(255)
+  autoCropUrl    String?      @db.VarChar(255)
+  isPrimary      Boolean      @default(false)
 }
 
 model ProductModel {
@@ -87,8 +84,9 @@ model ProductModel {
   inventory   Inventory?
   OrderItem   OrderItem[]
   images      ProductImage[]
+  cartItems   Cart[]
+  wishlists   Wishlist[]
 }
-
 
 model Inventory {
   id        String       @id @default(uuid())
@@ -103,6 +101,9 @@ model Order {
   id         String      @id @default(uuid())
   userId     String
   user       User        @relation(fields: [userId], references: [id])
+  orderPrice Float
+  vat        Float
+  total      Float
   orderItems OrderItem[]
   status     String      @default("Pending")
   createdAt  DateTime    @default(now())
@@ -118,8 +119,6 @@ model OrderItem {
   quantity       Int
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @default(now()) @updatedAt
-  Product        Product?     @relation(fields: [productId], references: [id])
-  productId      String?
 }
 
 model ProductFeature {
@@ -148,24 +147,24 @@ model Category {
 }
 
 model Cart {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  productModelId String
+  productModel   ProductModel @relation(fields: [productModelId], references: [id])
+  quantity       Int          @default(1)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now()) @updatedAt
 }
 
 model Wishlist {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  productModelId String
+  productModel   ProductModel @relation(fields: [productModelId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now()) @updatedAt
 }
 
 model PricePercentage {
@@ -178,6 +177,7 @@ model PricePercentage {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt
 }
+
 model TechnicianQuestionnaire {
   id                    Int      @id @default(autoincrement())
   businessName          String
@@ -193,5 +193,3 @@ model TechnicianQuestionnaire {
   purchaseHikvision     String
   requiresTraining      String
 }
-
-

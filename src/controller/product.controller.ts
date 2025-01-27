@@ -24,6 +24,22 @@ export const productController = {
       next(error);
     }
   },
+  getAllProductsModels: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { searchTerm, categoryId } = req.query;
+      const products = await productService.getAllProductsModels(
+        searchTerm as string | undefined,
+        categoryId as string | undefined
+      );
+      res.status(200).json(products);
+    } catch (error) {
+      next(error);
+    }
+  },
   createProduct: async (
     req: express.Request,
     res: express.Response,
@@ -272,10 +288,10 @@ export const productController = {
   ) => {
     try {
       const userId = req.user?.id;
-      const { productId, quantity } = req.body;
+      const { productModelId, quantity } = req.body;
       const cartItem = await productService.addToCart(
         userId,
-        productId,
+        productModelId,
         quantity
       );
       res.status(201).json(cartItem);
@@ -291,10 +307,10 @@ export const productController = {
     try {
       const userId = req.user?.id;
       const cartId = req.params.cartId;
-      const { quantity } = req.body;
+      const { quantity ,productModelId} = req.body;
       const updatedCartItem = await productService.updateCartItem(
         userId,
-        cartId,
+        productModelId,
         quantity
       );
       res.status(200).json(updatedCartItem);
@@ -338,10 +354,10 @@ export const productController = {
   ) => {
     try {
       const userId = req.user?.id;
-      const { productId } = req.body;
+      const { productModelId } = req.body;
       const wishlistItem = await productService.addToWishlist(
         userId,
-        productId
+        productModelId
       );
       res.status(201).json(wishlistItem);
     } catch (error) {

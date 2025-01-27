@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { AppError } from "../middleware";
 import {
   CreateProductDTO,
@@ -79,6 +79,75 @@ export const productService = {
       });
     } catch (error) {
       console.error("Error fetching products:", error);
+      throw error;
+    }
+  },
+  getAllProductsModels: async (searchTerm?: string, categoryId?: string) => {
+    try {
+      console.log("Search Term:", searchTerm, "Category ID:", categoryId);
+
+      const whereClause: Prisma.ProductModelWhereInput = {
+        ...(searchTerm
+          ? {
+              OR: [
+                { name: { contains: searchTerm, mode: "insensitive" } },
+                {
+                  product: {
+                    subCategory: {
+                      name: { contains: searchTerm, mode: "insensitive" },
+                    },
+                  },
+                },
+                {
+                  product: {
+                    subCategory: {
+                      category: {
+                        name: { contains: searchTerm, mode: "insensitive" },
+                      },
+                    },
+                  },
+                },
+                {
+                  features: {
+                    some: {
+                      description: {
+                        contains: searchTerm,
+                        mode: "insensitive",
+                      },
+                    },
+                  },
+                },
+              ],
+            }
+          : {}),
+        ...(categoryId
+          ? {
+              product: {
+                subCategory: {
+                  categoryId: categoryId,
+                },
+              },
+            }
+          : {}),
+      };
+
+      return await prisma.productModel.findMany({
+        where: whereClause,
+        include: {
+          product: {
+            include: {
+              subCategory: {
+                include: { category: true },
+              },
+            },
+          },
+          features: true,
+          inventory: true,
+          images: true,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching product models:", error);
       throw error;
     }
   },
@@ -383,11 +452,11 @@ export const productService = {
   },
 
   // Wishlist Services
-  addToWishlist: async (userId: string, productId: string) => {
+  addToWishlist: async (userId: string, productModelId: string) => {
     try {
       // Check if the wishlist entry exists
       const existingEntry = await prisma.wishlist.findFirst({
-        where: { userId, productId },
+        where: { userId, productModelId },
       });
 
       if (existingEntry) {
@@ -401,7 +470,7 @@ export const productService = {
         await prisma.wishlist.create({
           data: {
             userId,
-            productId,
+            productModelId,
           },
         });
         return { message: "Wishlist item added." };
@@ -411,12 +480,12 @@ export const productService = {
     }
   },
 
-  removeFromWishlist: async (userId: string, productId: string) => {
+  removeFromWishlist: async (userId: string, wishlistId: string) => {
     try {
       return await prisma.wishlist.deleteMany({
         where: {
           userId,
-          productId,
+          id: wishlistId,
         },
       });
     } catch (error: any) {
@@ -432,7 +501,7 @@ export const productService = {
       return await prisma.wishlist.findMany({
         where: { userId },
         include: {
-          product: true,
+          productModel: true,
         },
       });
     } catch (error: any) {
@@ -441,10 +510,14 @@ export const productService = {
   },
 
   // Cart Services
-  addToCart: async (userId: string, productId: string, quantity: number) => {
+  addToCart: async (
+    userId: string,
+    productModelId: string,
+    quantity: number
+  ) => {
     try {
       const existingCartItem = await prisma.cart.findFirst({
-        where: { userId, productId },
+        where: { userId, productModelId },
       });
 
       if (existingCartItem) {
@@ -457,7 +530,7 @@ export const productService = {
       return await prisma.cart.create({
         data: {
           userId,
-          productId,
+          productModelId,
           quantity,
         },
       });
@@ -466,12 +539,12 @@ export const productService = {
     }
   },
 
-  removeFromCart: async (userId: string, productId: string) => {
+  removeFromCart: async (userId: string, cartId: string) => {
     try {
       return await prisma.cart.deleteMany({
         where: {
           userId,
-          productId,
+          id: cartId,
         },
       });
     } catch (error: any) {
@@ -481,14 +554,14 @@ export const productService = {
 
   updateCartItem: async (
     userId: string,
-    productId: string,
+    productModelId: string,
     quantity: number
   ) => {
     try {
       return await prisma.cart.updateMany({
         where: {
           userId,
-          productId,
+          productModelId,
         },
         data: {
           quantity,
@@ -503,39 +576,50 @@ export const productService = {
     return await prisma.cart.findMany({
       where: { userId },
       include: {
-        product: true,
+        productModel: true,
       },
     });
   },
 
   createOrder: async (
     userId: string,
-    products: { productModelId: string; quantity: number }[] // Using productModelId instead of modelId
+    products: { productModelId: string; quantity: number }[]
   ) => {
     try {
-      // Check stock for each product model
+      let orderPrice = 0;
+
+      // Check stock and calculate order price
       for (const { productModelId, quantity } of products) {
-        const inventory = await prisma.inventory.findFirst({
-          where: { modelId: productModelId }, // Using productModelId
+        const inventory = await prisma.inventory.findUnique({
+          where: { modelId: productModelId },
+          include: { model: true },
         });
 
         if (!inventory || inventory.quantity < quantity) {
           throw new AppError(
             400,
-            `Insufficient stock for product model ID: ${productModelId}` // Updated error message
+            `Insufficient stock for product model ID: ${productModelId}`
           );
         }
+
+        // Calculate order price
+        orderPrice += inventory.model.price * quantity;
       }
+
+      const vat = orderPrice * 0.16; // Assuming 16% VAT
+      const total = orderPrice + vat;
 
       // Create the order and update inventory
       return await prisma.$transaction(async (tx) => {
-        // Create the order
         const order = await tx.order.create({
           data: {
             userId,
+            orderPrice,
+            vat,
+            total,
             orderItems: {
               create: products.map(({ productModelId, quantity }) => ({
-                productModel: { connect: { id: productModelId } }, // Connecting to ProductModel
+                productModel: { connect: { id: productModelId } },
                 quantity,
               })),
             },
@@ -545,8 +629,8 @@ export const productService = {
 
         // Reduce inventory
         for (const { productModelId, quantity } of products) {
-          await tx.inventory.updateMany({
-            where: { modelId: productModelId }, // Using productModelId
+          await tx.inventory.update({
+            where: { modelId: productModelId },
             data: { quantity: { decrement: quantity } },
           });
         }
@@ -579,7 +663,7 @@ export const productService = {
         include: {
           orderItems: {
             include: {
-              productModel: true, // Updated to reference ProductModel
+              productModel: true,
             },
           },
         },
