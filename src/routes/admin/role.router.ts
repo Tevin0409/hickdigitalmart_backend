@@ -6,7 +6,7 @@ import { createRoleSchema } from "../../validators/userValidator";
 
 const roleRouter = express.Router();
 
-roleRouter.get("/", authAdminMiddleware, roleController.getAllRoles);
+roleRouter.get("/", roleController.getAllRoles);
 
 roleRouter.post("/create-role",authAdminMiddleware, validate(createRoleSchema),roleController.createrole);
 
