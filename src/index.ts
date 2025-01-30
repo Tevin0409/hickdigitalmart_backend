@@ -4,6 +4,7 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import fileUpload from "express-fileupload";
+import path from "path";
 
 import {
   requestLogger,
@@ -25,6 +26,10 @@ app.use(
 );
 
 app.use(requestLogger);
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(`${__dirname}/templates/warning.html`));
+});
 
 app.use("/api", router);
 
