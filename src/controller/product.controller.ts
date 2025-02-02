@@ -672,9 +672,7 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      const { orderId } = req.params;
-      const {phoneNumber,amount} = req.body
-      const result = await StkService.pushStk({phoneNumber,amount,orderId});
+      const result = await StkService.pushStk(req.body);
       res.status(200).json(result);
     } catch (error) {
       next(error);

@@ -5,7 +5,6 @@ interface Config {
   consumerKey: string;
   shortcode: string;
   passkey: string;
-  ngrokAuthToken: string;
 }
 
 interface Url {
@@ -33,10 +32,6 @@ const config: Config = {
   consumerKey: validateEnvVariable(process.env.consumerKey, "consumerKey"),
   shortcode: validateEnvVariable(process.env.shortcode, "shortcode"),
   passkey: validateEnvVariable(process.env.passkey, "passkey"),
-  ngrokAuthToken: validateEnvVariable(
-    process.env.ngrokAuthToken,
-    "ngrokAuthToken"
-  ),
 };
 
 const url: Url = {

@@ -1,7 +1,7 @@
 import express from "express";
 import { productController } from "../../controller"; 
 import { authMiddleware, validate } from "../../middleware";
-import { addCartSchema, addWhishlisttSchema, checkoutSchema, updateCartSchema } from "../../validators/productValidator";
+import { addCartSchema, addWhishlisttSchema, checkoutSchema, createOrderSchema, updateCartSchema } from "../../validators/productValidator";
 
 const userProductRouter = express.Router();
 
@@ -26,7 +26,7 @@ userProductRouter.post("/wishlist/add", validate(addWhishlisttSchema),authMiddle
 userProductRouter.delete("/wishlist/remove/:wishlistId", authMiddleware, productController.removeFromWishlist);
 
 // Order Routes
-userProductRouter.post("/orders", authMiddleware, productController.createOrder);
+userProductRouter.post("/orders",validate(createOrderSchema), authMiddleware, productController.createOrder);
 userProductRouter.get("/orders", authMiddleware, productController.getOrders); 
 userProductRouter.get("/orders/:orderId", authMiddleware, productController.getOrder);
 userProductRouter.delete("/orders/:orderId", authMiddleware, productController.deleteOrder); 
