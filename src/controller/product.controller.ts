@@ -5,6 +5,7 @@ import { FileArray, UploadedFile } from "express-fileupload";
 import xlsx from "xlsx";
 import { create } from "domain";
 import { CreateProductDTO } from "../interface/product";
+import { StkService } from "../services/mpesa/stk.Service";
 
 export const productController = {
   // Product Handlers
@@ -663,5 +664,33 @@ export const productController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  checkout: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { orderId } = req.params;
+      const {phoneNumber,amount} = req.body
+      const result = await StkService.pushStk({phoneNumber,amount,orderId});
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+  callbackURl: async (
+    req: express.Request,
+    res: express.Response,
+    next:express.NextFunction
+  ): Promise<any> => {
+    try {
+      const result = await StkService.saveCallbackResult(req.body.stkCallback);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+
   },
 };

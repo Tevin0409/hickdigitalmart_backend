@@ -108,7 +108,25 @@ model Order {
   status     String      @default("Pending")
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @default(now()) @updatedAt
+  transactions Transaction[] 
 }
+
+model Transaction {
+  id                  String      @id @default(uuid())
+  merchantRequestID   String
+  checkoutRequestID   String @unique
+  responseDescription String
+  customerMessage     String
+  resultCode     Int?
+  resultDesc      String?
+  mpesaReceiptNumber String?
+  amount   Int?
+  phoneNumber String?
+  transactionDate String?
+  orderId    String     
+  order      Order       @relation(fields: [orderId], references: [id]) 
+}
+
 
 model OrderItem {
   id             String       @id @default(uuid())

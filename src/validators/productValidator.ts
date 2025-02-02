@@ -39,3 +39,14 @@ export const updateCartSchema = Joi.object({
 export const addWhishlisttSchema = Joi.object({
   productModelId: Joi.string().uuid().required(),
 });
+
+export const checkoutSchema = Joi.object({
+  orderId: Joi.string().uuid().required(),
+  amount: Joi.number().greater(0).required(),
+  phoneNumber: Joi.string()
+    .pattern(/^(?:\+254|0|254)?(7[0-9]{8}|1[0-9]{8})$/)
+    .message(
+      "Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)"
+    )
+    .required(),
+});
