@@ -482,7 +482,7 @@ export const productService = {
 
   removeFromWishlist: async (userId: string, wishlistId: string) => {
     try {
-      return await prisma.wishlist.deleteMany({
+      return await prisma.wishlist.delete({
         where: {
           userId,
           id: wishlistId,
@@ -546,7 +546,7 @@ export const productService = {
 
   removeFromCart: async (userId: string, cartId: string) => {
     try {
-      return await prisma.cart.deleteMany({
+      return await prisma.cart.delete({
         where: {
           userId,
           id: cartId,
