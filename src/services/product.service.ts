@@ -501,7 +501,12 @@ export const productService = {
       return await prisma.wishlist.findMany({
         where: { userId },
         include: {
-          productModel: true,
+          productModel: {
+            include: {
+              images: true,
+              features: true,
+            },
+          },
         },
       });
     } catch (error: any) {
@@ -576,7 +581,12 @@ export const productService = {
     return await prisma.cart.findMany({
       where: { userId },
       include: {
-        productModel: true,
+        productModel: {
+          include: {
+            images: true,
+            features: true,
+          },
+        },
       },
     });
   },
@@ -663,7 +673,12 @@ export const productService = {
         include: {
           orderItems: {
             include: {
-              productModel: true,
+              productModel: {
+                include: {
+                  images: true,
+                  features: true,
+                },
+              },
             },
           },
         },
