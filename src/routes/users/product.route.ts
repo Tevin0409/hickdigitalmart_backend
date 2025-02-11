@@ -11,6 +11,9 @@ userProductRouter.get("/product-models", productController.getAllProductsModels)
 userProductRouter.get("/by-id/:id", productController.getProduct);
 userProductRouter.get("/model/by-id/:id", productController.getProductModel);
 
+//Features
+userProductRouter.get("/features", productController.getAllFeatures);
+
 // Category Routes
 userProductRouter.get("/categories", productController.getAllCategories);
 

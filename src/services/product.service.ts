@@ -15,59 +15,126 @@ const prisma = new PrismaClient();
 
 export const productService = {
   // Product Services
-  getAllProducts: async (searchTerm?: string, categoryId?: string) => {
+  getAllProducts: async (
+    searchTerm?: string,
+    categoryIds?: string[],
+    subCategoryIds?: string[],
+    featureIds?: string[],
+    minPrice?: number,
+    maxPrice?: number,
+    page: number = 1,
+    limit: number = 10
+  ) => {
     try {
-      console.log("Search Term:", searchTerm, "Category ID:", categoryId);
+      const conditions: any[] = [];
 
-      return await prisma.product.findMany({
-        where: {
-          AND: [
-            searchTerm
-              ? {
+      // Search term condition
+      if (searchTerm) {
+        conditions.push({
+          OR: [
+            { name: { contains: searchTerm, mode: "insensitive" } },
+            {
+              subCategory: {
+                name: { contains: searchTerm, mode: "insensitive" },
+              },
+            },
+            {
+              subCategory: {
+                category: {
+                  name: { contains: searchTerm, mode: "insensitive" },
+                },
+              },
+            },
+            {
+              models: {
+                some: {
                   OR: [
                     { name: { contains: searchTerm, mode: "insensitive" } },
                     {
-                      subCategory: {
-                        name: { contains: searchTerm, mode: "insensitive" },
+                      description: {
+                        contains: searchTerm,
+                        mode: "insensitive",
                       },
                     },
                     {
-                      subCategory: {
-                        category: {
-                          name: { contains: searchTerm, mode: "insensitive" },
-                        },
-                      },
-                    },
-                    {
-                      models: {
+                      features: {
                         some: {
-                          features: {
-                            some: {
-                              description: {
-                                contains: searchTerm,
-                                mode: "insensitive",
-                              },
-                            },
+                          description: {
+                            contains: searchTerm,
+                            mode: "insensitive",
                           },
                         },
                       },
                     },
                   ],
-                }
-              : {},
-            categoryId
-              ? {
-                  subCategory: {
-                    categoryId: { equals: categoryId },
-                  },
-                }
-              : {},
+                },
+              },
+            },
           ],
-        },
-        include: {
+        });
+      }
+
+      // Filter by multiple categories
+      if (categoryIds && categoryIds.length > 0) {
+        conditions.push({
           subCategory: {
-            include: { category: true },
+            categoryId: { in: categoryIds },
           },
+        });
+      }
+
+      // Filter by multiple subcategories
+      if (subCategoryIds && subCategoryIds.length > 0) {
+        conditions.push({
+          subCategoryId: { in: subCategoryIds },
+        });
+      }
+
+      // Filter by multiple features
+      if (featureIds && featureIds.length > 0) {
+        conditions.push({
+          models: {
+            some: {
+              features: {
+                some: {
+                  id: { in: featureIds },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      // Filter by price range
+      if (minPrice !== undefined || maxPrice !== undefined) {
+        conditions.push({
+          models: {
+            some: {
+              price: {
+                gte: minPrice ?? 0, // Greater than or equal to minPrice, default to 0
+                lte: maxPrice ?? Number.MAX_SAFE_INTEGER, // Less than or equal to maxPrice
+              },
+            },
+          },
+        });
+      }
+
+      // Construct final where condition
+      const whereCondition = conditions.length > 0 ? { AND: conditions } : {};
+
+      // Get total matching products count
+      const totalResults = await prisma.product.count({
+        where: whereCondition,
+      });
+
+      // Calculate total pages
+      const totalPages = Math.ceil(totalResults / limit);
+
+      // Fetch paginated products
+      const products = await prisma.product.findMany({
+        where: whereCondition,
+        include: {
+          subCategory: { include: { category: true } },
           models: {
             include: {
               features: true,
@@ -76,76 +143,152 @@ export const productService = {
             },
           },
         },
+        skip: (page - 1) * limit,
+        take: limit,
       });
+
+      return {
+        page,
+        limit,
+        totalPages,
+        totalResults,
+        results: products,
+      };
     } catch (error) {
       console.error("Error fetching products:", error);
       throw error;
     }
   },
-  getAllProductsModels: async (searchTerm?: string, categoryId?: string) => {
+  getAllProductsModels: async (
+    searchTerm?: string,
+    categoryIds?: string[],
+    subCategoryIds?: string[],
+    featureIds?: string[],
+    minPrice?: number,
+    maxPrice?: number,
+    page: number = 1,
+    limit: number = 10
+  ) => {
     try {
-      console.log("Search Term:", searchTerm, "Category ID:", categoryId);
+      const conditions: Prisma.ProductModelWhereInput[] = [];
 
-      const whereClause: Prisma.ProductModelWhereInput = {
-        ...(searchTerm
-          ? {
-              OR: [
-                { name: { contains: searchTerm, mode: "insensitive" } },
-                {
-                  product: {
-                    subCategory: {
-                      name: { contains: searchTerm, mode: "insensitive" },
-                    },
-                  },
-                },
-                {
-                  product: {
-                    subCategory: {
-                      category: {
-                        name: { contains: searchTerm, mode: "insensitive" },
-                      },
-                    },
-                  },
-                },
-                {
-                  features: {
-                    some: {
-                      description: {
-                        contains: searchTerm,
-                        mode: "insensitive",
-                      },
-                    },
-                  },
-                },
-              ],
-            }
-          : {}),
-        ...(categoryId
-          ? {
+      // Search term condition
+      if (searchTerm) {
+        conditions.push({
+          OR: [
+            { name: { contains: searchTerm, mode: "insensitive" } },
+            { description: { contains: searchTerm, mode: "insensitive" } },
+            {
+              product: {
+                name: { contains: searchTerm, mode: "insensitive" },
+              },
+            },
+            {
               product: {
                 subCategory: {
-                  categoryId: categoryId,
+                  name: { contains: searchTerm, mode: "insensitive" },
                 },
               },
-            }
-          : {}),
-      };
+            },
+            {
+              product: {
+                subCategory: {
+                  category: {
+                    name: { contains: searchTerm, mode: "insensitive" },
+                  },
+                },
+              },
+            },
+            {
+              features: {
+                some: {
+                  description: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                  },
+                },
+              },
+            },
+          ],
+        });
+      }
 
-      return await prisma.productModel.findMany({
-        where: whereClause,
+      // Filter by multiple categories
+      if (categoryIds && categoryIds.length > 0) {
+        conditions.push({
+          product: {
+            subCategory: {
+              categoryId: { in: categoryIds },
+            },
+          },
+        });
+      }
+
+      // Filter by multiple subcategories
+      if (subCategoryIds && subCategoryIds.length > 0) {
+        conditions.push({
+          product: {
+            subCategoryId: { in: subCategoryIds },
+          },
+        });
+      }
+
+      // Filter by multiple features
+      if (featureIds && featureIds.length > 0) {
+        conditions.push({
+          features: {
+            some: {
+              id: { in: featureIds },
+            },
+          },
+        });
+      }
+
+      // Filter by price range
+      if (minPrice !== undefined || maxPrice !== undefined) {
+        conditions.push({
+          price: {
+            gte: minPrice ?? 0, // Greater than or equal to minPrice, default to 0
+            lte: maxPrice ?? Number.MAX_SAFE_INTEGER, // Less than or equal to maxPrice
+          },
+        });
+      }
+
+      // Construct final where condition
+      const whereCondition = conditions.length > 0 ? { AND: conditions } : {};
+
+      // Get total matching models count
+      const totalResults = await prisma.productModel.count({
+        where: whereCondition,
+      });
+
+      // Calculate total pages
+      const totalPages = Math.ceil(totalResults / limit);
+
+      // Fetch paginated product models
+      const models = await prisma.productModel.findMany({
+        where: whereCondition,
         include: {
           product: {
             include: {
-              subCategory: {
-                include: { category: true },
-              },
+              subCategory: { include: { category: true } },
             },
           },
           features: true,
           inventory: true,
           images: true,
         },
+        skip: (page - 1) * limit,
+        take: limit,
       });
+
+      return {
+        page,
+        limit,
+        totalPages,
+        totalResults,
+        results: models,
+      };
     } catch (error) {
       console.error("Error fetching product models:", error);
       throw error;
@@ -190,6 +333,58 @@ export const productService = {
         "Failed to fetch product model : " + error.message
       );
     }
+  },
+  getFeature: async (
+    categoryId?: string,
+    productId?: string,
+    productModelId?: string
+  ) => {
+    const conditions: any[] = [];
+
+    if (categoryId) {
+      conditions.push({
+        model: {
+          product: {
+            subCategory: {
+              categoryId: categoryId,
+            },
+          },
+        },
+      });
+    }
+
+    if (productId) {
+      conditions.push({
+        model: {
+          productId: productId,
+        },
+      });
+    }
+
+    if (productModelId) {
+      conditions.push({
+        modelId: productModelId,
+      });
+    }
+
+    return await prisma.productFeature.findMany({
+      where: conditions.length > 0 ? { OR: conditions } : undefined,
+      include: {
+        model: {
+          include: {
+            product: {
+              include: {
+                subCategory: {
+                  include: {
+                    category: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
   },
 
   createProduct: async (data: CreateProductDTO) => {
