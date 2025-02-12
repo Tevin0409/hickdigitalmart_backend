@@ -31,13 +31,35 @@ jobs:
           username: ${{ secrets.DO_USER }}
           key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
           script: |
+            # Set project directory
+            PROJECT_DIR="$HOME/backend"
+
+            # Ensure SSH agent is running
+            eval "$(ssh-agent -s)"
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
-            echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-            chmod 600 ~/.ssh/id_ed25519
-            ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "echo 'SSH Authentication Successful'"
-            cd backend
-            git pull origin main
+
+            # Create the backend folder if it doesn't exist
+            mkdir -p $PROJECT_DIR
+
+            # Clone repository if it doesn’t exist, otherwise pull updates
+            if [ ! -d "$PROJECT_DIR/.git" ]; then
+              echo "Repository not found. Cloning..."
+              git clone https://github.com/Tevin0409/hickdigitalmart_backend.git $PROJECT_DIR
+            else
+              echo "Repository exists. Pulling latest changes..."
+              cd $PROJECT_DIR
+              git pull origin main
+            fi
+
+            # Navigate to project directory
+            cd $PROJECT_DIR
+
+            # Install dependencies
             npm install --production
+
+            # Build the project
             npm run build
-            pm2 restart all
+
+            # Restart the application using PM2
+            pm2 restart all || pm2 start npm --name "hickdigitalmart_backend" -- start
