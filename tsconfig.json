@@ -5,7 +5,10 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "outDir": "./dist",
-    "target": "es2020"
+
+    "module": "ESNext",
+
+    "target": "ESNext"
   },
   "include": ["src/**/*"]
 }
