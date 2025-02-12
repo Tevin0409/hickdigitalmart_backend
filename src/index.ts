@@ -11,7 +11,7 @@ import {
   errorLogger,
   errorResponder,
   invalidPathHandler,
-} from "./middleware";
+} from "./middleware/index";
 import router from "./routes";
 
 const app = express();
@@ -27,7 +27,7 @@ app.use(
 
 app.use(requestLogger);
 
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.sendFile(path.join(`${__dirname}/templates/warning.html`));
 });
 
