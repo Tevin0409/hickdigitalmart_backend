@@ -1,0 +1,484 @@
+import { PrismaClient } from "@prisma/client";
+import { AppError } from "../middleware";
+import bcrypt from "bcryptjs";
+import { generateToken, verifyToken } from "../utils/jwt";
+import { generateOTP } from "../utils/util";
+import { sendOTPEmail, sendPasswordChangeEmail } from "./email.Service";
+const prisma = new PrismaClient();
+export const userService = {
+    createUser: async (userData) => {
+        if (!userData)
+            throw new AppError(400, "Please provide valid data");
+        const { email, password, firstName, lastName, phoneNumber, roleId } = userData;
+        if (!roleId) {
+            throw new AppError(400, "Role ID is required to create a user");
+        }
+        try {
+            const existingUser = await prisma.user.findFirst({
+                where: {
+                    OR: [{ email }, { phoneNumber }],
+                },
+            });
+            if (existingUser) {
+                throw new AppError(400, "This email or phone number is already registered with us");
+            }
+            // Validate roleId exists in the Role table
+            const existingRole = await prisma.role.findUnique({
+                where: { id: roleId },
+            });
+            if (!existingRole) {
+                throw new AppError(400, "Invalid role ID provided");
+            }
+            // Hash the password
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const otp = generateOTP();
+            const otpHash = await bcrypt.hash(otp, 10);
+            const otpExpiresAt = new Date(Date.now() + 60 * 30 * 1000);
+            // Create the user
+            const result = await prisma.user.create({
+                data: {
+                    firstName,
+                    lastName,
+                    email,
+                    phoneNumber,
+                    otpHash,
+                    otpExpiresAt,
+                    password: hashedPassword,
+                    roleId,
+                },
+            });
+            await sendOTPEmail(result.email, otp);
+            return {
+                message: "User created successfully. Please check your email to verify Account",
+            };
+        }
+        catch (err) {
+            throw new AppError(500, `Failed to create user: ${err.message}`);
+        }
+    },
+    loginUser: async (loginData) => {
+        const { email, password } = loginData;
+        try {
+            const existingUser = await prisma.user.findUnique({
+                where: { email },
+                include: { role: true },
+            });
+            if (!existingUser) {
+                throw new AppError(400, `No user found with email: ${email}`);
+            }
+            if (existingUser &&
+                existingUser.role &&
+                existingUser.role.name === "TECHNICIAN" &&
+                !existingUser.technicianVerified) {
+                throw new AppError(401, `Your Technician account is still pending approval. Please check back later or contact support for more information`);
+            }
+            const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+            if (!isPasswordValid) {
+                // Increment failed login attempts
+                await prisma.user.update({
+                    where: { email },
+                    data: {
+                        inCorrectAttempts: (existingUser.inCorrectAttempts || 0) + 1,
+                    },
+                });
+                throw new AppError(401, "Invalid credentials");
+            }
+            //check if verified
+            if (!existingUser.isVerified) {
+                const otp = generateOTP();
+                const otpHash = await bcrypt.hash(otp, 10);
+                const otpExpiresAt = new Date(Date.now() + 60 * 30 * 1000);
+                await prisma.user.update({
+                    where: { email },
+                    data: {
+                        otpHash,
+                        otpExpiresAt,
+                    },
+                });
+                await sendOTPEmail(existingUser.email, otp);
+                throw new AppError(401, "This account is not yet verified , check your email for an otp to verify your account ");
+            }
+            // Generate tokens
+            const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken, } = generateToken(existingUser);
+            // Reset failed attempts & store refresh token in DB
+            await prisma.user.update({
+                where: { email },
+                data: {
+                    inCorrectAttempts: 0,
+                    refreshToken,
+                    refreshTokenExpiresAt,
+                },
+            });
+            return {
+                accessToken,
+                accessTokenExpiresAt,
+                refreshToken,
+                refreshTokenExpiresAt,
+                user: existingUser,
+            };
+        }
+        catch (err) {
+            throw new AppError(500, `Failed to login: ${err.message}`);
+        }
+    },
+    verifyUser: async (verifyData) => {
+        if (!verifyData.email || !verifyData.otp) {
+            throw new Error("Email and otp are required");
+        }
+        const existingUser = await prisma.user.findUnique({
+            where: { email: verifyData.email },
+        });
+        if (!existingUser || !existingUser.otpHash) {
+            throw new Error("User not found");
+        }
+        // Check if OTP is valid
+        const isOTPValid = await bcrypt.compare(verifyData.otp, existingUser.otpHash);
+        if (!isOTPValid) {
+            throw new Error("Invalid OTP");
+        }
+        // Check if OTP has expired
+        if (existingUser.otpExpiresAt &&
+            new Date(existingUser.otpExpiresAt) < new Date()) {
+            throw new Error("OTP has expired");
+        }
+        // Generate authentication tokens
+        const { accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, } = generateToken(existingUser);
+        // Reset incorrect attempts & store refresh token in the database
+        await prisma.user.update({
+            where: { email: verifyData.email },
+            data: {
+                inCorrectAttempts: 0,
+                refreshToken,
+                refreshTokenExpiresAt,
+                isVerified: true,
+            },
+        });
+        return {
+            accessToken,
+            accessTokenExpiresAt,
+            refreshToken,
+            refreshTokenExpiresAt,
+            user: existingUser,
+        };
+    },
+    refresh: async (id, refresh_token) => {
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id, refreshToken: refresh_token },
+            });
+            if (!user) {
+                throw new AppError(400, `No user found `);
+            }
+            const isValid = verifyToken(refresh_token, "refresh");
+            if (!isValid) {
+                throw new AppError(401, "Invalid refresh token ,Please log in");
+            }
+            // Generate tokens
+            const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken, } = generateToken(user);
+            // Reset failed attempts & store refresh token in DB
+            await prisma.user.update({
+                where: { email: user.email },
+                data: {
+                    refreshToken,
+                    refreshTokenExpiresAt,
+                },
+            });
+            return {
+                accessToken,
+                accessTokenExpiresAt,
+                refreshToken,
+                refreshTokenExpiresAt,
+                user: user,
+            };
+        }
+        catch (err) {
+            throw new AppError(500, `Failed to login: ${err.message}`);
+        }
+    },
+    updateUser: async (id, updateData) => {
+        if (!id)
+            throw new AppError(400, "User ID is required for update");
+        try {
+            // Validate roleId if provided
+            if (updateData.roleId) {
+                const existingRole = await prisma.role.findUnique({
+                    where: { id: updateData.roleId },
+                });
+                if (!existingRole) {
+                    throw new AppError(400, "Invalid role ID provided");
+                }
+            }
+            // Hash the password if it's being updated
+            if (updateData.password) {
+                updateData.password = await bcrypt.hash(updateData.password, 10);
+            }
+            const updatedUser = await prisma.user.update({
+                where: { id },
+                data: updateData,
+            });
+            return updatedUser;
+        }
+        catch (err) {
+            throw new AppError(500, `Failed to update user: ${err.message}`);
+        }
+    },
+    getAllUsers: async () => {
+        try {
+            const users = await prisma.user.findMany({
+                include: { role: true, permissions: true },
+            });
+            return users;
+        }
+        catch (err) {
+            throw new AppError(500, `Failed to retrieve users: ${err.message}`);
+        }
+    },
+    // Get a user by ID
+    getUserById: async (id) => {
+        if (!id)
+            throw new AppError(400, "User ID is required");
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id },
+                include: { role: true, permissions: true },
+            });
+            if (!user) {
+                throw new AppError(404, "User not found");
+            }
+            return user;
+        }
+        catch (err) {
+            throw new AppError(500, `Failed to retrieve user: ${err.message}`);
+        }
+    },
+    getUserByEmail: async (email) => {
+        if (!email)
+            throw new AppError(400, "Email is required");
+        try {
+            const user = await prisma.user.findUnique({
+                where: { email },
+                include: { role: true, permissions: true },
+            });
+            if (!user) {
+                throw new AppError(404, "User not found");
+            }
+            return user;
+        }
+        catch (err) {
+            throw new AppError(500, `Failed to retrieve user: ${err.message}`);
+        }
+    },
+    isUserAdmin: async (email) => {
+        const user = await prisma.user.findFirst({
+            where: { email },
+            include: { role: true },
+        });
+        if (user &&
+            user.role &&
+            (user.role.name === "SUDO" || user.role.name === "ADMIN")) {
+            return true;
+        }
+        return false;
+    },
+    managePermissions: async (userId, permissionsToAdd, permissionsToRemove) => {
+        try {
+            await prisma.$transaction(async (prisma) => {
+                for (const permissionName of permissionsToAdd) {
+                    const permission = await prisma.permission.findUnique({
+                        where: { name: permissionName },
+                    });
+                    if (permission) {
+                        const user = await prisma.user.findUnique({
+                            where: { id: userId },
+                            include: { permissions: true },
+                        });
+                        if (user &&
+                            !user.permissions.some((perm) => perm.name === permissionName)) {
+                            await prisma.user.update({
+                                where: { id: userId },
+                                data: {
+                                    permissions: {
+                                        connect: { id: permission.id },
+                                    },
+                                },
+                            });
+                        }
+                    }
+                    else {
+                        console.log(`Permission ${permissionName} does not exist`);
+                    }
+                }
+                for (const permissionName of permissionsToRemove) {
+                    const permission = await prisma.permission.findUnique({
+                        where: { name: permissionName },
+                    });
+                    if (permission) {
+                        const user = await prisma.user.findUnique({
+                            where: { id: userId },
+                            include: { permissions: true },
+                        });
+                        if (user &&
+                            user.permissions.some((perm) => perm.name === permissionName)) {
+                            await prisma.user.update({
+                                where: { id: userId },
+                                data: {
+                                    permissions: {
+                                        disconnect: { id: permission.id },
+                                    },
+                                },
+                            });
+                        }
+                    }
+                    else {
+                        console.log(`Permission ${permissionName} does not exist`);
+                    }
+                }
+            });
+            return "Permissions updated successfully";
+        }
+        catch (error) {
+            throw new Error(`Failed to manage permissions ${error?.message}`);
+        }
+    },
+    addTechnicianQuestionnaire: async (technicianDTO) => {
+        try {
+            // Check if the email already exists
+            const existingTechnician = await prisma.technicianQuestionnaire.findUnique({
+                where: { email: technicianDTO.email },
+            });
+            if (existingTechnician) {
+                throw new Error("Email already exists. Please use a different email address.");
+            }
+            // Create a new technician questionnaire
+            const newTechnicianQuestionnaire = await prisma.technicianQuestionnaire.create({
+                data: {
+                    businessName: technicianDTO.businessName,
+                    phoneNumber: technicianDTO.phoneNumber,
+                    email: technicianDTO.email,
+                    location: technicianDTO.location,
+                    businessType: technicianDTO.businessType,
+                    experienceYears: technicianDTO.experienceYears,
+                    experienceAreas: technicianDTO.experienceAreas || [],
+                    brandsWorkedWith: technicianDTO.brandsWorkedWith || [],
+                    integrationExperience: technicianDTO.integrationExperience,
+                    purchaseSource: technicianDTO.purchaseSource,
+                    purchaseHikvision: technicianDTO.purchaseHikvision,
+                    requiresTraining: technicianDTO.requiresTraining,
+                },
+            });
+            return {
+                message: "Your submission has been successfully recorded. Our team is currently reviewing and verifying the details. You will be notified once the process is complete.",
+            };
+        }
+        catch (error) {
+            throw new Error(error.message || "Error creating Technician Questionnaire");
+        }
+    },
+    changePassword: async (email, changePasswordDTO) => {
+        try {
+            // Fetch the user from the database by email
+            const user = await prisma.user.findUnique({
+                where: { email },
+            });
+            if (!user) {
+                throw new Error("User not found");
+            }
+            const isOldPasswordValid = await bcrypt.compare(changePasswordDTO.oldPassword, user.password);
+            if (!isOldPasswordValid) {
+                throw new Error("Old password is incorrect");
+            }
+            if (changePasswordDTO.newPassword !== changePasswordDTO.confirmNewPassword) {
+                throw new Error("New password and confirmation do not match");
+            }
+            const hashedNewPassword = await bcrypt.hash(changePasswordDTO.newPassword, 10);
+            await prisma.user.update({
+                where: { email },
+                data: {
+                    password: hashedNewPassword,
+                },
+            });
+            sendPasswordChangeEmail(user.email, user.firstName);
+            return { message: "Password successfully updated" };
+        }
+        catch (error) {
+            throw new Error(error.message || "Error changing password");
+        }
+    },
+    forgotPassword: async (email) => {
+        try {
+            const existingUser = await prisma.user.findUnique({
+                where: { email },
+            });
+            if (!existingUser) {
+                throw new AppError(400, `No user found with email: ${email}`);
+            }
+            const otp = generateOTP();
+            const otpHash = await bcrypt.hash(otp, 10);
+            const otpExpiresAt = new Date();
+            otpExpiresAt.setMinutes(otpExpiresAt.getMinutes() + 30);
+            await prisma.user.update({
+                where: { email },
+                data: {
+                    otpHash,
+                    otpExpiresAt,
+                },
+            });
+            await sendOTPEmail(existingUser.email, otp);
+            return {
+                message: "Please check your email for an OTP to reset your password.",
+            };
+        }
+        catch (error) {
+            throw new AppError(500, "An error occurred while processing your request.");
+        }
+    },
+    resetPassword: async (resetPassDTO) => {
+        try {
+            // Validate required fields
+            const { email, otp, newPassword, confirmNewPassword } = resetPassDTO;
+            if (!email || !otp || !newPassword || !confirmNewPassword) {
+                throw new AppError(400, "Email, OTP, new password, and confirmation are required");
+            }
+            // Check if the user exists
+            const existingUser = await prisma.user.findUnique({
+                where: { email },
+            });
+            if (!existingUser || !existingUser.otpHash) {
+                throw new AppError(404, "User not found or OTP not generated");
+            }
+            // Validate OTP
+            const isOTPValid = await bcrypt.compare(otp, existingUser.otpHash);
+            if (!isOTPValid) {
+                throw new AppError(400, "Invalid OTP");
+            }
+            // Check if OTP has expired
+            if (existingUser.otpExpiresAt &&
+                new Date(existingUser.otpExpiresAt) < new Date()) {
+                throw new AppError(400, "OTP has expired");
+            }
+            // Validate password match
+            if (newPassword !== confirmNewPassword) {
+                throw new AppError(400, "New password and confirmation do not match");
+            }
+            // Optionally: Check password strength (e.g., length, complexity) before hashing
+            if (newPassword.length < 8) {
+                throw new AppError(400, "Password must be at least 8 characters long");
+            }
+            const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+            await prisma.user.update({
+                where: { email: existingUser.email },
+                data: {
+                    password: hashedNewPassword,
+                    otpHash: null,
+                    otpExpiresAt: null,
+                },
+            });
+            await sendPasswordChangeEmail(existingUser.email, existingUser.firstName);
+            return { message: "Password successfully updated" };
+        }
+        catch (error) {
+            console.error("Error in resetPassword:", error);
+            throw new AppError(500, error.message || "An error occured");
+        }
+    },
+};
