@@ -36,7 +36,7 @@ jobs:
             echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
             chmod 600 ~/.ssh/id_ed25519
             ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "echo 'SSH Authentication Successful'"
-            cd /backend
+            cd backend
             git pull origin main
             npm install --production
             npm run build
