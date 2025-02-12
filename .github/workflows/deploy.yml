@@ -3,7 +3,7 @@ name: Deploy to DigitalOcean
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   deploy:
@@ -25,14 +25,19 @@ jobs:
         run: npm run build
 
       - name: Deploy to DigitalOcean
-        uses: appleboy/ssh-action@v0.1.6
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USER }}
           key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
           script: |
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no root@${{ secrets.DO_HOST }} "echo 'SSH Authentication Successful'"
             cd /backend
             git pull origin main
             npm install --production
             npm run build
-            pm2 restart all # Adjust based on your process manager
+            pm2 restart all
