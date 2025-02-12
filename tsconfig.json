@@ -4,6 +4,7 @@
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
+    "outDir": "./dist",
     "target": "es2020"
   },
   "include": ["src/**/*"]
