@@ -1,14 +1,12 @@
 {
   "compilerOptions": {
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-    "strict": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "outDir": "./dist",
-
     "module": "ESNext",
-
-    "target": "ESNext"
+    "moduleResolution": "node",
+    "target": "ESNext",
+    "esModuleInterop": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./dist"
   },
   "include": ["src/**/*"]
 }
