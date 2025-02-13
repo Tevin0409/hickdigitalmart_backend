@@ -1,27 +1,30 @@
-import { v2 as cloudinary } from "cloudinary";
-import { CLOUD_NAME, CLOUD_API_KEY, CLOUD_SECRETE_KEY } from ".";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.uploadImages = void 0;
+const cloudinary_1 = require("cloudinary");
+const _1 = require(".");
 // Configuration
-cloudinary.config({
-    cloud_name: CLOUD_NAME,
-    api_key: CLOUD_API_KEY,
-    api_secret: CLOUD_SECRETE_KEY,
+cloudinary_1.v2.config({
+    cloud_name: _1.CLOUD_NAME,
+    api_key: _1.CLOUD_API_KEY,
+    api_secret: _1.CLOUD_SECRETE_KEY,
 });
-export const uploadImages = async (imageUrls, publicIds) => {
+const uploadImages = async (imageUrls, publicIds) => {
     try {
         const uploadResults = [];
         for (let i = 0; i < imageUrls.length; i++) {
-            const uploadResult = await cloudinary.uploader.upload(imageUrls[i], {
+            const uploadResult = await cloudinary_1.v2.uploader.upload(imageUrls[i], {
                 public_id: publicIds[i],
             });
             console.log("Upload Successful:", uploadResult);
             // Generate optimized URL
-            const optimizeUrl = cloudinary.url(publicIds[i], {
+            const optimizeUrl = cloudinary_1.v2.url(publicIds[i], {
                 fetch_format: "auto",
                 quality: "auto",
             });
             console.log("Optimized URL:", optimizeUrl);
             // Generate auto-cropped URL
-            const autoCropUrl = cloudinary.url(publicIds[i], {
+            const autoCropUrl = cloudinary_1.v2.url(publicIds[i], {
                 crop: "auto",
                 gravity: "auto",
                 width: 500,
@@ -41,3 +44,4 @@ export const uploadImages = async (imageUrls, publicIds) => {
         return [];
     }
 };
+exports.uploadImages = uploadImages;

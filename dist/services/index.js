@@ -1,5 +1,11 @@
-import { userService } from "./user.Service";
-import { roleService } from "./role.Service";
-import { permissionService } from "./permission.service";
-import { productService } from "./product.service";
-export { userService, roleService, permissionService, productService };
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.productService = exports.permissionService = exports.roleService = exports.userService = void 0;
+const user_Service_1 = require("./user.Service");
+Object.defineProperty(exports, "userService", { enumerable: true, get: function () { return user_Service_1.userService; } });
+const role_Service_1 = require("./role.Service");
+Object.defineProperty(exports, "roleService", { enumerable: true, get: function () { return role_Service_1.roleService; } });
+const permission_service_1 = require("./permission.service");
+Object.defineProperty(exports, "permissionService", { enumerable: true, get: function () { return permission_service_1.permissionService; } });
+const product_service_1 = require("./product.service");
+Object.defineProperty(exports, "productService", { enumerable: true, get: function () { return product_service_1.productService; } });

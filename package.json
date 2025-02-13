@@ -2,7 +2,7 @@
   "name": "hickdigitalmart_backend",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "dev": "ts-node prisma/seed.ts && ts-node-dev src/index.ts",
     "build": "tsc",

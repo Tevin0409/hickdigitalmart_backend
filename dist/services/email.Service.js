@@ -1,4 +1,7 @@
-import { sendMail } from "../config/email.config";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendPasswordChangeEmail = exports.sendOTPEmail = void 0;
+const email_config_1 = require("../config/email.config");
 const generateOTPEmailTemplate = (otp) => `
   <div style="font-family: Arial, sans-serif;  margin: auto; border: 1px solid #ddd; border-radius: 10px; padding: 20px; background-color: #f9f9f9;">
     <h2 style="color: #333; text-align: center;">Hickdigital OTP Verification</h2>
@@ -88,7 +91,7 @@ const generatePasswordChangedTemplate = (firstName) => `
 </body>
 </html>
 `;
-export const sendOTPEmail = async (email, otp) => {
+const sendOTPEmail = async (email, otp) => {
     if (!email || !otp) {
         throw new Error("Email and OTP are required to send Email");
     }
@@ -99,7 +102,8 @@ export const sendOTPEmail = async (email, otp) => {
     };
     sendEmail(mailOptions);
 };
-export const sendPasswordChangeEmail = async (email, firstName) => {
+exports.sendOTPEmail = sendOTPEmail;
+const sendPasswordChangeEmail = async (email, firstName) => {
     if (!email || !firstName) {
         throw new Error("Email and firstName are required to send emails");
     }
@@ -110,9 +114,10 @@ export const sendPasswordChangeEmail = async (email, firstName) => {
     };
     sendEmail(mailOptions);
 };
+exports.sendPasswordChangeEmail = sendPasswordChangeEmail;
 const sendEmail = (mailOptions) => {
     try {
-        sendMail(mailOptions);
+        (0, email_config_1.sendMail)(mailOptions);
         console.log(`OTP email sent to ${mailOptions.to}`);
     }
     catch (error) {

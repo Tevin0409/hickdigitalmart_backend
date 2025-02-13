@@ -1,9 +1,12 @@
-import { permissionService } from "../services";
-export const permissionController = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.permissionController = void 0;
+const services_1 = require("../services");
+exports.permissionController = {
     // Get all permissions
     getAllpermissions: async (req, res, next) => {
         try {
-            const permissions = await permissionService.getAllPermissions();
+            const permissions = await services_1.permissionService.getAllPermissions();
             res.status(200).json(permissions);
         }
         catch (error) {
@@ -14,7 +17,7 @@ export const permissionController = {
     createpermission: async (req, res, next) => {
         try {
             const data = req.body;
-            const permission = await permissionService.createPermission(data);
+            const permission = await services_1.permissionService.createPermission(data);
             res.status(201).json(permission);
         }
         catch (error) {
@@ -25,7 +28,7 @@ export const permissionController = {
         try {
             const { id } = req.params;
             const data = req.body;
-            const updatedpermission = await permissionService.updatePermission(id, data);
+            const updatedpermission = await services_1.permissionService.updatePermission(id, data);
             if (!updatedpermission) {
                 res.status(404).json({ message: "permission not found" });
                 return;
@@ -41,7 +44,7 @@ export const permissionController = {
     deletepermission: async (req, res, next) => {
         try {
             const { id } = req.params;
-            const deleted = await permissionService.deletePermission(id);
+            const deleted = await services_1.permissionService.deletePermission(id);
             if (!deleted) {
                 res.status(404).json({ message: "permission not found" });
                 return;

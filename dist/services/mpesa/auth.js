@@ -1,17 +1,27 @@
-import axios from "axios";
-import { Buffer } from "buffer";
-import { config, url } from "../../config/mpesa.config";
-export class AuthSercice {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthSercice = void 0;
+const axios_1 = __importDefault(require("axios"));
+const buffer_1 = require("buffer");
+const mpesa_config_1 = require("../../config/mpesa.config");
+class AuthSercice {
+    static accessTokenData = {
+        access_token: "",
+        expires_at: 0,
+    };
     static async getAuth() {
-        const consumerSecret = config.consumerSecret;
-        const consumerKey = config.consumerKey;
-        if (url.authUrl == null || url.authUrl === undefined)
+        const consumerSecret = mpesa_config_1.config.consumerSecret;
+        const consumerKey = mpesa_config_1.config.consumerKey;
+        if (mpesa_config_1.url.authUrl == null || mpesa_config_1.url.authUrl === undefined)
             throw new Error("Auth url missing");
-        const authUrl = url.authUrl;
-        const buffer = Buffer.from(`${consumerKey}:${consumerSecret}`);
+        const authUrl = mpesa_config_1.url.authUrl;
+        const buffer = buffer_1.Buffer.from(`${consumerKey}:${consumerSecret}`);
         const auth = buffer.toString("base64");
         try {
-            const tokenReq = await axios.get(authUrl, {
+            const tokenReq = await axios_1.default.get(authUrl, {
                 headers: {
                     authorization: `Basic ${auth}`,
                 },
@@ -38,7 +48,4 @@ export class AuthSercice {
         return this.accessTokenData.expires_at < Date.now();
     }
 }
-AuthSercice.accessTokenData = {
-    access_token: "",
-    expires_at: 0,
-};
+exports.AuthSercice = AuthSercice;

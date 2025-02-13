@@ -1,17 +1,23 @@
-import { PrismaClient } from "@prisma/client";
-import { AppError } from "../middleware";
-import bcrypt from "bcryptjs";
-import { generateToken, verifyToken } from "../utils/jwt";
-import { generateOTP } from "../utils/util";
-import { sendOTPEmail, sendPasswordChangeEmail } from "./email.Service";
-const prisma = new PrismaClient();
-export const userService = {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.userService = void 0;
+const client_1 = require("@prisma/client");
+const middleware_1 = require("../middleware");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const jwt_1 = require("../utils/jwt");
+const util_1 = require("../utils/util");
+const email_Service_1 = require("./email.Service");
+const prisma = new client_1.PrismaClient();
+exports.userService = {
     createUser: async (userData) => {
         if (!userData)
-            throw new AppError(400, "Please provide valid data");
+            throw new middleware_1.AppError(400, "Please provide valid data");
         const { email, password, firstName, lastName, phoneNumber, roleId } = userData;
         if (!roleId) {
-            throw new AppError(400, "Role ID is required to create a user");
+            throw new middleware_1.AppError(400, "Role ID is required to create a user");
         }
         try {
             const existingUser = await prisma.user.findFirst({
@@ -20,19 +26,19 @@ export const userService = {
                 },
             });
             if (existingUser) {
-                throw new AppError(400, "This email or phone number is already registered with us");
+                throw new middleware_1.AppError(400, "This email or phone number is already registered with us");
             }
             // Validate roleId exists in the Role table
             const existingRole = await prisma.role.findUnique({
                 where: { id: roleId },
             });
             if (!existingRole) {
-                throw new AppError(400, "Invalid role ID provided");
+                throw new middleware_1.AppError(400, "Invalid role ID provided");
             }
             // Hash the password
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const otp = generateOTP();
-            const otpHash = await bcrypt.hash(otp, 10);
+            const hashedPassword = await bcryptjs_1.default.hash(password, 10);
+            const otp = (0, util_1.generateOTP)();
+            const otpHash = await bcryptjs_1.default.hash(otp, 10);
             const otpExpiresAt = new Date(Date.now() + 60 * 30 * 1000);
             // Create the user
             const result = await prisma.user.create({
@@ -47,13 +53,13 @@ export const userService = {
                     roleId,
                 },
             });
-            await sendOTPEmail(result.email, otp);
+            await (0, email_Service_1.sendOTPEmail)(result.email, otp);
             return {
                 message: "User created successfully. Please check your email to verify Account",
             };
         }
         catch (err) {
-            throw new AppError(500, `Failed to create user: ${err.message}`);
+            throw new middleware_1.AppError(500, `Failed to create user: ${err.message}`);
         }
     },
     loginUser: async (loginData) => {
@@ -64,15 +70,15 @@ export const userService = {
                 include: { role: true },
             });
             if (!existingUser) {
-                throw new AppError(400, `No user found with email: ${email}`);
+                throw new middleware_1.AppError(400, `No user found with email: ${email}`);
             }
             if (existingUser &&
                 existingUser.role &&
                 existingUser.role.name === "TECHNICIAN" &&
                 !existingUser.technicianVerified) {
-                throw new AppError(401, `Your Technician account is still pending approval. Please check back later or contact support for more information`);
+                throw new middleware_1.AppError(401, `Your Technician account is still pending approval. Please check back later or contact support for more information`);
             }
-            const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+            const isPasswordValid = await bcryptjs_1.default.compare(password, existingUser.password);
             if (!isPasswordValid) {
                 // Increment failed login attempts
                 await prisma.user.update({
@@ -81,12 +87,12 @@ export const userService = {
                         inCorrectAttempts: (existingUser.inCorrectAttempts || 0) + 1,
                     },
                 });
-                throw new AppError(401, "Invalid credentials");
+                throw new middleware_1.AppError(401, "Invalid credentials");
             }
             //check if verified
             if (!existingUser.isVerified) {
-                const otp = generateOTP();
-                const otpHash = await bcrypt.hash(otp, 10);
+                const otp = (0, util_1.generateOTP)();
+                const otpHash = await bcryptjs_1.default.hash(otp, 10);
                 const otpExpiresAt = new Date(Date.now() + 60 * 30 * 1000);
                 await prisma.user.update({
                     where: { email },
@@ -95,11 +101,11 @@ export const userService = {
                         otpExpiresAt,
                     },
                 });
-                await sendOTPEmail(existingUser.email, otp);
-                throw new AppError(401, "This account is not yet verified , check your email for an otp to verify your account ");
+                await (0, email_Service_1.sendOTPEmail)(existingUser.email, otp);
+                throw new middleware_1.AppError(401, "This account is not yet verified , check your email for an otp to verify your account ");
             }
             // Generate tokens
-            const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken, } = generateToken(existingUser);
+            const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken, } = (0, jwt_1.generateToken)(existingUser);
             // Reset failed attempts & store refresh token in DB
             await prisma.user.update({
                 where: { email },
@@ -118,7 +124,7 @@ export const userService = {
             };
         }
         catch (err) {
-            throw new AppError(500, `Failed to login: ${err.message}`);
+            throw new middleware_1.AppError(500, `Failed to login: ${err.message}`);
         }
     },
     verifyUser: async (verifyData) => {
@@ -132,7 +138,7 @@ export const userService = {
             throw new Error("User not found");
         }
         // Check if OTP is valid
-        const isOTPValid = await bcrypt.compare(verifyData.otp, existingUser.otpHash);
+        const isOTPValid = await bcryptjs_1.default.compare(verifyData.otp, existingUser.otpHash);
         if (!isOTPValid) {
             throw new Error("Invalid OTP");
         }
@@ -142,7 +148,7 @@ export const userService = {
             throw new Error("OTP has expired");
         }
         // Generate authentication tokens
-        const { accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, } = generateToken(existingUser);
+        const { accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, } = (0, jwt_1.generateToken)(existingUser);
         // Reset incorrect attempts & store refresh token in the database
         await prisma.user.update({
             where: { email: verifyData.email },
@@ -167,14 +173,14 @@ export const userService = {
                 where: { id, refreshToken: refresh_token },
             });
             if (!user) {
-                throw new AppError(400, `No user found `);
+                throw new middleware_1.AppError(400, `No user found `);
             }
-            const isValid = verifyToken(refresh_token, "refresh");
+            const isValid = (0, jwt_1.verifyToken)(refresh_token, "refresh");
             if (!isValid) {
-                throw new AppError(401, "Invalid refresh token ,Please log in");
+                throw new middleware_1.AppError(401, "Invalid refresh token ,Please log in");
             }
             // Generate tokens
-            const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken, } = generateToken(user);
+            const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken, } = (0, jwt_1.generateToken)(user);
             // Reset failed attempts & store refresh token in DB
             await prisma.user.update({
                 where: { email: user.email },
@@ -192,12 +198,12 @@ export const userService = {
             };
         }
         catch (err) {
-            throw new AppError(500, `Failed to login: ${err.message}`);
+            throw new middleware_1.AppError(500, `Failed to login: ${err.message}`);
         }
     },
     updateUser: async (id, updateData) => {
         if (!id)
-            throw new AppError(400, "User ID is required for update");
+            throw new middleware_1.AppError(400, "User ID is required for update");
         try {
             // Validate roleId if provided
             if (updateData.roleId) {
@@ -205,12 +211,12 @@ export const userService = {
                     where: { id: updateData.roleId },
                 });
                 if (!existingRole) {
-                    throw new AppError(400, "Invalid role ID provided");
+                    throw new middleware_1.AppError(400, "Invalid role ID provided");
                 }
             }
             // Hash the password if it's being updated
             if (updateData.password) {
-                updateData.password = await bcrypt.hash(updateData.password, 10);
+                updateData.password = await bcryptjs_1.default.hash(updateData.password, 10);
             }
             const updatedUser = await prisma.user.update({
                 where: { id },
@@ -219,7 +225,7 @@ export const userService = {
             return updatedUser;
         }
         catch (err) {
-            throw new AppError(500, `Failed to update user: ${err.message}`);
+            throw new middleware_1.AppError(500, `Failed to update user: ${err.message}`);
         }
     },
     getAllUsers: async () => {
@@ -230,42 +236,42 @@ export const userService = {
             return users;
         }
         catch (err) {
-            throw new AppError(500, `Failed to retrieve users: ${err.message}`);
+            throw new middleware_1.AppError(500, `Failed to retrieve users: ${err.message}`);
         }
     },
     // Get a user by ID
     getUserById: async (id) => {
         if (!id)
-            throw new AppError(400, "User ID is required");
+            throw new middleware_1.AppError(400, "User ID is required");
         try {
             const user = await prisma.user.findUnique({
                 where: { id },
                 include: { role: true, permissions: true },
             });
             if (!user) {
-                throw new AppError(404, "User not found");
+                throw new middleware_1.AppError(404, "User not found");
             }
             return user;
         }
         catch (err) {
-            throw new AppError(500, `Failed to retrieve user: ${err.message}`);
+            throw new middleware_1.AppError(500, `Failed to retrieve user: ${err.message}`);
         }
     },
     getUserByEmail: async (email) => {
         if (!email)
-            throw new AppError(400, "Email is required");
+            throw new middleware_1.AppError(400, "Email is required");
         try {
             const user = await prisma.user.findUnique({
                 where: { email },
                 include: { role: true, permissions: true },
             });
             if (!user) {
-                throw new AppError(404, "User not found");
+                throw new middleware_1.AppError(404, "User not found");
             }
             return user;
         }
         catch (err) {
-            throw new AppError(500, `Failed to retrieve user: ${err.message}`);
+            throw new middleware_1.AppError(500, `Failed to retrieve user: ${err.message}`);
         }
     },
     isUserAdmin: async (email) => {
@@ -383,21 +389,21 @@ export const userService = {
             if (!user) {
                 throw new Error("User not found");
             }
-            const isOldPasswordValid = await bcrypt.compare(changePasswordDTO.oldPassword, user.password);
+            const isOldPasswordValid = await bcryptjs_1.default.compare(changePasswordDTO.oldPassword, user.password);
             if (!isOldPasswordValid) {
                 throw new Error("Old password is incorrect");
             }
             if (changePasswordDTO.newPassword !== changePasswordDTO.confirmNewPassword) {
                 throw new Error("New password and confirmation do not match");
             }
-            const hashedNewPassword = await bcrypt.hash(changePasswordDTO.newPassword, 10);
+            const hashedNewPassword = await bcryptjs_1.default.hash(changePasswordDTO.newPassword, 10);
             await prisma.user.update({
                 where: { email },
                 data: {
                     password: hashedNewPassword,
                 },
             });
-            sendPasswordChangeEmail(user.email, user.firstName);
+            (0, email_Service_1.sendPasswordChangeEmail)(user.email, user.firstName);
             return { message: "Password successfully updated" };
         }
         catch (error) {
@@ -410,10 +416,10 @@ export const userService = {
                 where: { email },
             });
             if (!existingUser) {
-                throw new AppError(400, `No user found with email: ${email}`);
+                throw new middleware_1.AppError(400, `No user found with email: ${email}`);
             }
-            const otp = generateOTP();
-            const otpHash = await bcrypt.hash(otp, 10);
+            const otp = (0, util_1.generateOTP)();
+            const otpHash = await bcryptjs_1.default.hash(otp, 10);
             const otpExpiresAt = new Date();
             otpExpiresAt.setMinutes(otpExpiresAt.getMinutes() + 30);
             await prisma.user.update({
@@ -423,13 +429,13 @@ export const userService = {
                     otpExpiresAt,
                 },
             });
-            await sendOTPEmail(existingUser.email, otp);
+            await (0, email_Service_1.sendOTPEmail)(existingUser.email, otp);
             return {
                 message: "Please check your email for an OTP to reset your password.",
             };
         }
         catch (error) {
-            throw new AppError(500, "An error occurred while processing your request.");
+            throw new middleware_1.AppError(500, "An error occurred while processing your request.");
         }
     },
     resetPassword: async (resetPassDTO) => {
@@ -437,34 +443,34 @@ export const userService = {
             // Validate required fields
             const { email, otp, newPassword, confirmNewPassword } = resetPassDTO;
             if (!email || !otp || !newPassword || !confirmNewPassword) {
-                throw new AppError(400, "Email, OTP, new password, and confirmation are required");
+                throw new middleware_1.AppError(400, "Email, OTP, new password, and confirmation are required");
             }
             // Check if the user exists
             const existingUser = await prisma.user.findUnique({
                 where: { email },
             });
             if (!existingUser || !existingUser.otpHash) {
-                throw new AppError(404, "User not found or OTP not generated");
+                throw new middleware_1.AppError(404, "User not found or OTP not generated");
             }
             // Validate OTP
-            const isOTPValid = await bcrypt.compare(otp, existingUser.otpHash);
+            const isOTPValid = await bcryptjs_1.default.compare(otp, existingUser.otpHash);
             if (!isOTPValid) {
-                throw new AppError(400, "Invalid OTP");
+                throw new middleware_1.AppError(400, "Invalid OTP");
             }
             // Check if OTP has expired
             if (existingUser.otpExpiresAt &&
                 new Date(existingUser.otpExpiresAt) < new Date()) {
-                throw new AppError(400, "OTP has expired");
+                throw new middleware_1.AppError(400, "OTP has expired");
             }
             // Validate password match
             if (newPassword !== confirmNewPassword) {
-                throw new AppError(400, "New password and confirmation do not match");
+                throw new middleware_1.AppError(400, "New password and confirmation do not match");
             }
             // Optionally: Check password strength (e.g., length, complexity) before hashing
             if (newPassword.length < 8) {
-                throw new AppError(400, "Password must be at least 8 characters long");
+                throw new middleware_1.AppError(400, "Password must be at least 8 characters long");
             }
-            const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+            const hashedNewPassword = await bcryptjs_1.default.hash(newPassword, 10);
             await prisma.user.update({
                 where: { email: existingUser.email },
                 data: {
@@ -473,12 +479,12 @@ export const userService = {
                     otpExpiresAt: null,
                 },
             });
-            await sendPasswordChangeEmail(existingUser.email, existingUser.firstName);
+            await (0, email_Service_1.sendPasswordChangeEmail)(existingUser.email, existingUser.firstName);
             return { message: "Password successfully updated" };
         }
         catch (error) {
             console.error("Error in resetPassword:", error);
-            throw new AppError(500, error.message || "An error occured");
+            throw new middleware_1.AppError(500, error.message || "An error occured");
         }
     },
 };

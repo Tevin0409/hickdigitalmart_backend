@@ -1,12 +1,18 @@
-import { productService } from "../services";
-import xlsx from "xlsx";
-import { StkService } from "../services/mpesa/stk.Service";
-export const productController = {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.productController = void 0;
+const services_1 = require("../services");
+const xlsx_1 = __importDefault(require("xlsx"));
+const stk_Service_1 = require("../services/mpesa/stk.Service");
+exports.productController = {
     // Product Handlers
     getAllProducts: async (req, res, next) => {
         try {
             const { searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page, limit } = req.query;
-            const products = await productService.getAllProducts(searchTerm, categoryIds ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds]) : undefined, subCategoryIds ? (Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds]) : undefined, featureIds ? (Array.isArray(featureIds) ? featureIds : [featureIds]) : undefined, minPrice ? parseFloat(minPrice) : undefined, maxPrice ? parseFloat(maxPrice) : undefined, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
+            const products = await services_1.productService.getAllProducts(searchTerm, categoryIds ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds]) : undefined, subCategoryIds ? (Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds]) : undefined, featureIds ? (Array.isArray(featureIds) ? featureIds : [featureIds]) : undefined, minPrice ? parseFloat(minPrice) : undefined, maxPrice ? parseFloat(maxPrice) : undefined, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
             res.status(200).json(products);
         }
         catch (error) {
@@ -16,7 +22,7 @@ export const productController = {
     getAllProductsModels: async (req, res, next) => {
         try {
             const { searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page, limit } = req.query;
-            const products = await productService.getAllProductsModels(searchTerm, categoryIds ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds]) : undefined, subCategoryIds ? (Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds]) : undefined, featureIds ? (Array.isArray(featureIds) ? featureIds : [featureIds]) : undefined, minPrice ? parseFloat(minPrice) : undefined, maxPrice ? parseFloat(maxPrice) : undefined, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
+            const products = await services_1.productService.getAllProductsModels(searchTerm, categoryIds ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds]) : undefined, subCategoryIds ? (Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds]) : undefined, featureIds ? (Array.isArray(featureIds) ? featureIds : [featureIds]) : undefined, minPrice ? parseFloat(minPrice) : undefined, maxPrice ? parseFloat(maxPrice) : undefined, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
             res.status(200).json(products);
         }
         catch (error) {
@@ -26,7 +32,7 @@ export const productController = {
     createProduct: async (req, res, next) => {
         try {
             const { productData } = req.body;
-            const product = await productService.createProduct(productData);
+            const product = await services_1.productService.createProduct(productData);
             res.status(201).json(product);
         }
         catch (error) {
@@ -35,7 +41,7 @@ export const productController = {
     },
     getProduct: async (req, res, next) => {
         try {
-            const product = await productService.getProductById(req.params.id);
+            const product = await services_1.productService.getProductById(req.params.id);
             res.status(200).json(product);
         }
         catch (error) {
@@ -44,7 +50,7 @@ export const productController = {
     },
     getProductModel: async (req, res, next) => {
         try {
-            const product = await productService.getProductModelById(req.params.id);
+            const product = await services_1.productService.getProductModelById(req.params.id);
             res.status(200).json(product);
         }
         catch (error) {
@@ -54,7 +60,7 @@ export const productController = {
     getAllFeatures: async (req, res, next) => {
         try {
             const { categoryId, productId, productModelId } = req.query;
-            const product = await productService.getFeature(categoryId, productId, productModelId);
+            const product = await services_1.productService.getFeature(categoryId, productId, productModelId);
             res.status(200).json(product);
         }
         catch (error) {
@@ -63,7 +69,7 @@ export const productController = {
     },
     updateProduct: async (req, res, next) => {
         try {
-            const updatedProduct = await productService.updateProduct(req.params.id, req.body);
+            const updatedProduct = await services_1.productService.updateProduct(req.params.id, req.body);
             res.status(200).json(updatedProduct);
         }
         catch (error) {
@@ -72,7 +78,7 @@ export const productController = {
     },
     deleteProduct: async (req, res, next) => {
         try {
-            await productService.deleteProduct(req.params.id);
+            await services_1.productService.deleteProduct(req.params.id);
             res.status(200).json({ message: "Product deleted successfully" });
         }
         catch (error) {
@@ -82,7 +88,7 @@ export const productController = {
     // Category Handlers
     getAllCategories: async (req, res, next) => {
         try {
-            const categories = await productService.getAllCategories();
+            const categories = await services_1.productService.getAllCategories();
             res.status(200).json(categories);
         }
         catch (error) {
@@ -91,7 +97,7 @@ export const productController = {
     },
     createCategory: async (req, res, next) => {
         try {
-            const category = await productService.createCategory(req.body);
+            const category = await services_1.productService.createCategory(req.body);
             res.status(201).json(category);
         }
         catch (error) {
@@ -100,7 +106,7 @@ export const productController = {
     },
     updateCategory: async (req, res, next) => {
         try {
-            const updatedCategory = await productService.updateCategory(req.params.id, req.body);
+            const updatedCategory = await services_1.productService.updateCategory(req.params.id, req.body);
             res.status(200).json(updatedCategory);
         }
         catch (error) {
@@ -109,7 +115,7 @@ export const productController = {
     },
     deleteCategory: async (req, res, next) => {
         try {
-            await productService.deleteCategory(req.params.id);
+            await services_1.productService.deleteCategory(req.params.id);
             res.status(200).json({ message: "Category deleted successfully" });
         }
         catch (error) {
@@ -119,7 +125,7 @@ export const productController = {
     // Subcategory Handlers
     getAllSubCategories: async (req, res, next) => {
         try {
-            const subcategories = await productService.getAllSubCategories();
+            const subcategories = await services_1.productService.getAllSubCategories();
             res.status(200).json(subcategories);
         }
         catch (error) {
@@ -128,7 +134,7 @@ export const productController = {
     },
     createSubCategory: async (req, res, next) => {
         try {
-            const subcategory = await productService.createSubCategory(req.body);
+            const subcategory = await services_1.productService.createSubCategory(req.body);
             res.status(201).json(subcategory);
         }
         catch (error) {
@@ -137,7 +143,7 @@ export const productController = {
     },
     updateSubCategory: async (req, res, next) => {
         try {
-            const updatedSubCategory = await productService.updateSubCategory(req.params.id, req.body);
+            const updatedSubCategory = await services_1.productService.updateSubCategory(req.params.id, req.body);
             res.status(200).json(updatedSubCategory);
         }
         catch (error) {
@@ -146,7 +152,7 @@ export const productController = {
     },
     deleteSubCategory: async (req, res, next) => {
         try {
-            await productService.deleteSubCategory(req.params.id);
+            await services_1.productService.deleteSubCategory(req.params.id);
             res.status(200).json({ message: "Subcategory deleted successfully" });
         }
         catch (error) {
@@ -157,7 +163,7 @@ export const productController = {
         try {
             const { productModelId, quantityToAdd } = req.body;
             // Add stock to the product
-            const updatedInventory = await productService.addStockToProduct(productModelId, quantityToAdd);
+            const updatedInventory = await services_1.productService.addStockToProduct(productModelId, quantityToAdd);
             res.status(200).json(updatedInventory);
         }
         catch (error) {
@@ -169,7 +175,7 @@ export const productController = {
         try {
             const { productModelId, quantityToUpdate } = req.body;
             // Update stock for the product
-            const updatedInventory = await productService.updateStock(productModelId, quantityToUpdate);
+            const updatedInventory = await services_1.productService.updateStock(productModelId, quantityToUpdate);
             res.status(200).json(updatedInventory);
         }
         catch (error) {
@@ -181,7 +187,7 @@ export const productController = {
         try {
             const { productModelId } = req.params;
             // Check stock of the product
-            const currentStock = await productService.checkStock(productModelId);
+            const currentStock = await services_1.productService.checkStock(productModelId);
             res.status(200).json({ currentStock });
         }
         catch (error) {
@@ -191,7 +197,7 @@ export const productController = {
     getCartItems: async (req, res, next) => {
         try {
             const userId = req.user?.id;
-            const cartItems = await productService.getCartItems(userId);
+            const cartItems = await services_1.productService.getCartItems(userId);
             res.status(200).json(cartItems);
         }
         catch (error) {
@@ -202,7 +208,7 @@ export const productController = {
         try {
             const userId = req.user?.id;
             const { productModelId, quantity } = req.body;
-            const cartItem = await productService.addToCart(userId, productModelId, quantity);
+            const cartItem = await services_1.productService.addToCart(userId, productModelId, quantity);
             res.status(201).json(cartItem);
         }
         catch (error) {
@@ -214,7 +220,7 @@ export const productController = {
             const userId = req.user?.id;
             const cartId = req.params.cartId;
             const { quantity, productModelId } = req.body;
-            const updatedCartItem = await productService.updateCartItem(userId, productModelId, quantity);
+            const updatedCartItem = await services_1.productService.updateCartItem(userId, productModelId, quantity);
             res.status(200).json(updatedCartItem);
         }
         catch (error) {
@@ -225,7 +231,7 @@ export const productController = {
         try {
             const userId = req.user?.id;
             const cartId = req.params.cartId;
-            await productService.removeFromCart(userId, cartId);
+            await services_1.productService.removeFromCart(userId, cartId);
             res.status(200).json({ message: "Item removed from cart successfully" });
         }
         catch (error) {
@@ -236,7 +242,7 @@ export const productController = {
     getWishlistItems: async (req, res, next) => {
         try {
             const userId = req.user?.id;
-            const wishlistItems = await productService.getWishlistItems(userId);
+            const wishlistItems = await services_1.productService.getWishlistItems(userId);
             res.status(200).json(wishlistItems);
         }
         catch (error) {
@@ -247,7 +253,7 @@ export const productController = {
         try {
             const userId = req.user?.id;
             const { productModelId } = req.body;
-            const wishlistItem = await productService.addToWishlist(userId, productModelId);
+            const wishlistItem = await services_1.productService.addToWishlist(userId, productModelId);
             res.status(201).json(wishlistItem);
         }
         catch (error) {
@@ -258,7 +264,7 @@ export const productController = {
         try {
             const userId = req.user?.id;
             const wishlistId = req.params.wishlistId;
-            await productService.removeFromWishlist(userId, wishlistId);
+            await services_1.productService.removeFromWishlist(userId, wishlistId);
             res
                 .status(200)
                 .json({ message: "Item removed from wishlist successfully" });
@@ -274,7 +280,7 @@ export const productController = {
             if (!userId) {
                 throw new Error("User not authenticated");
             }
-            const order = await productService.createOrder(userId, products);
+            const order = await services_1.productService.createOrder(userId, products);
             res.status(201).json(order);
         }
         catch (error) {
@@ -286,7 +292,7 @@ export const productController = {
         try {
             const { orderId } = req.params;
             const { status } = req.body;
-            const updatedOrder = await productService.updateOrderStatus(orderId, status);
+            const updatedOrder = await services_1.productService.updateOrderStatus(orderId, status);
             res.status(200).json(updatedOrder);
         }
         catch (error) {
@@ -297,7 +303,7 @@ export const productController = {
     getOrders: async (req, res, next) => {
         try {
             const userId = req.user?.id;
-            const orders = await productService.getOrders(userId);
+            const orders = await services_1.productService.getOrders(userId);
             res.status(200).json(orders);
         }
         catch (error) {
@@ -309,7 +315,7 @@ export const productController = {
         try {
             const { orderId } = req.params;
             const { restoreStock } = req.body;
-            const cancelledOrder = await productService.cancelOrder(orderId, restoreStock);
+            const cancelledOrder = await services_1.productService.cancelOrder(orderId, restoreStock);
             res.status(200).json(cancelledOrder);
         }
         catch (error) {
@@ -320,7 +326,7 @@ export const productController = {
     getOrder: async (req, res, next) => {
         try {
             const { orderId } = req.params;
-            const order = await productService.getOrder(orderId);
+            const order = await services_1.productService.getOrder(orderId);
             res.status(200).json(order);
         }
         catch (error) {
@@ -331,7 +337,7 @@ export const productController = {
     deleteOrder: async (req, res, next) => {
         try {
             const { orderId } = req.params;
-            const result = await productService.deleteOrder(orderId);
+            const result = await services_1.productService.deleteOrder(orderId);
             res.status(200).json(result);
         }
         catch (error) {
@@ -346,7 +352,7 @@ export const productController = {
             const files = Array.isArray(req.files.file)
                 ? req.files.file
                 : [req.files.file];
-            const results = await productService.uploadFile(files);
+            const results = await services_1.productService.uploadFile(files);
             res.status(200).json(results);
         }
         catch (error) {
@@ -367,7 +373,7 @@ export const productController = {
                     ? filesData[key]
                     : filesData[key];
             }
-            const results = await productService.addProductImages(formattedFiles);
+            const results = await services_1.productService.addProductImages(formattedFiles);
             res.status(200).json(results);
         }
         catch (error) {
@@ -377,7 +383,7 @@ export const productController = {
     setPrimaryImage: async (req, res, next) => {
         try {
             const { imageId, productModelId } = req.body;
-            const product = await productService.setPrimaryImage(imageId, productModelId);
+            const product = await services_1.productService.setPrimaryImage(imageId, productModelId);
             res.status(201).json(product);
         }
         catch (error) {
@@ -387,7 +393,7 @@ export const productController = {
     removeImage: async (req, res, next) => {
         try {
             const { imageId } = req.params;
-            const product = await productService.removeImage(imageId);
+            const product = await services_1.productService.removeImage(imageId);
             res.status(201).json(product);
         }
         catch (error) {
@@ -405,11 +411,11 @@ export const productController = {
                 ? req.files.file[0]
                 : req.files.file;
             // Step 2: Read the uploaded Excel file
-            const workbook = xlsx.readFile(file.tempFilePath);
+            const workbook = xlsx_1.default.readFile(file.tempFilePath);
             const sheetName = workbook.SheetNames[0]; // Assume first sheet is the one we need
             const sheet = workbook.Sheets[sheetName];
             // Step 3: Extract headers and validate them
-            const headers = xlsx.utils.sheet_to_json(sheet, {
+            const headers = xlsx_1.default.utils.sheet_to_json(sheet, {
                 header: 1,
             })[0];
             console.log("Headers from file:", headers); // Log the headers to debug
@@ -432,13 +438,13 @@ export const productController = {
                 throw new Error(`Invalid file format: Header names do not match expected format. Found: ${trimmedHeaders.join(", ")}`);
             }
             // Step 4: Process rows and create product data
-            const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, range: 1 }); // Skip header row
+            const rows = xlsx_1.default.utils.sheet_to_json(sheet, { header: 1, range: 1 }); // Skip header row
             // Temporary map to store product aggregation
             const productMap = new Map();
             for (const row of rows) {
                 const [productName, category, subCategory, modelName, modelDescription, modelPrice, modelFeatures, inventoryQuantity,] = row;
                 // Convert possible numbers to string for consistency
-                const subCat = await productService.getSubCategorryByName(String(subCategory));
+                const subCat = await services_1.productService.getSubCategorryByName(String(subCategory));
                 if (!subCat) {
                     throw new Error(`Subcategory '${subCategory}' not found.`);
                 }
@@ -469,7 +475,7 @@ export const productController = {
             // Step 5: Save products into database or through service
             for (const product of productMap.values()) {
                 // Directly pass product details as per CreateProductDTO structure
-                await productService.createProduct(product);
+                await services_1.productService.createProduct(product);
             }
             res.status(200).json({ message: "Products uploaded successfully." });
         }
@@ -479,7 +485,7 @@ export const productController = {
     },
     checkout: async (req, res, next) => {
         try {
-            const result = await StkService.pushStk(req.body);
+            const result = await stk_Service_1.StkService.pushStk(req.body);
             res.status(200).json(result);
         }
         catch (error) {
@@ -488,7 +494,7 @@ export const productController = {
     },
     callbackURl: async (req, res, next) => {
         try {
-            const result = await StkService.saveCallbackResult(req.body.stkCallback);
+            const result = await stk_Service_1.StkService.saveCallbackResult(req.body.stkCallback);
             res.status(200).json(result);
         }
         catch (error) {

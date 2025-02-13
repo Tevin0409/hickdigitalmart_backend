@@ -1,8 +1,16 @@
-import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../config";
-import { userService } from "../services";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.validate = exports.authAdminMiddleware = exports.authMiddleware = exports.invalidPathHandler = exports.errorResponder = exports.errorLogger = exports.requestLogger = exports.AppError = void 0;
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const index_1 = require("../config/index");
+const index_2 = require("../services/index");
 // Error object used in error handling middleware function
-export class AppError extends Error {
+class AppError extends Error {
+    statusCode;
+    errors; // To hold multiple error messages
     constructor(statusCode, message) {
         if (Array.isArray(message)) {
             super(message.join(", ")); // Convert array to a comma-separated string for Error's message
@@ -18,13 +26,15 @@ export class AppError extends Error {
         Error.captureStackTrace(this);
     }
 }
+exports.AppError = AppError;
 // Middleware function for logging the request method and request URL
-export const requestLogger = (request, response, next) => {
+const requestLogger = (request, response, next) => {
     console.log(`${request.method} url:: ${request.url}`);
     next();
 };
+exports.requestLogger = requestLogger;
 // Error handling Middleware function for logging the error message
-export const errorLogger = (error, request, response, next) => {
+const errorLogger = (error, request, response, next) => {
     const timestamp = new Date().toISOString().toLocaleString();
     console.error(`[${timestamp}] Error: ${error.message}`);
     if (process.env.NODE_ENV === "development" && error.stack) {
@@ -32,9 +42,10 @@ export const errorLogger = (error, request, response, next) => {
     }
     next(error); // Calling next middleware
 };
+exports.errorLogger = errorLogger;
 // Error handling Middleware function reads the error message
 // and sends back a response in JSON format
-export const errorResponder = (error, request, response, next) => {
+const errorResponder = (error, request, response, next) => {
     response.header("Content-Type", "application/json");
     const status = error.statusCode || 400;
     const message = error.message || "Something went wrong";
@@ -47,9 +58,10 @@ export const errorResponder = (error, request, response, next) => {
         },
     });
 };
+exports.errorResponder = errorResponder;
 // Fallback Middleware function for returning
 // 404 error for undefined paths
-export const invalidPathHandler = (request, response, next) => {
+const invalidPathHandler = (request, response, next) => {
     response.status(404);
     response.send({
         error: {
@@ -58,8 +70,9 @@ export const invalidPathHandler = (request, response, next) => {
         },
     });
 };
+exports.invalidPathHandler = invalidPathHandler;
 // Middleware to protect routes using JWT
-export const authMiddleware = (req, res, next) => {
+const authMiddleware = (req, res, next) => {
     try {
         const authHeader = req.headers["authorization"];
         if (!authHeader) {
@@ -72,7 +85,7 @@ export const authMiddleware = (req, res, next) => {
         if (!token) {
             return next(new AppError(401, "Token is required"));
         }
-        jwt.verify(token.trim(), JWT_SECRET, (err, decodeToken) => {
+        jsonwebtoken_1.default.verify(token.trim(), index_1.JWT_SECRET, (err, decodeToken) => {
             if (err) {
                 return next(new AppError(401, err.message));
             }
@@ -87,7 +100,8 @@ export const authMiddleware = (req, res, next) => {
         next(error);
     }
 };
-export const authAdminMiddleware = async (req, res, next) => {
+exports.authMiddleware = authMiddleware;
+const authAdminMiddleware = async (req, res, next) => {
     try {
         const authHeader = req.headers["authorization"];
         if (!authHeader) {
@@ -100,7 +114,7 @@ export const authAdminMiddleware = async (req, res, next) => {
         if (!token) {
             return next(new AppError(401, "Token is required"));
         }
-        jwt.verify(token.trim(), JWT_SECRET, async (err, decodeToken) => {
+        jsonwebtoken_1.default.verify(token.trim(), index_1.JWT_SECRET, async (err, decodeToken) => {
             if (err) {
                 return next(new AppError(401, err.message));
             }
@@ -108,7 +122,7 @@ export const authAdminMiddleware = async (req, res, next) => {
                 return next(new AppError(401, "Problem decoding token"));
             }
             // Check if user is Admin
-            const isAdmin = await userService.isUserAdmin(decodeToken.email);
+            const isAdmin = await index_2.userService.isUserAdmin(decodeToken.email);
             if (!isAdmin) {
                 return next(new AppError(401, "You should not be here"));
             }
@@ -120,7 +134,8 @@ export const authAdminMiddleware = async (req, res, next) => {
         next(error);
     }
 };
-export const validate = (schema) => {
+exports.authAdminMiddleware = authAdminMiddleware;
+const validate = (schema) => {
     return (req, res, next) => {
         const { error } = schema.validate(req.body, { abortEarly: false });
         if (error) {
@@ -130,3 +145,4 @@ export const validate = (schema) => {
         next();
     };
 };
+exports.validate = validate;

@@ -1,86 +1,92 @@
-import Joi from "joi";
-export const createUserSchema = Joi.object({
-    firstName: Joi.string().min(3).max(50).required(),
-    lastName: Joi.string().min(3).max(50).required(),
-    phoneNumber: Joi.string()
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.changePasswordSchema = exports.technicianQuestionnaireSchema = exports.createRoleSchema = exports.updateUserSchema = exports.updateUserAdminSchema = exports.createUserSchema = void 0;
+const joi_1 = __importDefault(require("joi"));
+exports.createUserSchema = joi_1.default.object({
+    firstName: joi_1.default.string().min(3).max(50).required(),
+    lastName: joi_1.default.string().min(3).max(50).required(),
+    phoneNumber: joi_1.default.string()
         .pattern(/^(?:\+254|0|254)?(7[0-9]{8}|1[0-9]{8})$/)
         .message("Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)")
         .required(),
-    email: Joi.string().email().required(),
-    password: Joi.string()
+    email: joi_1.default.string().email().required(),
+    password: joi_1.default.string()
         .min(8)
         .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
         .message("Password must be at least 8 characters long, contain one uppercase, one lowercase, one number, and one special character")
         .required(),
-    roleId: Joi.string().uuid().required(),
+    roleId: joi_1.default.string().uuid().required(),
 });
-export const updateUserAdminSchema = Joi.object({
-    firstName: Joi.string().min(3).max(50),
-    lastName: Joi.string().min(3).max(50),
-    phoneNumber: Joi.string()
+exports.updateUserAdminSchema = joi_1.default.object({
+    firstName: joi_1.default.string().min(3).max(50),
+    lastName: joi_1.default.string().min(3).max(50),
+    phoneNumber: joi_1.default.string()
         .pattern(/^(?:\+254|0|254)?(7[0-9]{8}|1[0-9]{8})$/)
         .message("Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)"),
-    email: Joi.string().email(),
-    password: Joi.string()
+    email: joi_1.default.string().email(),
+    password: joi_1.default.string()
         .min(8)
         .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
         .message("Password must be at least 8 characters long, contain one uppercase, one lowercase, one number, and one special character"),
-    roleId: Joi.string().uuid(),
+    roleId: joi_1.default.string().uuid(),
 });
-export const updateUserSchema = Joi.object({
-    firstName: Joi.string().min(3).max(50),
-    lastName: Joi.string().min(3).max(50),
-    phoneNumber: Joi.string()
+exports.updateUserSchema = joi_1.default.object({
+    firstName: joi_1.default.string().min(3).max(50),
+    lastName: joi_1.default.string().min(3).max(50),
+    phoneNumber: joi_1.default.string()
         .pattern(/^(?:\+254|0|254)?(7[0-9]{8}|1[0-9]{8})$/)
         .message("Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)"),
-    email: Joi.string().email(),
-    roleId: Joi.string().uuid(),
+    email: joi_1.default.string().email(),
+    roleId: joi_1.default.string().uuid(),
 });
-export const createRoleSchema = Joi.object({
-    name: Joi.string().min(3).max(50).required(),
-    description: Joi.string().min(3).max(200).required(),
+exports.createRoleSchema = joi_1.default.object({
+    name: joi_1.default.string().min(3).max(50).required(),
+    description: joi_1.default.string().min(3).max(200).required(),
 });
-export const technicianQuestionnaireSchema = Joi.object({
-    businessName: Joi.string().required(),
-    phoneNumber: Joi.string().required(),
-    email: Joi.string().email().required(),
-    location: Joi.string().required(),
-    businessType: Joi.string().required(),
-    experienceYears: Joi.number().allow(null),
-    experienceAreas: Joi.array().items(Joi.string()).optional(),
-    brandsWorkedWith: Joi.array().items(Joi.string()).optional(),
-    integrationExperience: Joi.string().required(),
-    purchaseSource: Joi.string().required(),
-    purchaseHikvision: Joi.string().valid("Yes", "No").required(),
-    requiresTraining: Joi.string().valid("Yes", "No").required(),
+exports.technicianQuestionnaireSchema = joi_1.default.object({
+    businessName: joi_1.default.string().required(),
+    phoneNumber: joi_1.default.string().required(),
+    email: joi_1.default.string().email().required(),
+    location: joi_1.default.string().required(),
+    businessType: joi_1.default.string().required(),
+    experienceYears: joi_1.default.number().allow(null),
+    experienceAreas: joi_1.default.array().items(joi_1.default.string()).optional(),
+    brandsWorkedWith: joi_1.default.array().items(joi_1.default.string()).optional(),
+    integrationExperience: joi_1.default.string().required(),
+    purchaseSource: joi_1.default.string().required(),
+    purchaseHikvision: joi_1.default.string().valid("Yes", "No").required(),
+    requiresTraining: joi_1.default.string().valid("Yes", "No").required(),
 });
-export const changePasswordSchema = Joi.object({
-    oldPassword: Joi.string().required(),
-    newPassword: Joi.string()
+exports.changePasswordSchema = joi_1.default.object({
+    oldPassword: joi_1.default.string().required(),
+    newPassword: joi_1.default.string()
         .min(8)
         .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
         .message("Password must be at least 8 characters long, contain one uppercase, one lowercase, one number, and one special character")
         .required(),
-    confirmNewPassword: Joi.string()
-        .valid(Joi.ref("newPassword"))
+    confirmNewPassword: joi_1.default.string()
+        .valid(joi_1.default.ref("newPassword"))
         .required()
         .messages({
         "any.only": "The confirmation password must match the new password",
     }),
 });
-export const forgotPasswordSchema = Joi.object({
-    email: Joi.string().email().required(),
+exports.forgotPasswordSchema = joi_1.default.object({
+    email: joi_1.default.string().email().required(),
 });
-export const resetPasswordSchema = Joi.object({
-    email: Joi.string().email().required(),
-    otp: Joi.string().min(4).max(6).required(),
-    newPassword: Joi.string()
+exports.resetPasswordSchema = joi_1.default.object({
+    email: joi_1.default.string().email().required(),
+    otp: joi_1.default.string().min(4).max(6).required(),
+    newPassword: joi_1.default.string()
         .min(8)
         .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
         .message("Password must be at least 8 characters long, contain one uppercase, one lowercase, one number, and one special character")
         .required(),
-    confirmNewPassword: Joi.string()
-        .valid(Joi.ref("newPassword"))
+    confirmNewPassword: joi_1.default.string()
+        .valid(joi_1.default.ref("newPassword"))
         .required()
         .messages({
         "any.only": "The confirmation password must match the new password",

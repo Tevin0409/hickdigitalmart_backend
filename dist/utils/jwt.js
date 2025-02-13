@@ -1,8 +1,14 @@
-import jwt from "jsonwebtoken";
-import { JWT_SECRET, JWT_REFRESH_SECRET } from "../config";
-export const verifyToken = (token, type) => {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateToken = exports.verifyToken = void 0;
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const config_1 = require("../config");
+const verifyToken = (token, type) => {
     try {
-        const decoded = jwt.verify(token, type === "refresh" ? JWT_REFRESH_SECRET : JWT_SECRET);
+        const decoded = jsonwebtoken_1.default.verify(token, type === "refresh" ? config_1.JWT_REFRESH_SECRET : config_1.JWT_SECRET);
         if (typeof decoded === "string") {
             return null;
         }
@@ -12,7 +18,8 @@ export const verifyToken = (token, type) => {
         return null;
     }
 };
-export const generateToken = (user) => {
+exports.verifyToken = verifyToken;
+const generateToken = (user) => {
     const payload = {
         id: user.id,
         email: user.email,
@@ -20,10 +27,10 @@ export const generateToken = (user) => {
     };
     const accessTokenExpiresIn = "1h";
     const refreshTokenExpiresIn = "7d";
-    const accessToken = jwt.sign(payload, JWT_SECRET, {
+    const accessToken = jsonwebtoken_1.default.sign(payload, config_1.JWT_SECRET, {
         expiresIn: accessTokenExpiresIn,
     });
-    const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, {
+    const refreshToken = jsonwebtoken_1.default.sign(payload, config_1.JWT_REFRESH_SECRET, {
         expiresIn: refreshTokenExpiresIn,
     });
     return {
@@ -33,3 +40,4 @@ export const generateToken = (user) => {
         refreshTokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
     };
 };
+exports.generateToken = generateToken;

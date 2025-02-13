@@ -1,9 +1,12 @@
-import { roleService } from "../services";
-export const roleController = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.roleController = void 0;
+const services_1 = require("../services");
+exports.roleController = {
     // Get all roles
     getAllRoles: async (req, res, next) => {
         try {
-            const roles = await roleService.getAllRoles();
+            const roles = await services_1.roleService.getAllRoles();
             res.status(200).json(roles);
         }
         catch (error) {
@@ -12,7 +15,7 @@ export const roleController = {
     },
     getUserRoles: async (req, res, next) => {
         try {
-            const roles = await roleService.getUserRoles();
+            const roles = await services_1.roleService.getUserRoles();
             res.status(200).json(roles);
         }
         catch (error) {
@@ -23,7 +26,7 @@ export const roleController = {
     createrole: async (req, res, next) => {
         try {
             const data = req.body;
-            const role = await roleService.createRole(data);
+            const role = await services_1.roleService.createRole(data);
             res.status(201).json(role);
         }
         catch (error) {
@@ -34,7 +37,7 @@ export const roleController = {
         try {
             const { id } = req.params;
             const data = req.body;
-            const updatedRole = await roleService.updateRole(id, data);
+            const updatedRole = await services_1.roleService.updateRole(id, data);
             if (!updatedRole) {
                 res.status(404).json({ message: "Role not found" });
                 return;
@@ -50,7 +53,7 @@ export const roleController = {
     deleteRole: async (req, res, next) => {
         try {
             const { id } = req.params;
-            const deleted = await roleService.deleteRole(id);
+            const deleted = await services_1.roleService.deleteRole(id);
             if (!deleted) {
                 res.status(404).json({ message: "Role not found" });
                 return;

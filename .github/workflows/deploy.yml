@@ -19,7 +19,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --omit=optional
 
       - name: Build project
         run: npm run build
@@ -56,10 +56,13 @@ jobs:
             cd $PROJECT_DIR
 
             # Install dependencies
-            npm install --production
+            npm install --omit=optional
 
-            # Build the project
-            # npm run build
+            # Run database migrations
+            npm run migrate:prod
+
+            # Seed the database
+            npm run seed
 
             # Restart the application using PM2
             pm2 restart all || pm2 start npm --name "hickdigitalmart_backend" -- start

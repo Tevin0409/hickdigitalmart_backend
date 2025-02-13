@@ -1,10 +1,16 @@
-import axios from "axios";
-import { PrismaClient } from "@prisma/client";
-import { AuthSercice } from "./auth";
-import { timestampFn } from "../../utils/util";
-import { url, config } from "../../config/mpesa.config";
-const prisma = new PrismaClient();
-export const StkService = {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StkService = void 0;
+const axios_1 = __importDefault(require("axios"));
+const client_1 = require("@prisma/client");
+const auth_1 = require("./auth");
+const util_1 = require("../../utils/util");
+const mpesa_config_1 = require("../../config/mpesa.config");
+const prisma = new client_1.PrismaClient();
+exports.StkService = {
     pushStk: async (data) => {
         try {
             if (data.phoneNumber == null || data.phoneNumber.length !== 10)
@@ -20,16 +26,16 @@ export const StkService = {
             }
             const phoneNumber = data.phoneNumber.substring(1);
             const amount = data.amount;
-            const stkUrl = url.stkUrl;
-            const shortCode = config.shortcode;
-            const passKey = config.passkey;
-            const timeStamp = timestampFn();
+            const stkUrl = mpesa_config_1.url.stkUrl;
+            const shortCode = mpesa_config_1.config.shortcode;
+            const passKey = mpesa_config_1.config.passkey;
+            const timeStamp = (0, util_1.timestampFn)();
             const buffer = Buffer.from(shortCode + passKey + timeStamp);
             const password = buffer.toString("base64");
             // Token
-            const token = await AuthSercice.getAccessToken();
+            const token = await auth_1.AuthSercice.getAccessToken();
             const auth = `Bearer ${token}`;
-            const stkRes = await axios.post(stkUrl, {
+            const stkRes = await axios_1.default.post(stkUrl, {
                 BusinessShortCode: shortCode,
                 Password: password,
                 Timestamp: timeStamp,
@@ -38,7 +44,7 @@ export const StkService = {
                 PartyA: `254${phoneNumber}`,
                 PartyB: shortCode,
                 PhoneNumber: `254${phoneNumber}`,
-                CallBackURL: url.CallBackURL,
+                CallBackURL: mpesa_config_1.url.CallBackURL,
                 AccountReference: `254${phoneNumber}`,
                 TransactionDesc: "test",
             }, {
@@ -78,16 +84,16 @@ export const StkService = {
             });
             if (exisiting)
                 return exisiting;
-            const shortCode = config.shortcode;
-            const passKey = config.passkey;
-            const queryUrl = url.queryUrl;
-            const timeStamp = timestampFn();
+            const shortCode = mpesa_config_1.config.shortcode;
+            const passKey = mpesa_config_1.config.passkey;
+            const queryUrl = mpesa_config_1.url.queryUrl;
+            const timeStamp = (0, util_1.timestampFn)();
             const buffer = Buffer.from(shortCode + passKey + timeStamp);
             const password = buffer.toString("base64");
             // Token
-            const token = await AuthSercice.getAccessToken();
+            const token = await auth_1.AuthSercice.getAccessToken();
             const auth = `Bearer ${token}`;
-            const queryReq = await axios.post(queryUrl, {
+            const queryReq = await axios_1.default.post(queryUrl, {
                 BusinessShortCode: shortCode,
                 Password: password,
                 Timestamp: timeStamp,
@@ -98,7 +104,7 @@ export const StkService = {
                 },
             });
             const response = queryReq.data;
-            await StkService.saveQuery(response);
+            await exports.StkService.saveQuery(response);
             return response;
         }
         catch (err) {

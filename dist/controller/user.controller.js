@@ -1,10 +1,13 @@
-import { userService } from "../services";
-export const userController = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.userController = void 0;
+const services_1 = require("../services");
+exports.userController = {
     // Create a new user
     createUser: async (req, res, next) => {
         try {
             const data = req.body;
-            const user = await userService.createUser(data);
+            const user = await services_1.userService.createUser(data);
             res.status(201).json(user);
         }
         catch (error) {
@@ -15,7 +18,7 @@ export const userController = {
     login: async (req, res, next) => {
         try {
             const data = req.body;
-            const user = await userService.loginUser(data);
+            const user = await services_1.userService.loginUser(data);
             res.status(200).json(user);
         }
         catch (error) {
@@ -25,7 +28,7 @@ export const userController = {
     verify: async (req, res, next) => {
         try {
             const data = req.body;
-            const user = await userService.verifyUser(data);
+            const user = await services_1.userService.verifyUser(data);
             res.status(200).json(user);
         }
         catch (error) {
@@ -35,7 +38,7 @@ export const userController = {
     // User login
     refresh: async (req, res, next) => {
         try {
-            const user = await userService.refresh(req.body.id, req.body.refreshToken);
+            const user = await services_1.userService.refresh(req.body.id, req.body.refreshToken);
             res.status(200).json(user);
         }
         catch (error) {
@@ -47,7 +50,7 @@ export const userController = {
         try {
             const { id } = req.params;
             const updateData = req.body;
-            const updatedUser = await userService.updateUser(id, updateData);
+            const updatedUser = await services_1.userService.updateUser(id, updateData);
             res.status(200).json(updatedUser);
         }
         catch (error) {
@@ -57,7 +60,7 @@ export const userController = {
     // Get all users
     getAllUsers: async (req, res, next) => {
         try {
-            const users = await userService.getAllUsers();
+            const users = await services_1.userService.getAllUsers();
             res.status(200).json(users);
         }
         catch (error) {
@@ -68,7 +71,7 @@ export const userController = {
     getUserById: async (req, res, next) => {
         try {
             const { id } = req.params;
-            const user = await userService.getUserById(id);
+            const user = await services_1.userService.getUserById(id);
             res.status(200).json(user);
         }
         catch (error) {
@@ -77,7 +80,7 @@ export const userController = {
     },
     getUser: async (req, res, next) => {
         try {
-            const user = await userService.getUserByEmail(req.user.email);
+            const user = await services_1.userService.getUserByEmail(req.user.email);
             res.status(200).json(user);
         }
         catch (error) {
@@ -88,7 +91,7 @@ export const userController = {
     getUserByEmail: async (req, res, next) => {
         try {
             const { email } = req.params;
-            const user = await userService.getUserByEmail(email);
+            const user = await services_1.userService.getUserByEmail(email);
             res.status(200).json(user);
         }
         catch (error) {
@@ -99,7 +102,7 @@ export const userController = {
         try {
             const { userId } = req.params;
             const { permissionsToAdd, permissionsToRemove } = req.body;
-            const user = await userService.managePermissions(userId, permissionsToAdd, permissionsToRemove);
+            const user = await services_1.userService.managePermissions(userId, permissionsToAdd, permissionsToRemove);
             res.status(200).json(user);
         }
         catch (error) {
@@ -108,7 +111,7 @@ export const userController = {
     },
     addTechnicianQuestionnaire: async (req, res, next) => {
         try {
-            const user = await userService.addTechnicianQuestionnaire(req.body);
+            const user = await services_1.userService.addTechnicianQuestionnaire(req.body);
             res.status(200).json(user);
         }
         catch (error) {
@@ -118,7 +121,7 @@ export const userController = {
     ChangePassword: async (req, res, next) => {
         try {
             const email = req.user.email;
-            const user = await userService.changePassword(email, req.body);
+            const user = await services_1.userService.changePassword(email, req.body);
             res.status(200).json(user);
         }
         catch (error) {
@@ -127,7 +130,7 @@ export const userController = {
     },
     forgotPassword: async (req, res, next) => {
         try {
-            const user = await userService.forgotPassword(req.body.email);
+            const user = await services_1.userService.forgotPassword(req.body.email);
             res.status(200).json(user);
         }
         catch (error) {
@@ -136,7 +139,7 @@ export const userController = {
     },
     resetPassword: async (req, res, next) => {
         try {
-            const user = await userService.resetPassword(req.body);
+            const user = await services_1.userService.resetPassword(req.body);
             res.status(200).json(user);
         }
         catch (error) {

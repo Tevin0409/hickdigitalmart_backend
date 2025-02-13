@@ -1,8 +1,11 @@
-import { PrismaClient } from "@prisma/client";
-import { AppError } from "../middleware";
-import { uploadImages } from "../config/claudinary.config";
-const prisma = new PrismaClient();
-export const productService = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.productService = void 0;
+const client_1 = require("@prisma/client");
+const middleware_1 = require("../middleware");
+const claudinary_config_1 = require("../config/claudinary.config");
+const prisma = new client_1.PrismaClient();
+exports.productService = {
     // Product Services
     getAllProducts: async (searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page = 1, limit = 10) => {
         try {
@@ -266,7 +269,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to fetch product: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to fetch product: " + error.message);
         }
     },
     getProductModelById: async (id) => {
@@ -281,7 +284,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to fetch product model : " + error.message);
+            throw new middleware_1.AppError(500, "Failed to fetch product model : " + error.message);
         }
     },
     getFeature: async (categoryId, productId, productModelId) => {
@@ -342,7 +345,7 @@ export const productService = {
                 },
             });
             if (existingProductModel) {
-                throw new AppError(400, `${existingProductModel.name} already exists`);
+                throw new middleware_1.AppError(400, `${existingProductModel.name} already exists`);
             }
             return await prisma.product.create({
                 data: {
@@ -367,7 +370,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to create product: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to create product: " + error.message);
         }
     },
     updateProduct: async (id, data) => {
@@ -401,7 +404,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to update product: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to update product: " + error.message);
         }
     },
     deleteProduct: async (id) => {
@@ -409,7 +412,7 @@ export const productService = {
             return await prisma.product.delete({ where: { id } });
         }
         catch (error) {
-            throw new AppError(500, "Failed to delete product");
+            throw new middleware_1.AppError(500, "Failed to delete product");
         }
     },
     // Category Services
@@ -418,7 +421,7 @@ export const productService = {
             return await prisma.category.findMany();
         }
         catch (error) {
-            throw new AppError(500, "Failed to retrieve categories");
+            throw new middleware_1.AppError(500, "Failed to retrieve categories");
         }
     },
     createCategory: async (data) => {
@@ -426,7 +429,7 @@ export const productService = {
             return await prisma.category.create({ data });
         }
         catch (error) {
-            throw new AppError(500, "Failed to create category" + error.message);
+            throw new middleware_1.AppError(500, "Failed to create category" + error.message);
         }
     },
     updateCategory: async (id, data) => {
@@ -434,7 +437,7 @@ export const productService = {
             return await prisma.category.update({ where: { id }, data });
         }
         catch (error) {
-            throw new AppError(500, "Failed to update category");
+            throw new middleware_1.AppError(500, "Failed to update category");
         }
     },
     deleteCategory: async (id) => {
@@ -442,7 +445,7 @@ export const productService = {
             return await prisma.category.delete({ where: { id } });
         }
         catch (error) {
-            throw new AppError(500, "Failed to delete category");
+            throw new middleware_1.AppError(500, "Failed to delete category");
         }
     },
     // Subcategory Services
@@ -451,7 +454,7 @@ export const productService = {
             return await prisma.subCategory.findMany();
         }
         catch (error) {
-            throw new AppError(500, "Failed to retrieve subcategories");
+            throw new middleware_1.AppError(500, "Failed to retrieve subcategories");
         }
     },
     createSubCategory: async (data) => {
@@ -459,7 +462,7 @@ export const productService = {
             return await prisma.subCategory.create({ data });
         }
         catch (error) {
-            throw new AppError(500, "Failed to create subcategory");
+            throw new middleware_1.AppError(500, "Failed to create subcategory");
         }
     },
     getSubCategorryByName: async (name) => {
@@ -467,7 +470,7 @@ export const productService = {
             return await prisma.subCategory.findFirst({ where: { name } });
         }
         catch (error) {
-            throw new AppError(500, "Failed to create subcategory");
+            throw new middleware_1.AppError(500, "Failed to create subcategory");
         }
     },
     updateSubCategory: async (id, data) => {
@@ -475,7 +478,7 @@ export const productService = {
             return await prisma.subCategory.update({ where: { id }, data });
         }
         catch (error) {
-            throw new AppError(500, "Failed to update subcategory");
+            throw new middleware_1.AppError(500, "Failed to update subcategory");
         }
     },
     deleteSubCategory: async (id) => {
@@ -483,7 +486,7 @@ export const productService = {
             return await prisma.subCategory.delete({ where: { id } });
         }
         catch (error) {
-            throw new AppError(500, "Failed to delete subcategory");
+            throw new middleware_1.AppError(500, "Failed to delete subcategory");
         }
     },
     addStockToProduct: async (modelId, quantityToAdd) => {
@@ -500,12 +503,12 @@ export const productService = {
                 },
             });
             if (inventory.count === 0) {
-                throw new AppError(404, "Inventory not found for this product model");
+                throw new middleware_1.AppError(404, "Inventory not found for this product model");
             }
             return inventory;
         }
         catch (error) {
-            throw new AppError(500, "Failed to add stock to product model: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to add stock to product model: " + error.message);
         }
     },
     // Update stock (e.g., decrease stock after a sale)
@@ -518,7 +521,7 @@ export const productService = {
                 },
             });
             if (!inventory) {
-                throw new AppError(404, "Inventory not found for this product model");
+                throw new middleware_1.AppError(404, "Inventory not found for this product model");
             }
             // Update inventory quantity for the specific product model
             const updatedInventory = await prisma.inventory.update({
@@ -532,7 +535,7 @@ export const productService = {
             return updatedInventory;
         }
         catch (error) {
-            throw new AppError(500, "Failed to update stock for the product model: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to update stock for the product model: " + error.message);
         }
     },
     checkStock: async (modelId) => {
@@ -543,12 +546,12 @@ export const productService = {
                 },
             });
             if (!inventory) {
-                throw new AppError(404, "No inventory record found for this product model");
+                throw new middleware_1.AppError(404, "No inventory record found for this product model");
             }
             return inventory.quantity;
         }
         catch (error) {
-            throw new AppError(500, "Failed to retrieve stock information for the product model: " +
+            throw new middleware_1.AppError(500, "Failed to retrieve stock information for the product model: " +
                 error.message);
         }
     },
@@ -578,7 +581,7 @@ export const productService = {
             }
         }
         catch (error) {
-            throw new AppError(500, "Failed to manage wishlist: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to manage wishlist: " + error.message);
         }
     },
     removeFromWishlist: async (userId, wishlistId) => {
@@ -591,7 +594,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to remove from wishlist: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to remove from wishlist: " + error.message);
         }
     },
     getWishlistItems: async (userId) => {
@@ -609,7 +612,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to fetch wishlist: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to fetch wishlist: " + error.message);
         }
     },
     // Cart Services
@@ -633,7 +636,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to add to cart: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to add to cart: " + error.message);
         }
     },
     removeFromCart: async (userId, cartId) => {
@@ -646,7 +649,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to remove from cart: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to remove from cart: " + error.message);
         }
     },
     updateCartItem: async (userId, productModelId, quantity) => {
@@ -662,7 +665,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to update cart item: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to update cart item: " + error.message);
         }
     },
     getCartItems: async (userId) => {
@@ -688,7 +691,7 @@ export const productService = {
                     include: { model: true },
                 });
                 if (!inventory || inventory.quantity < quantity) {
-                    throw new AppError(400, `Insufficient stock for product model ID: ${productModelId}`);
+                    throw new middleware_1.AppError(400, `Insufficient stock for product model ID: ${productModelId}`);
                 }
                 // Calculate order price
                 orderPrice += inventory.model.price * quantity;
@@ -723,7 +726,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to create order: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to create order: " + error.message);
         }
     },
     updateOrderStatus: async (orderId, status) => {
@@ -734,7 +737,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to update order status: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to update order status: " + error.message);
         }
     },
     getOrders: async (userId) => {
@@ -756,7 +759,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to retrieve orders: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to retrieve orders: " + error.message);
         }
     },
     cancelOrder: async (orderId, restoreStock = false) => {
@@ -767,7 +770,7 @@ export const productService = {
                     include: { orderItems: true },
                 });
                 if (!order) {
-                    throw new AppError(404, "Order not found");
+                    throw new middleware_1.AppError(404, "Order not found");
                 }
                 if (restoreStock) {
                     for (const { productModelId, quantity } of order.orderItems) {
@@ -785,7 +788,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to cancel order: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to cancel order: " + error.message);
         }
     },
     getOrder: async (orderId) => {
@@ -801,12 +804,12 @@ export const productService = {
                 },
             });
             if (!order) {
-                throw new AppError(404, "Order not found");
+                throw new middleware_1.AppError(404, "Order not found");
             }
             return order;
         }
         catch (error) {
-            throw new AppError(500, "Failed to retrieve order: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to retrieve order: " + error.message);
         }
     },
     // Delete an order
@@ -818,7 +821,7 @@ export const productService = {
                     include: { orderItems: true },
                 });
                 if (!order) {
-                    throw new AppError(404, "Order not found");
+                    throw new middleware_1.AppError(404, "Order not found");
                 }
                 // Restore stock if needed (when deleting an order)
                 for (const { productModelId, quantity } of order.orderItems) {
@@ -836,7 +839,7 @@ export const productService = {
             });
         }
         catch (error) {
-            throw new AppError(500, "Failed to delete order: " + error.message);
+            throw new middleware_1.AppError(500, "Failed to delete order: " + error.message);
         }
     },
     uploadFile: async (files) => {
@@ -848,7 +851,7 @@ export const productService = {
             imageUrls.push(file.tempFilePath);
             publicIds.push(`products`);
         });
-        const uploadResults = await uploadImages(imageUrls, publicIds);
+        const uploadResults = await (0, claudinary_config_1.uploadImages)(imageUrls, publicIds);
         return uploadResults;
     },
     addProductImages: async (filesData) => {
@@ -866,7 +869,7 @@ export const productService = {
                 const imageUrls = filesArray.map((file) => file.tempFilePath); // Express-fileupload uses tempFilePath
                 const publicIds = filesArray.map(() => `products`);
                 // Upload images to Cloudinary
-                const uploadResults = await uploadImages(imageUrls, publicIds);
+                const uploadResults = await (0, claudinary_config_1.uploadImages)(imageUrls, publicIds);
                 // Check if there's already a primary image for this productModelId
                 const existingPrimaryImageCount = await prisma.productImage.count({
                     where: {

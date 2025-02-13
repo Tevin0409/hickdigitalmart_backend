@@ -1,7 +1,10 @@
-import { PrismaClient } from "@prisma/client";
-import { AppError } from "../middleware";
-const prisma = new PrismaClient();
-export const permissionService = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.permissionService = void 0;
+const client_1 = require("@prisma/client");
+const middleware_1 = require("../middleware");
+const prisma = new client_1.PrismaClient();
+exports.permissionService = {
     // Create a new permission
     createPermission: async (permissionData) => {
         try {
@@ -10,7 +13,7 @@ export const permissionService = {
                 where: { name: permissionName },
             });
             if (existingPermission) {
-                throw new AppError(400, "Permission name already exists");
+                throw new middleware_1.AppError(400, "Permission name already exists");
             }
             const permission = await prisma.permission.create({
                 data: {
@@ -21,7 +24,7 @@ export const permissionService = {
             return permission;
         }
         catch (error) {
-            throw new AppError(500, "Failed to create permission");
+            throw new middleware_1.AppError(500, "Failed to create permission");
         }
     },
     // Get all permissions
@@ -31,7 +34,7 @@ export const permissionService = {
             return permissions;
         }
         catch (error) {
-            throw new AppError(500, "Failed to retrieve permissions");
+            throw new middleware_1.AppError(500, "Failed to retrieve permissions");
         }
     },
     // Update a permission by ID
@@ -44,7 +47,7 @@ export const permissionService = {
             return updatedpermission;
         }
         catch (error) {
-            throw new AppError(500, "Failed to update permission");
+            throw new middleware_1.AppError(500, "Failed to update permission");
         }
     },
     // Delete a permission by ID
@@ -56,7 +59,7 @@ export const permissionService = {
             return deletedpermission;
         }
         catch (error) {
-            throw new AppError(500, "Failed to delete permission");
+            throw new middleware_1.AppError(500, "Failed to delete permission");
         }
     },
 };

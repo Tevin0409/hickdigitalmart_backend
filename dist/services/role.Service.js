@@ -1,7 +1,10 @@
-import { PrismaClient } from "@prisma/client";
-import { AppError } from "../middleware";
-const prisma = new PrismaClient();
-export const roleService = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.roleService = void 0;
+const client_1 = require("@prisma/client");
+const middleware_1 = require("../middleware");
+const prisma = new client_1.PrismaClient();
+exports.roleService = {
     // Create a new role
     createRole: async (roleData) => {
         try {
@@ -10,7 +13,7 @@ export const roleService = {
                 where: { name: roleName },
             });
             if (existingRole) {
-                throw new AppError(400, "Role name already exists");
+                throw new middleware_1.AppError(400, "Role name already exists");
             }
             const role = await prisma.role.create({
                 data: {
@@ -21,7 +24,7 @@ export const roleService = {
             return role;
         }
         catch (error) {
-            throw new AppError(500, "Failed to create role");
+            throw new middleware_1.AppError(500, "Failed to create role");
         }
     },
     // Get all roles
@@ -31,7 +34,7 @@ export const roleService = {
             return roles;
         }
         catch (error) {
-            throw new AppError(500, "Failed to retrieve roles");
+            throw new middleware_1.AppError(500, "Failed to retrieve roles");
         }
     },
     getUserRoles: async () => {
@@ -47,7 +50,7 @@ export const roleService = {
             return roles;
         }
         catch (error) {
-            throw new AppError(500, "Failed to retrieve roles");
+            throw new middleware_1.AppError(500, "Failed to retrieve roles");
         }
     },
     // Update a role by ID
@@ -60,7 +63,7 @@ export const roleService = {
             return updatedRole;
         }
         catch (error) {
-            throw new AppError(500, "Failed to update role");
+            throw new middleware_1.AppError(500, "Failed to update role");
         }
     },
     // Delete a role by ID
@@ -72,7 +75,7 @@ export const roleService = {
             return deletedRole;
         }
         catch (error) {
-            throw new AppError(500, "Failed to delete role");
+            throw new middleware_1.AppError(500, "Failed to delete role");
         }
     },
 };
