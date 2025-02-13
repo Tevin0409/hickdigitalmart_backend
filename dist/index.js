@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import fileUpload from "express-fileupload";
 import path from "path";
-import { requestLogger, errorLogger, errorResponder, invalidPathHandler, } from "./middleware";
+import { requestLogger, errorLogger, errorResponder, invalidPathHandler, } from "./middleware/index";
 import router from "./routes";
 const app = express();
 app.use(cors());

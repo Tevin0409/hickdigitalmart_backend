@@ -11,7 +11,7 @@ import {
   errorLogger,
   errorResponder,
   invalidPathHandler,
-} from "./middleware";
+} from "./middleware/index";
 import router from "./routes";
 
 const app = express();
