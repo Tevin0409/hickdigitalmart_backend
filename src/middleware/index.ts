@@ -1,8 +1,8 @@
 import { type Request, type Response, type NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { JWT_SECRET } from "../config";
+import { JWT_SECRET } from "../config/index";
 import { ObjectSchema } from "joi";
-import { userService } from "../services";
+import { userService } from "../services/index";
 
 export interface IUserRequest extends Request {
   user?: any;
