@@ -41,7 +41,6 @@ dotenv.config();
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const express_fileupload_1 = __importDefault(require("express-fileupload"));
-const path_1 = __importDefault(require("path"));
 const middleware_1 = require("./middleware");
 const routes_1 = __importDefault(require("./routes"));
 const app = (0, express_1.default)();
@@ -53,7 +52,7 @@ app.use((0, express_fileupload_1.default)({
 }));
 app.use(middleware_1.requestLogger);
 app.get("/", (req, res) => {
-    res.sendFile(path_1.default.join(`${__dirname}/templates/warning.html`));
+    res.send('You should not be here. Go to <a href="https://iannjoroge.netlify.app/">contact</a>');
 });
 app.use("/api", routes_1.default);
 app.use(middleware_1.errorLogger);

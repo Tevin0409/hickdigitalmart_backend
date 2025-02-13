@@ -28,7 +28,9 @@ app.use(
 app.use(requestLogger);
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(`${__dirname}/templates/warning.html`));
+  res.send(
+    'You should not be here. Go to <a href="https://iannjoroge.netlify.app/">contact</a>'
+  );
 });
 
 app.use("/api", router);
