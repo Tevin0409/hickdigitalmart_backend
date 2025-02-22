@@ -1,5 +1,5 @@
 import express from "express";
-import { productService } from "../services";
+import { productService, userService } from "../services";
 import { IUserRequest } from "../middleware";
 import { FileArray, UploadedFile } from "express-fileupload";
 import xlsx from "xlsx";
@@ -14,28 +14,40 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      const { 
-        searchTerm, 
-        categoryIds, 
-        subCategoryIds, 
-        featureIds, 
-        minPrice, 
-        maxPrice, 
-        page, 
-        limit 
+      const {
+        searchTerm,
+        categoryIds,
+        subCategoryIds,
+        featureIds,
+        minPrice,
+        maxPrice,
+        page,
+        limit,
       } = req.query;
-      
+
       const products = await productService.getAllProducts(
         searchTerm as string | undefined,
-        categoryIds ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds]) as string[] : undefined,
-        subCategoryIds ? (Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds]) as string[] : undefined,
-        featureIds ? (Array.isArray(featureIds) ? featureIds : [featureIds]) as string[] : undefined,
+        categoryIds
+          ? ((Array.isArray(categoryIds)
+              ? categoryIds
+              : [categoryIds]) as string[])
+          : undefined,
+        subCategoryIds
+          ? ((Array.isArray(subCategoryIds)
+              ? subCategoryIds
+              : [subCategoryIds]) as string[])
+          : undefined,
+        featureIds
+          ? ((Array.isArray(featureIds)
+              ? featureIds
+              : [featureIds]) as string[])
+          : undefined,
         minPrice ? parseFloat(minPrice as string) : undefined,
         maxPrice ? parseFloat(maxPrice as string) : undefined,
         page ? parseInt(page as string, 10) : 1,
         limit ? parseInt(limit as string, 10) : 10
       );
-      
+
       res.status(200).json(products);
     } catch (error) {
       next(error);
@@ -47,22 +59,34 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      const { 
-        searchTerm, 
-        categoryIds, 
-        subCategoryIds, 
-        featureIds, 
-        minPrice, 
-        maxPrice, 
-        page, 
-        limit 
+      const {
+        searchTerm,
+        categoryIds,
+        subCategoryIds,
+        featureIds,
+        minPrice,
+        maxPrice,
+        page,
+        limit,
       } = req.query;
-      
+
       const products = await productService.getAllProductsModels(
         searchTerm as string | undefined,
-        categoryIds ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds]) as string[] : undefined,
-        subCategoryIds ? (Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds]) as string[] : undefined,
-        featureIds ? (Array.isArray(featureIds) ? featureIds : [featureIds]) as string[] : undefined,
+        categoryIds
+          ? ((Array.isArray(categoryIds)
+              ? categoryIds
+              : [categoryIds]) as string[])
+          : undefined,
+        subCategoryIds
+          ? ((Array.isArray(subCategoryIds)
+              ? subCategoryIds
+              : [subCategoryIds]) as string[])
+          : undefined,
+        featureIds
+          ? ((Array.isArray(featureIds)
+              ? featureIds
+              : [featureIds]) as string[])
+          : undefined,
         minPrice ? parseFloat(minPrice as string) : undefined,
         maxPrice ? parseFloat(maxPrice as string) : undefined,
         page ? parseInt(page as string, 10) : 1,
@@ -116,8 +140,12 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      const {categoryId,productId,productModelId} = req.query;
-      const product = await productService.getFeature(categoryId as string | undefined,productId as string | undefined,productModelId as string | undefined);
+      const { categoryId, productId, productModelId } = req.query;
+      const product = await productService.getFeature(
+        categoryId as string | undefined,
+        productId as string | undefined,
+        productModelId as string | undefined
+      );
       res.status(200).json(product);
     } catch (error) {
       next(error);
@@ -444,11 +472,11 @@ export const productController = {
         email,
         products,
       } = req.body;
-  
+
       if (!userId) {
         throw new Error("User not authenticated");
       }
-  
+
       const orderData = {
         first_name,
         last_name,
@@ -460,14 +488,55 @@ export const productController = {
         email,
         products,
       };
-  
-      const order = await productService.createOrder(userId,orderData);
+
+      const order = await productService.createOrder(userId, orderData);
       res.status(201).json(order);
     } catch (error) {
       next(error);
     }
-  }
-  ,
+  },
+  createAnonymousOrders: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const user = await userService.getUserByEmail("anonymous@yopmail.com");
+      const userId = user.id;
+      const {
+        first_name,
+        last_name,
+        company_name,
+        street_address,
+        apartment,
+        town,
+        phone_number,
+        email,
+        products,
+      } = req.body;
+
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+
+      const orderData = {
+        first_name,
+        last_name,
+        company_name,
+        street_address,
+        apartment,
+        town,
+        phone_number,
+        email,
+        products,
+      };
+
+      const order = await productService.createOrder(userId, orderData);
+      res.status(201).json(order);
+    } catch (error) {
+      next(error);
+    }
+  },
 
   // Update order status
   updateOrderStatus: async (

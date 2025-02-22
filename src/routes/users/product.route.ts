@@ -30,6 +30,7 @@ userProductRouter.delete("/wishlist/remove/:wishlistId", authMiddleware, product
 
 // Order Routes
 userProductRouter.post("/orders",validate(createOrderSchema), authMiddleware, productController.createOrder);
+userProductRouter.post("/orders/anonymous",validate(createOrderSchema), productController.createAnonymousOrders);
 userProductRouter.get("/orders", authMiddleware, productController.getOrders); 
 userProductRouter.get("/orders/:orderId", authMiddleware, productController.getOrder);
 userProductRouter.delete("/orders/:orderId", authMiddleware, productController.deleteOrder); 
