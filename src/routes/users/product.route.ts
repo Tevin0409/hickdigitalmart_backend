@@ -34,7 +34,7 @@ userProductRouter.post("/orders/anonymous",validate(createOrderSchema), productC
 userProductRouter.get("/orders", authMiddleware, productController.getOrders); 
 userProductRouter.get("/orders/:orderId", authMiddleware, productController.getOrder);
 userProductRouter.delete("/orders/:orderId", authMiddleware, productController.deleteOrder);
-userProductRouter.get("/order/by-email", productController.getOrderByEmail);
+userProductRouter.post("/order/by-email", productController.getOrderByEmail);
 
 //checkout 
 userProductRouter.post("/checkout", validate(checkoutSchema), productController.checkout);
