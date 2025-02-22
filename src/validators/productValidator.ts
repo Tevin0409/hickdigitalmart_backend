@@ -52,20 +52,48 @@ export const checkoutSchema = Joi.object({
 });
 
 export const createOrderSchema = Joi.object({
-  products: Joi.array().items(
-    Joi.object({
-      productModelId: Joi.string().guid({ version: 'uuidv4' }).required().messages({
-        'string.guid': '"productModelId" must be a valid UUID',
-        'any.required': '"productModelId" is required',
-      }),
-      quantity: Joi.number().integer().positive().required().messages({
-        'number.integer': '"quantity" must be an integer',
-        'number.positive': '"quantity" must be a positive number',
-        'any.required': '"quantity" is required',
-      }),
-    })
-  ).min(1).required().messages({
-    'array.min': '"products" must contain at least one product',
-    'any.required': '"products" is required',
+  first_name: Joi.string().required().messages({
+    "any.required": '"first_name" is required',
   }),
+  last_name: Joi.string().required().messages({
+    "any.required": '"last_name" is required',
+  }),
+  company_name: Joi.string().optional(),
+  street_address: Joi.string().required().messages({
+    "any.required": '"street_address" is required',
+  }),
+  apartment: Joi.string().optional(),
+  town: Joi.string().required().messages({
+    "any.required": '"town" is required',
+  }),
+  phone_number: Joi.string().required().messages({
+    "any.required": '"phone_number" is required',
+  }),
+  email: Joi.string().email().required().messages({
+    "string.email": '"email" must be a valid email',
+    "any.required": '"email" is required',
+  }),
+  products: Joi.array()
+    .items(
+      Joi.object({
+        productModelId: Joi.string()
+          .guid({ version: "uuidv4" })
+          .required()
+          .messages({
+            "string.guid": '"productModelId" must be a valid UUID',
+            "any.required": '"productModelId" is required',
+          }),
+        quantity: Joi.number().integer().positive().required().messages({
+          "number.integer": '"quantity" must be an integer',
+          "number.positive": '"quantity" must be a positive number',
+          "any.required": '"quantity" is required',
+        }),
+      })
+    )
+    .min(1)
+    .required()
+    .messages({
+      "array.min": '"products" must contain at least one product',
+      "any.required": '"products" is required',
+    }),
 });

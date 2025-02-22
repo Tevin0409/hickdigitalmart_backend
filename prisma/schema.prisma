@@ -104,6 +104,14 @@ model Order {
   orderPrice Float
   vat        Float
   total      Float
+  first_name String
+  last_name String
+  company_name  String?
+  street_address String
+  apartment String?
+  town String
+  phone_number String
+  email String
   orderItems OrderItem[]
   status     String      @default("Pending")
   createdAt  DateTime    @default(now())

@@ -3,7 +3,6 @@ import { productService } from "../services";
 import { IUserRequest } from "../middleware";
 import { FileArray, UploadedFile } from "express-fileupload";
 import xlsx from "xlsx";
-import { create } from "domain";
 import { CreateProductDTO } from "../interface/product";
 import { StkService } from "../services/mpesa/stk.Service";
 
@@ -434,18 +433,41 @@ export const productController = {
   ) => {
     try {
       const userId = req.user?.id;
-      const { products } = req.body;
-
+      const {
+        first_name,
+        last_name,
+        company_name,
+        street_address,
+        apartment,
+        town,
+        phone_number,
+        email,
+        products,
+      } = req.body;
+  
       if (!userId) {
         throw new Error("User not authenticated");
       }
-
-      const order = await productService.createOrder(userId, products);
+  
+      const orderData = {
+        first_name,
+        last_name,
+        company_name,
+        street_address,
+        apartment,
+        town,
+        phone_number,
+        email,
+        products,
+      };
+  
+      const order = await productService.createOrder(userId,orderData);
       res.status(201).json(order);
     } catch (error) {
       next(error);
     }
-  },
+  }
+  ,
 
   // Update order status
   updateOrderStatus: async (

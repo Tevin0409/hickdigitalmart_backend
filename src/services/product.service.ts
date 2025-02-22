@@ -788,37 +788,57 @@ export const productService = {
 
   createOrder: async (
     userId: string,
-    products: { productModelId: string; quantity: number }[]
+    orderData: {
+      first_name: string;
+      last_name: string;
+      company_name?: string;
+      street_address: string;
+      apartment?: string;
+      town: string;
+      phone_number: string;
+      email: string;
+      products: { productModelId: string; quantity: number }[];
+    }
   ) => {
     try {
       let orderPrice = 0;
-
+      const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products } =
+        orderData;
+  
       // Check stock and calculate order price
       for (const { productModelId, quantity } of products) {
         const inventory = await prisma.inventory.findUnique({
           where: { modelId: productModelId },
           include: { model: true },
         });
-
+  
         if (!inventory || inventory.quantity < quantity) {
           throw new AppError(
             400,
             `Insufficient stock for product model ID: ${productModelId}`
           );
         }
-
+  
         // Calculate order price
         orderPrice += inventory.model.price * quantity;
       }
-
+  
       const vat = orderPrice * 0.16; // Assuming 16% VAT
       const total = orderPrice + vat;
-
+  
       // Create the order and update inventory
       return await prisma.$transaction(async (tx) => {
         const order = await tx.order.create({
           data: {
             userId,
+            first_name,
+            last_name,
+            company_name,
+            street_address,
+            apartment,
+            town,
+            phone_number,
+            email,
             orderPrice,
             vat,
             total,
@@ -831,7 +851,7 @@ export const productService = {
           },
           include: { orderItems: true },
         });
-
+  
         // Reduce inventory
         for (const { productModelId, quantity } of products) {
           await tx.inventory.update({
@@ -839,14 +859,13 @@ export const productService = {
             data: { quantity: { decrement: quantity } },
           });
         }
-
+  
         return order;
       });
     } catch (error: any) {
       throw new AppError(500, "Failed to create order: " + error.message);
     }
-  },
-
+  },  
   updateOrderStatus: async (orderId: string, status: string) => {
     try {
       return await prisma.order.update({
