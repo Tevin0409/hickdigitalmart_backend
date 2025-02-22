@@ -36,7 +36,7 @@ userProductRouter.get("/orders/:orderId", authMiddleware, productController.getO
 userProductRouter.delete("/orders/:orderId", authMiddleware, productController.deleteOrder); 
 
 //checkout 
-userProductRouter.post("/checkout", validate(checkoutSchema), authMiddleware, productController.checkout);
+userProductRouter.post("/checkout", validate(checkoutSchema), productController.checkout);
 
 
 export { userProductRouter };

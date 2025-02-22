@@ -66,9 +66,12 @@ export const createOrderSchema = Joi.object({
   town: Joi.string().required().messages({
     "any.required": '"town" is required',
   }),
-  phone_number: Joi.string().required().messages({
-    "any.required": '"phone_number" is required',
-  }),
+  phone_number: Joi.string()
+    .pattern(/^(?:\+254|0|254)?(7[0-9]{8}|1[0-9]{8})$/)
+    .message(
+      "Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)"
+    )
+    .required(),
   email: Joi.string().email().required().messages({
     "string.email": '"email" must be a valid email',
     "any.required": '"email" is required',
