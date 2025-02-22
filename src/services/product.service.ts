@@ -802,30 +802,39 @@ export const productService = {
   ) => {
     try {
       let orderPrice = 0;
-      const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products } =
-        orderData;
-  
+      const {
+        first_name,
+        last_name,
+        company_name,
+        street_address,
+        apartment,
+        town,
+        phone_number,
+        email,
+        products,
+      } = orderData;
+
       // Check stock and calculate order price
       for (const { productModelId, quantity } of products) {
         const inventory = await prisma.inventory.findUnique({
           where: { modelId: productModelId },
           include: { model: true },
         });
-  
+
         if (!inventory || inventory.quantity < quantity) {
           throw new AppError(
             400,
             `Insufficient stock for product model ID: ${productModelId}`
           );
         }
-  
+
         // Calculate order price
         orderPrice += inventory.model.price * quantity;
       }
-  
+
       const vat = orderPrice * 0.16; // Assuming 16% VAT
       const total = orderPrice + vat;
-  
+
       // Create the order and update inventory
       return await prisma.$transaction(async (tx) => {
         const order = await tx.order.create({
@@ -851,7 +860,7 @@ export const productService = {
           },
           include: { orderItems: true },
         });
-  
+
         // Reduce inventory
         for (const { productModelId, quantity } of products) {
           await tx.inventory.update({
@@ -859,13 +868,13 @@ export const productService = {
             data: { quantity: { decrement: quantity } },
           });
         }
-  
+
         return order;
       });
     } catch (error: any) {
       throw new AppError(500, "Failed to create order: " + error.message);
     }
-  },  
+  },
   updateOrderStatus: async (orderId: string, status: string) => {
     try {
       return await prisma.order.update({
@@ -954,6 +963,29 @@ export const productService = {
       return order;
     } catch (error: any) {
       throw new AppError(500, "Failed to retrieve order: " + error.message);
+    }
+  },
+  getOrderByEmail: async (email: string) => {
+    try {
+      const orders = await prisma.order.findMany({
+        where: { email },
+        include: {
+          transactions: true,
+          orderItems: {
+            include: {
+              productModel: true,
+            },
+          },
+        },
+      });
+
+      if (!orders) {
+        throw new AppError(404, "Order not found");
+      }
+
+      return orders;
+    } catch (error: any) {
+      throw new AppError(500, "Failed to retrieve orders: " + error.message);
     }
   },
 

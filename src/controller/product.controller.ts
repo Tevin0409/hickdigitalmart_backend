@@ -607,6 +607,19 @@ export const productController = {
       next(error);
     }
   },
+  getOrderByEmail: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { email } = req.body;
+      const orders = await productService.getOrderByEmail(email);
+      res.status(200).json(orders);
+    } catch (error) {
+      next(error);
+    }
+  },
 
   // Delete an order by ID
   deleteOrder: async (
