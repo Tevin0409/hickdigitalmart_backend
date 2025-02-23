@@ -70,7 +70,8 @@ export const userService = {
           "User created successfully. Please check your email to verify Account",
       };
     } catch (err: any) {
-      throw new AppError(500, `Failed to create user: ${err.message}`);
+      const statusCode = err instanceof AppError ? err.statusCode : 500;
+      throw new AppError(statusCode, `Failed to create user: ${err.message}`);
     }
   },
 
@@ -165,7 +166,8 @@ export const userService = {
         user: existingUser,
       };
     } catch (err: any) {
-      throw new AppError(500, `Failed to login: ${err.message}`);
+      const statusCode = err instanceof AppError ? err.statusCode : 500;
+      throw new AppError(statusCode, `Failed to login: ${err.message}`);
     }
   },
   verifyUser: async (verifyData: { email: string; otp: string }) => {
@@ -264,7 +266,8 @@ export const userService = {
         user: user,
       };
     } catch (err: any) {
-      throw new AppError(500, `Failed to login: ${err.message}`);
+      const statusCode = err instanceof AppError ? err.statusCode : 500;
+      throw new AppError(statusCode, `Failed to login: ${err.message}`);
     }
   },
   updateUser: async (id: string, updateData: Partial<CreateUserDTO>) => {
@@ -293,7 +296,8 @@ export const userService = {
 
       return updatedUser;
     } catch (err: any) {
-      throw new AppError(500, `Failed to update user: ${err.message}`);
+      const statusCode = err instanceof AppError ? err.statusCode : 500;
+      throw new AppError(statusCode, `Failed to update user: ${err.message}`);
     }
   },
   getAllUsers: async () => {
@@ -341,7 +345,8 @@ export const userService = {
 
       return user;
     } catch (err: any) {
-      throw new AppError(500, `Failed to retrieve user: ${err.message}`);
+      const statusCode = err instanceof AppError ? err.statusCode : 500;
+      throw new AppError(statusCode, `Failed to retrieve user: ${err.message}`);
     }
   },
   isUserAdmin: async (email: string) => {
@@ -541,9 +546,10 @@ export const userService = {
       return {
         message: "Please check your email for an OTP to reset your password.",
       };
-    } catch (error) {
+    } catch (err) {
+      const statusCode = err instanceof AppError ? err.statusCode : 500;
       throw new AppError(
-        500,
+        statusCode,
         "An error occurred while processing your request."
       );
     }
@@ -610,9 +616,9 @@ export const userService = {
       await sendPasswordChangeEmail(existingUser.email, existingUser.firstName);
 
       return { message: "Password successfully updated" };
-    } catch (error: any) {
-      console.error("Error in resetPassword:", error);
-      throw new AppError(500, error.message || "An error occured");
+    } catch (err: any) {
+      const statusCode = err instanceof AppError ? err.statusCode : 500;
+      throw new AppError(statusCode, err.message || "An error occured");
     }
   },
 };
