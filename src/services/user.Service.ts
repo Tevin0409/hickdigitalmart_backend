@@ -135,7 +135,7 @@ export const userService = {
         await sendOTPEmail(existingUser.email, otp);
 
         throw new AppError(
-          401,
+          402,
           "This account is not yet verified , check your email for an otp to verify your account "
         );
       }
