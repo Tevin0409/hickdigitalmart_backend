@@ -53,6 +53,14 @@ export const updateUserSchema = Joi.object({
     ,
   email: Joi.string().email(),
   roleId: Joi.string().uuid(),
+  password: Joi.string()
+    .min(8)
+    .pattern(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    )
+    .message(
+      "Password must be at least 8 characters long, contain one uppercase, one lowercase, one number, and one special character"
+    )
 });
 
 export const createRoleSchema = Joi.object({
