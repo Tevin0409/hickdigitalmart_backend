@@ -41,6 +41,10 @@ exports.updateUserSchema = joi_1.default.object({
         .message("Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)"),
     email: joi_1.default.string().email(),
     roleId: joi_1.default.string().uuid(),
+    password: joi_1.default.string()
+        .min(8)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+        .message("Password must be at least 8 characters long, contain one uppercase, one lowercase, one number, and one special character")
 });
 exports.createRoleSchema = joi_1.default.object({
     name: joi_1.default.string().min(3).max(50).required(),

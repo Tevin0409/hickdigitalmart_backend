@@ -11,8 +11,20 @@ exports.productController = {
     // Product Handlers
     getAllProducts: async (req, res, next) => {
         try {
-            const { searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page, limit } = req.query;
-            const products = await services_1.productService.getAllProducts(searchTerm, categoryIds ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds]) : undefined, subCategoryIds ? (Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds]) : undefined, featureIds ? (Array.isArray(featureIds) ? featureIds : [featureIds]) : undefined, minPrice ? parseFloat(minPrice) : undefined, maxPrice ? parseFloat(maxPrice) : undefined, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
+            const { searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page, limit, } = req.query;
+            const products = await services_1.productService.getAllProducts(searchTerm, categoryIds
+                ? (Array.isArray(categoryIds)
+                    ? categoryIds
+                    : [categoryIds])
+                : undefined, subCategoryIds
+                ? (Array.isArray(subCategoryIds)
+                    ? subCategoryIds
+                    : [subCategoryIds])
+                : undefined, featureIds
+                ? (Array.isArray(featureIds)
+                    ? featureIds
+                    : [featureIds])
+                : undefined, minPrice ? parseFloat(minPrice) : undefined, maxPrice ? parseFloat(maxPrice) : undefined, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
             res.status(200).json(products);
         }
         catch (error) {
@@ -21,8 +33,20 @@ exports.productController = {
     },
     getAllProductsModels: async (req, res, next) => {
         try {
-            const { searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page, limit } = req.query;
-            const products = await services_1.productService.getAllProductsModels(searchTerm, categoryIds ? (Array.isArray(categoryIds) ? categoryIds : [categoryIds]) : undefined, subCategoryIds ? (Array.isArray(subCategoryIds) ? subCategoryIds : [subCategoryIds]) : undefined, featureIds ? (Array.isArray(featureIds) ? featureIds : [featureIds]) : undefined, minPrice ? parseFloat(minPrice) : undefined, maxPrice ? parseFloat(maxPrice) : undefined, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
+            const { searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page, limit, } = req.query;
+            const products = await services_1.productService.getAllProductsModels(searchTerm, categoryIds
+                ? (Array.isArray(categoryIds)
+                    ? categoryIds
+                    : [categoryIds])
+                : undefined, subCategoryIds
+                ? (Array.isArray(subCategoryIds)
+                    ? subCategoryIds
+                    : [subCategoryIds])
+                : undefined, featureIds
+                ? (Array.isArray(featureIds)
+                    ? featureIds
+                    : [featureIds])
+                : undefined, minPrice ? parseFloat(minPrice) : undefined, maxPrice ? parseFloat(maxPrice) : undefined, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
             res.status(200).json(products);
         }
         catch (error) {
@@ -276,11 +300,48 @@ exports.productController = {
     createOrder: async (req, res, next) => {
         try {
             const userId = req.user?.id;
-            const { products } = req.body;
+            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, } = req.body;
             if (!userId) {
                 throw new Error("User not authenticated");
             }
-            const order = await services_1.productService.createOrder(userId, products);
+            const orderData = {
+                first_name,
+                last_name,
+                company_name,
+                street_address,
+                apartment,
+                town,
+                phone_number,
+                email,
+                products,
+            };
+            const order = await services_1.productService.createOrder(userId, orderData);
+            res.status(201).json(order);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    createAnonymousOrders: async (req, res, next) => {
+        try {
+            const user = await services_1.userService.getUserByEmail("anonymous@yopmail.com");
+            const userId = user.id;
+            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, } = req.body;
+            if (!userId) {
+                throw new Error("User not authenticated");
+            }
+            const orderData = {
+                first_name,
+                last_name,
+                company_name,
+                street_address,
+                apartment,
+                town,
+                phone_number,
+                email,
+                products,
+            };
+            const order = await services_1.productService.createOrder(userId, orderData);
             res.status(201).json(order);
         }
         catch (error) {
@@ -328,6 +389,16 @@ exports.productController = {
             const { orderId } = req.params;
             const order = await services_1.productService.getOrder(orderId);
             res.status(200).json(order);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    getOrderByEmail: async (req, res, next) => {
+        try {
+            const { email } = req.body;
+            const orders = await services_1.productService.getOrderByEmail(email);
+            res.status(200).json(orders);
         }
         catch (error) {
             next(error);
@@ -494,6 +565,7 @@ exports.productController = {
     },
     callbackURl: async (req, res, next) => {
         try {
+            console.log(req.body.stkCallback);
             const result = await stk_Service_1.StkService.saveCallbackResult(req.body.stkCallback);
             res.status(200).json(result);
         }

@@ -59,7 +59,8 @@ exports.userService = {
             };
         }
         catch (err) {
-            throw new middleware_1.AppError(500, `Failed to create user: ${err.message}`);
+            const statusCode = err instanceof middleware_1.AppError ? err.statusCode : 500;
+            throw new middleware_1.AppError(statusCode, `Failed to create user: ${err.message}`);
         }
     },
     loginUser: async (loginData) => {
@@ -102,7 +103,7 @@ exports.userService = {
                     },
                 });
                 await (0, email_Service_1.sendOTPEmail)(existingUser.email, otp);
-                throw new middleware_1.AppError(401, "This account is not yet verified , check your email for an otp to verify your account ");
+                throw new middleware_1.AppError(402, "This account is not yet verified , check your email for an otp to verify your account ");
             }
             // Generate tokens
             const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken, } = (0, jwt_1.generateToken)(existingUser);
@@ -124,7 +125,8 @@ exports.userService = {
             };
         }
         catch (err) {
-            throw new middleware_1.AppError(500, `Failed to login: ${err.message}`);
+            const statusCode = err instanceof middleware_1.AppError ? err.statusCode : 500;
+            throw new middleware_1.AppError(statusCode, `Failed to login: ${err.message}`);
         }
     },
     verifyUser: async (verifyData) => {
@@ -198,7 +200,8 @@ exports.userService = {
             };
         }
         catch (err) {
-            throw new middleware_1.AppError(500, `Failed to login: ${err.message}`);
+            const statusCode = err instanceof middleware_1.AppError ? err.statusCode : 500;
+            throw new middleware_1.AppError(statusCode, `Failed to login: ${err.message}`);
         }
     },
     updateUser: async (id, updateData) => {
@@ -225,7 +228,8 @@ exports.userService = {
             return updatedUser;
         }
         catch (err) {
-            throw new middleware_1.AppError(500, `Failed to update user: ${err.message}`);
+            const statusCode = err instanceof middleware_1.AppError ? err.statusCode : 500;
+            throw new middleware_1.AppError(statusCode, `Failed to update user: ${err.message}`);
         }
     },
     getAllUsers: async () => {
@@ -271,7 +275,8 @@ exports.userService = {
             return user;
         }
         catch (err) {
-            throw new middleware_1.AppError(500, `Failed to retrieve user: ${err.message}`);
+            const statusCode = err instanceof middleware_1.AppError ? err.statusCode : 500;
+            throw new middleware_1.AppError(statusCode, `Failed to retrieve user: ${err.message}`);
         }
     },
     isUserAdmin: async (email) => {
@@ -434,8 +439,9 @@ exports.userService = {
                 message: "Please check your email for an OTP to reset your password.",
             };
         }
-        catch (error) {
-            throw new middleware_1.AppError(500, "An error occurred while processing your request.");
+        catch (err) {
+            const statusCode = err instanceof middleware_1.AppError ? err.statusCode : 500;
+            throw new middleware_1.AppError(statusCode, "An error occurred while processing your request.");
         }
     },
     resetPassword: async (resetPassDTO) => {
@@ -482,9 +488,9 @@ exports.userService = {
             await (0, email_Service_1.sendPasswordChangeEmail)(existingUser.email, existingUser.firstName);
             return { message: "Password successfully updated" };
         }
-        catch (error) {
-            console.error("Error in resetPassword:", error);
-            throw new middleware_1.AppError(500, error.message || "An error occured");
+        catch (err) {
+            const statusCode = err instanceof middleware_1.AppError ? err.statusCode : 500;
+            throw new middleware_1.AppError(statusCode, err.message || "An error occured");
         }
     },
 };

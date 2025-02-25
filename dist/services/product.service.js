@@ -681,9 +681,10 @@ exports.productService = {
             },
         });
     },
-    createOrder: async (userId, products) => {
+    createOrder: async (userId, orderData) => {
         try {
             let orderPrice = 0;
+            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, } = orderData;
             // Check stock and calculate order price
             for (const { productModelId, quantity } of products) {
                 const inventory = await prisma.inventory.findUnique({
@@ -703,6 +704,14 @@ exports.productService = {
                 const order = await tx.order.create({
                     data: {
                         userId,
+                        first_name,
+                        last_name,
+                        company_name,
+                        street_address,
+                        apartment,
+                        town,
+                        phone_number,
+                        email,
                         orderPrice,
                         vat,
                         total,
@@ -810,6 +819,28 @@ exports.productService = {
         }
         catch (error) {
             throw new middleware_1.AppError(500, "Failed to retrieve order: " + error.message);
+        }
+    },
+    getOrderByEmail: async (email) => {
+        try {
+            const orders = await prisma.order.findMany({
+                where: { email },
+                include: {
+                    transactions: true,
+                    orderItems: {
+                        include: {
+                            productModel: true,
+                        },
+                    },
+                },
+            });
+            if (!orders) {
+                throw new middleware_1.AppError(404, "Order not found");
+            }
+            return orders;
+        }
+        catch (error) {
+            throw new middleware_1.AppError(500, "Failed to retrieve orders: " + error.message);
         }
     },
     // Delete an order

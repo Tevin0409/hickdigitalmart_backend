@@ -50,18 +50,47 @@ exports.checkoutSchema = joi_1.default.object({
         .required(),
 });
 exports.createOrderSchema = joi_1.default.object({
-    products: joi_1.default.array().items(joi_1.default.object({
-        productModelId: joi_1.default.string().guid({ version: 'uuidv4' }).required().messages({
-            'string.guid': '"productModelId" must be a valid UUID',
-            'any.required': '"productModelId" is required',
+    first_name: joi_1.default.string().required().messages({
+        "any.required": '"first_name" is required',
+    }),
+    last_name: joi_1.default.string().required().messages({
+        "any.required": '"last_name" is required',
+    }),
+    company_name: joi_1.default.string().optional(),
+    street_address: joi_1.default.string().required().messages({
+        "any.required": '"street_address" is required',
+    }),
+    apartment: joi_1.default.string().optional(),
+    town: joi_1.default.string().required().messages({
+        "any.required": '"town" is required',
+    }),
+    phone_number: joi_1.default.string()
+        .pattern(/^(?:\+254|0|254)?(7[0-9]{8}|1[0-9]{8})$/)
+        .message("Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)")
+        .required(),
+    email: joi_1.default.string().email().required().messages({
+        "string.email": '"email" must be a valid email',
+        "any.required": '"email" is required',
+    }),
+    products: joi_1.default.array()
+        .items(joi_1.default.object({
+        productModelId: joi_1.default.string()
+            .guid({ version: "uuidv4" })
+            .required()
+            .messages({
+            "string.guid": '"productModelId" must be a valid UUID',
+            "any.required": '"productModelId" is required',
         }),
         quantity: joi_1.default.number().integer().positive().required().messages({
-            'number.integer': '"quantity" must be an integer',
-            'number.positive': '"quantity" must be a positive number',
-            'any.required': '"quantity" is required',
+            "number.integer": '"quantity" must be an integer',
+            "number.positive": '"quantity" must be a positive number',
+            "any.required": '"quantity" is required',
         }),
-    })).min(1).required().messages({
-        'array.min': '"products" must contain at least one product',
-        'any.required': '"products" is required',
+    }))
+        .min(1)
+        .required()
+        .messages({
+        "array.min": '"products" must contain at least one product',
+        "any.required": '"products" is required',
     }),
 });

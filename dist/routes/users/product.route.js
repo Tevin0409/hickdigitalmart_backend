@@ -30,8 +30,10 @@ userProductRouter.post("/wishlist/add", (0, middleware_1.validate)(productValida
 userProductRouter.delete("/wishlist/remove/:wishlistId", middleware_1.authMiddleware, controller_1.productController.removeFromWishlist);
 // Order Routes
 userProductRouter.post("/orders", (0, middleware_1.validate)(productValidator_1.createOrderSchema), middleware_1.authMiddleware, controller_1.productController.createOrder);
+userProductRouter.post("/orders/anonymous", (0, middleware_1.validate)(productValidator_1.createOrderSchema), controller_1.productController.createAnonymousOrders);
 userProductRouter.get("/orders", middleware_1.authMiddleware, controller_1.productController.getOrders);
 userProductRouter.get("/orders/:orderId", middleware_1.authMiddleware, controller_1.productController.getOrder);
 userProductRouter.delete("/orders/:orderId", middleware_1.authMiddleware, controller_1.productController.deleteOrder);
+userProductRouter.post("/order/by-email", controller_1.productController.getOrderByEmail);
 //checkout 
-userProductRouter.post("/checkout", (0, middleware_1.validate)(productValidator_1.checkoutSchema), middleware_1.authMiddleware, controller_1.productController.checkout);
+userProductRouter.post("/checkout", (0, middleware_1.validate)(productValidator_1.checkoutSchema), controller_1.productController.checkout);
