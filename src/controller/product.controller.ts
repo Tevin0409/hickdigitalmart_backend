@@ -166,6 +166,21 @@ export const productController = {
       next(error);
     }
   },
+  updateProductModdel: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const updatedProduct = await productService.updateProductModel(
+        req.params.id,
+        req.body
+      );
+      res.status(200).json(updatedProduct);
+    } catch (error) {
+      next(error);
+    }
+  },
   deleteProduct: async (
     req: express.Request,
     res: express.Response,

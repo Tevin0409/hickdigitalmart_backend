@@ -12,6 +12,7 @@ productRouter.patch("/update/:id", authAdminMiddleware, productController.update
 productRouter.delete("/delete/:id", authAdminMiddleware, productController.deleteProduct);
 productRouter.get("/by-id/:id", authAdminMiddleware, productController.getProduct);
 productRouter.get("/model/by-id/:id", productController.getProductModel);
+productRouter.patch("/product-models/:modelId", productController.updateProductModdel);
 
 // Category Routes
 productRouter.get("/categories", authAdminMiddleware, productController.getAllCategories);

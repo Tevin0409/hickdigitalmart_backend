@@ -100,6 +100,15 @@ exports.productController = {
             next(error);
         }
     },
+    updateProductModdel: async (req, res, next) => {
+        try {
+            const updatedProduct = await services_1.productService.updateProductModel(req.params.id, req.body);
+            res.status(200).json(updatedProduct);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
     deleteProduct: async (req, res, next) => {
         try {
             await services_1.productService.deleteProduct(req.params.id);

@@ -17,6 +17,7 @@ productRouter.patch("/update/:id", middleware_1.authAdminMiddleware, controller_
 productRouter.delete("/delete/:id", middleware_1.authAdminMiddleware, controller_1.productController.deleteProduct);
 productRouter.get("/by-id/:id", middleware_1.authAdminMiddleware, controller_1.productController.getProduct);
 productRouter.get("/model/by-id/:id", controller_1.productController.getProductModel);
+productRouter.patch("/product-models/:modelId", controller_1.productController.updateProductModdel);
 // Category Routes
 productRouter.get("/categories", middleware_1.authAdminMiddleware, controller_1.productController.getAllCategories);
 productRouter.post("/categories/create", middleware_1.authAdminMiddleware, controller_1.productController.createCategory);

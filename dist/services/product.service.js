@@ -407,6 +407,38 @@ exports.productService = {
             throw new middleware_1.AppError(500, "Failed to update product: " + error.message);
         }
     },
+    updateProductModel: async (id, data) => {
+        try {
+            return await prisma.productModel.update({
+                where: { id },
+                data: {
+                    name: data.name,
+                    description: data.description,
+                    price: data.price,
+                    ...(data.features && data.features.length > 0
+                        ? {
+                            features: {
+                                update: data.features.map((feature) => ({
+                                    where: { id: feature.id },
+                                    data: { description: feature.description },
+                                })),
+                            },
+                        }
+                        : {}),
+                    ...(data.inventory
+                        ? {
+                            inventory: {
+                                update: { quantity: data.inventory.quantity },
+                            },
+                        }
+                        : {}),
+                },
+            });
+        }
+        catch (error) {
+            throw new middleware_1.AppError(500, `Failed to update product: ${error.message}`);
+        }
+    },
     deleteProduct: async (id) => {
         try {
             return await prisma.product.delete({ where: { id } });
