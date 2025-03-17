@@ -1,15 +1,12 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dashboardController = void 0;
-const dashboard_service_1 = __importDefault(require("../services/dashboard.service"));
+const services_1 = require("../services");
 exports.dashboardController = {
     getSummary: async (req, res) => {
         try {
             const { startDate, endDate } = req.query;
-            const summary = await dashboard_service_1.default.getDashboardSummary({
+            const summary = await services_1.dashboardService.getDashboardSummary({
                 startDate: startDate ? new Date(startDate) : undefined,
                 endDate: endDate ? new Date(endDate) : undefined,
             });
