@@ -12,5 +12,5 @@ const router = express_1.default.Router();
 router.use("/admin/", admin_1.default);
 router.use("/auth/", auth_route_1.authRouter);
 router.use("/", users_1.default);
-router.use("/callback", controller_1.productController.callbackURl);
+router.post("/callback", controller_1.productController.callbackURl);
 exports.default = router;

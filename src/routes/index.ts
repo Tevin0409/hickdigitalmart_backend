@@ -8,6 +8,6 @@ const router = express.Router();
 router.use("/admin/", adminRouter);
 router.use("/auth/", authRouter);
 router.use("/", usersRoute);
-router.use("/callback", productController.callbackURl);
+router.post("/callback", productController.callbackURl);
 
 export default router;
