@@ -574,7 +574,7 @@ exports.productController = {
     },
     callbackURl: async (req, res, next) => {
         try {
-            console.log(req.body.stkCallback);
+            console.log("req", req.body);
             const result = await stk_Service_1.StkService.saveCallbackResult(req.body.stkCallback);
             res.status(200).json(result);
         }

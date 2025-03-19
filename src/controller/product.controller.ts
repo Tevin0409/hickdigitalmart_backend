@@ -875,7 +875,7 @@ export const productController = {
     next: express.NextFunction
   ): Promise<any> => {
     try {
-      console.log(req.body.stkCallback);
+      console.log("req", req.body);
       const result = await StkService.saveCallbackResult(req.body.stkCallback);
       res.status(200).json(result);
     } catch (error) {
