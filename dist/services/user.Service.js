@@ -232,12 +232,39 @@ exports.userService = {
             throw new middleware_1.AppError(statusCode, `Failed to update user: ${err.message}`);
         }
     },
-    getAllUsers: async () => {
+    getAllUsers: async (page = 1, limit = 10, searchTerm, roleId) => {
         try {
+            const skip = (page - 1) * limit;
+            // Construct search filters
+            const filters = {};
+            if (roleId) {
+                filters.roleId = roleId;
+            }
+            if (searchTerm) {
+                filters.OR = [
+                    { firstName: { contains: searchTerm, mode: "insensitive" } },
+                    { lastName: { contains: searchTerm, mode: "insensitive" } },
+                    { email: { contains: searchTerm, mode: "insensitive" } },
+                    { phoneNumber: { contains: searchTerm, mode: "insensitive" } },
+                ];
+            }
+            // Get total user count with filters
+            const totalResults = await prisma.user.count({ where: filters });
+            // Fetch paginated users
             const users = await prisma.user.findMany({
+                where: filters,
                 include: { role: true, permissions: true },
+                skip,
+                take: limit,
             });
-            return users;
+            const totalPages = Math.ceil(totalResults / limit);
+            return {
+                page,
+                limit,
+                totalPages,
+                totalResults,
+                results: users,
+            };
         }
         catch (err) {
             throw new middleware_1.AppError(500, `Failed to retrieve users: ${err.message}`);

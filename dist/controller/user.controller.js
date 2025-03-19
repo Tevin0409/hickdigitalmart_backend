@@ -60,7 +60,13 @@ exports.userController = {
     // Get all users
     getAllUsers: async (req, res, next) => {
         try {
-            const users = await services_1.userService.getAllUsers();
+            // Extract query parameters
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const searchTerm = req.query.searchTerm;
+            const roleId = req.query.roleId;
+            // Call userService with the extracted parameters
+            const users = await services_1.userService.getAllUsers(page, limit, searchTerm, roleId);
             res.status(200).json(users);
         }
         catch (error) {

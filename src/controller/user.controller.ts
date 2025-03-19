@@ -86,7 +86,20 @@ export const userController = {
     next: express.NextFunction
   ) => {
     try {
-      const users = await userService.getAllUsers();
+      // Extract query parameters
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const searchTerm = req.query.searchTerm as string | undefined;
+      const roleId = req.query.roleId as string | undefined;
+
+      // Call userService with the extracted parameters
+      const users = await userService.getAllUsers(
+        page,
+        limit,
+        searchTerm,
+        roleId
+      );
+
       res.status(200).json(users);
     } catch (error) {
       next(error);
