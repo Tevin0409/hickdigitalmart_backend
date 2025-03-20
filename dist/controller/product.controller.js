@@ -380,6 +380,21 @@ exports.productController = {
             next(error);
         }
     },
+    getAllOrders: async (req, res, next) => {
+        try {
+            // Extract query parameters
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const searchTerm = req.query.searchTerm;
+            const status = req.query.status;
+            // Call productService with the extracted parameters
+            const orders = await services_1.productService.getAllOrders(page, limit, searchTerm, status);
+            res.status(200).json(orders);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
     // Cancel an order
     cancelOrder: async (req, res, next) => {
         try {

@@ -587,7 +587,31 @@ export const productController = {
       next(error);
     }
   },
+  getAllOrders: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      // Extract query parameters
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const searchTerm = req.query.searchTerm as string | undefined;
+      const status = req.query.status as string | undefined;
 
+      // Call productService with the extracted parameters
+      const orders = await productService.getAllOrders(
+        page,
+        limit,
+        searchTerm,
+        status
+      );
+
+      res.status(200).json(orders);
+    } catch (error) {
+      next(error);
+    }
+  },
   // Cancel an order
   cancelOrder: async (
     req: express.Request,

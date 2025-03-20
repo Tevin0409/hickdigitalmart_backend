@@ -803,6 +803,55 @@ exports.productService = {
             throw new middleware_1.AppError(500, "Failed to retrieve orders: " + error.message);
         }
     },
+    getAllOrders: async (page = 1, limit = 10, searchTerm, status) => {
+        try {
+            const skip = (page - 1) * limit;
+            // Construct search filters
+            const filters = {};
+            if (status) {
+                filters.status = status;
+            }
+            if (searchTerm) {
+                filters.OR = [
+                    { phone_number: { contains: searchTerm, mode: "insensitive" } },
+                    { email: { contains: searchTerm, mode: "insensitive" } },
+                    { first_name: { contains: searchTerm, mode: "insensitive" } },
+                    { last_name: { contains: searchTerm, mode: "insensitive" } },
+                ];
+            }
+            // Get total order count with filters
+            const totalResults = await prisma.order.count({ where: filters });
+            // Fetch paginated orders
+            const orders = await prisma.order.findMany({
+                where: filters,
+                include: {
+                    orderItems: {
+                        include: {
+                            productModel: {
+                                include: {
+                                    images: true,
+                                    features: true,
+                                },
+                            },
+                        },
+                    },
+                },
+                skip,
+                take: limit,
+            });
+            const totalPages = Math.ceil(totalResults / limit);
+            return {
+                page,
+                limit,
+                totalPages,
+                totalResults,
+                results: orders,
+            };
+        }
+        catch (error) {
+            throw new middleware_1.AppError(500, "Failed to retrieve orders: " + error.message);
+        }
+    },
     cancelOrder: async (orderId, restoreStock = false) => {
         try {
             return await prisma.$transaction(async (tx) => {

@@ -11,8 +11,8 @@ productRouter.post("/create",validate(productSchema), authAdminMiddleware, produ
 productRouter.patch("/update/:id", authAdminMiddleware, productController.updateProduct);
 productRouter.delete("/delete/:id", authAdminMiddleware, productController.deleteProduct);
 productRouter.get("/by-id/:id", authAdminMiddleware, productController.getProduct);
-productRouter.get("/model/by-id/:id", productController.getProductModel);
-productRouter.patch("/product-models/:modelId", productController.updateProductModdel);
+productRouter.get("/model/by-id/:id",authAdminMiddleware, productController.getProductModel);
+productRouter.patch("/product-models/:modelId",authAdminMiddleware, productController.updateProductModdel);
 
 // Category Routes
 productRouter.get("/categories", authAdminMiddleware, productController.getAllCategories);
@@ -40,6 +40,9 @@ productRouter.delete('/remove-image/:imageId',authAdminMiddleware,productControl
 //bulk upload 
 
 productRouter.post('/upload-xslx',authAdminMiddleware,productController.uploadBulkProducts)
+
+//orders
+productRouter.get("/orders",authAdminMiddleware, productController.getAllOrders);
 
 
 
