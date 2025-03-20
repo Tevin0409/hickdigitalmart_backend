@@ -162,7 +162,7 @@ export const StkService = {
             id: transaction.orderId,
           },
           data: {
-            status: "Paid",
+            status: "Awaiting Shipment",
           },
         });
       }
