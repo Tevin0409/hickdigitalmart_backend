@@ -104,7 +104,6 @@ exports.StkService = {
                     Authorization: auth,
                 },
             });
-            console.log("query response", queryReq);
             const response = queryReq.data;
             await exports.StkService.saveQuery(response);
             return response;
@@ -122,8 +121,9 @@ exports.StkService = {
                 },
                 data: {
                     resultCode: +result.ResultCode,
-                    resultDesc: result.ResponseDescription,
+                    resultDesc: result.ResultDesc,
                     mpesaReceiptNumber: result?.MpesaReceiptNumber,
+                    responseDescription: result.ResponseDescription,
                 },
             });
             if (transaction?.mpesaReceiptNumber) {

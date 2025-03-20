@@ -132,7 +132,6 @@ export const StkService = {
           },
         }
       );
-      console.log("query response", queryReq);
 
       const response = queryReq.data;
 
@@ -152,8 +151,9 @@ export const StkService = {
         },
         data: {
           resultCode: +result.ResultCode,
-          resultDesc: result.ResponseDescription,
+          resultDesc: result.ResultDesc,
           mpesaReceiptNumber: result?.MpesaReceiptNumber,
+          responseDescription: result.ResponseDescription,
         },
       });
       if (transaction?.mpesaReceiptNumber) {
