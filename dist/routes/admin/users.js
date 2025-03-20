@@ -17,3 +17,5 @@ userAdminRouter.get("/get-all-users", middleware_1.authAdminMiddleware, controll
 userAdminRouter.get("/get-user/:id", middleware_1.authAdminMiddleware, controller_1.userController.getUserById);
 userAdminRouter.get("/get-user-by-email/:email", middleware_1.authAdminMiddleware, controller_1.userController.getUserByEmail);
 userAdminRouter.post("/manage-permissions/:userId", middleware_1.authAdminMiddleware, controller_1.userController.managePermissions);
+userAdminRouter.get("/technician-request", middleware_1.authAdminMiddleware, controller_1.userController.getTechnicianRequest);
+userAdminRouter.post("/approve-technician/:id", middleware_1.authAdminMiddleware, controller_1.userController.approveTechnician);

@@ -124,6 +124,28 @@ exports.userController = {
             next(error);
         }
     },
+    getTechnicianRequest: async (req, res, next) => {
+        try {
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const searchTerm = req.query.searchTerm;
+            const response = await services_1.userService.getTechnicianRequest(page, limit, searchTerm);
+            res.status(200).json(response);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    approveTechnician: async (req, res, next) => {
+        try {
+            const userId = req.params.id;
+            const response = await services_1.userService.approveTechnician(userId);
+            res.status(200).json(response);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
     ChangePassword: async (req, res, next) => {
         try {
             const email = req.user.email;

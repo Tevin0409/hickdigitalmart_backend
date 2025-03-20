@@ -412,6 +412,61 @@ exports.userService = {
             throw new Error(error.message || "Error creating Technician Questionnaire");
         }
     },
+    getTechnicianRequest: async (page = 1, limit = 10, searchTerm) => {
+        try {
+            // Define pagination
+            const skip = (page - 1) * limit;
+            // Construct search conditions dynamically
+            const searchConditions = [];
+            if (searchTerm) {
+                searchConditions.push({
+                    email: { contains: searchTerm, mode: "insensitive" },
+                });
+                searchConditions.push({
+                    phoneNumber: { contains: searchTerm, mode: "insensitive" },
+                });
+                searchConditions.push({
+                    businessName: { contains: searchTerm, mode: "insensitive" },
+                });
+            }
+            const whereCondition = searchConditions.length ? { OR: searchConditions } : {};
+            // Fetch total count for pagination
+            const totalResults = await prisma.technicianQuestionnaire.count({
+                where: whereCondition,
+            });
+            const totalPages = Math.ceil(totalResults / limit);
+            // Fetch technician questionnaire with pagination & search
+            const technicianRequests = await prisma.technicianQuestionnaire.findMany({
+                where: whereCondition,
+                skip,
+                take: limit,
+            });
+            // Fetch user details for each technician request
+            const enrichedRequests = await Promise.all(technicianRequests.map(async (request) => {
+                const user = await prisma.user.findUnique({
+                    where: { email: request.email },
+                });
+                return { ...request, user };
+            }));
+            // Return paginated response
+            return {
+                page,
+                limit,
+                totalPages,
+                totalResults,
+                results: enrichedRequests,
+            };
+        }
+        catch (error) {
+            throw new Error(error.message || "Error fetching Technician Questionnaire");
+        }
+    },
+    approveTechnician: async (technicianId) => {
+        return await prisma.user.update({
+            where: { id: technicianId },
+            data: { technicianVerified: true },
+        });
+    },
     changePassword: async (email, changePasswordDTO) => {
         try {
             // Fetch the user from the database by email
