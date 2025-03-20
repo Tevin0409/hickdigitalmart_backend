@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dashboardController = exports.productController = exports.permissionController = exports.roleController = exports.userController = void 0;
+exports.reportController = exports.dashboardController = exports.productController = exports.permissionController = exports.roleController = exports.userController = void 0;
 const user_controller_1 = require("./user.controller");
 Object.defineProperty(exports, "userController", { enumerable: true, get: function () { return user_controller_1.userController; } });
 const role_controller_1 = require("./role.controller");
@@ -11,3 +11,5 @@ const product_controller_1 = require("./product.controller");
 Object.defineProperty(exports, "productController", { enumerable: true, get: function () { return product_controller_1.productController; } });
 const dashboard_controller_1 = require("./dashboard.controller");
 Object.defineProperty(exports, "dashboardController", { enumerable: true, get: function () { return dashboard_controller_1.dashboardController; } });
+const report_controller_1 = require("./report.controller");
+Object.defineProperty(exports, "reportController", { enumerable: true, get: function () { return report_controller_1.reportController; } });

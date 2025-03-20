@@ -133,6 +133,8 @@ model Transaction {
   transactionDate String?
   orderId    String     
   order      Order       @relation(fields: [orderId], references: [id]) 
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
 }
 
 
@@ -219,5 +221,7 @@ model TechnicianQuestionnaire {
   purchaseSource          String[]
   purchaseHikvision       String
   requiresTraining        String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
 }
 

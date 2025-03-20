@@ -1,0 +1,22 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.reportRouter = void 0;
+const express_1 = __importDefault(require("express"));
+const controller_1 = require("../../controller");
+const middleware_1 = require("../../middleware");
+const reportRouter = express_1.default.Router();
+exports.reportRouter = reportRouter;
+reportRouter.get("/user-registrations", middleware_1.authAdminMiddleware, controller_1.reportController.getUserRegistrations);
+reportRouter.get("/verified-users", middleware_1.authAdminMiddleware, controller_1.reportController.getVerifiedUsers);
+reportRouter.get("/sales-summary", middleware_1.authAdminMiddleware, controller_1.reportController.getSalesSummary);
+reportRouter.get("/order-status", middleware_1.authAdminMiddleware, controller_1.reportController.getOrderStatus);
+reportRouter.get("/top-products", middleware_1.authAdminMiddleware, controller_1.reportController.getTopProducts);
+reportRouter.get("/cart-abandonment", middleware_1.authAdminMiddleware, controller_1.reportController.getCartAbandonment);
+reportRouter.get("/low-stock", middleware_1.authAdminMiddleware, controller_1.reportController.getLowStock);
+reportRouter.get("/transaction-success", middleware_1.authAdminMiddleware, controller_1.reportController.getTransactionSuccessRate);
+reportRouter.get("/customer-orders/:userId", middleware_1.authAdminMiddleware, controller_1.reportController.getCustomerOrders);
+reportRouter.get("/wishlist-trends", middleware_1.authAdminMiddleware, controller_1.reportController.getWishlistTrends);
+reportRouter.get("/technician-registrations", middleware_1.authAdminMiddleware, controller_1.reportController.getTechnicianRegistrations);
