@@ -133,6 +133,7 @@ export const StkService = {
       );
 
       const response = queryReq.data;
+      console.log("query response", response);
       await StkService.saveQuery(response);
       return response;
     } catch (err: any) {
@@ -149,10 +150,10 @@ export const StkService = {
         data: {
           resultCode: +result.ResultCode,
           resultDesc: result.ResponseDescription,
-          mpesaReceiptNumber: result.MpesaReceiptNumber,
+          mpesaReceiptNumber: result?.MpesaReceiptNumber,
         },
       });
-      if (transaction.mpesaReceiptNumber) {
+      if (transaction?.mpesaReceiptNumber) {
         await prisma.order.update({
           where: {
             id: transaction.orderId,

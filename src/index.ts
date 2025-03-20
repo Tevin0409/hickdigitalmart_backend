@@ -13,6 +13,7 @@ import {
   invalidPathHandler,
 } from "./middleware";
 import router from "./routes";
+import "../src/utils/cron";
 
 const app = express();
 
