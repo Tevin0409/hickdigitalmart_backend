@@ -716,7 +716,7 @@ exports.productService = {
     createOrder: async (userId, orderData) => {
         try {
             let orderPrice = 0;
-            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, } = orderData;
+            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, isVat, } = orderData;
             // Check stock and calculate order price
             for (const { productModelId, quantity } of products) {
                 const inventory = await prisma.inventory.findUnique({
@@ -729,7 +729,7 @@ exports.productService = {
                 // Calculate order price
                 orderPrice += inventory.model.price * quantity;
             }
-            const vat = orderPrice * 0.16; // Assuming 16% VAT
+            const vat = isVat ? orderPrice * 0.16 : 0; // Apply VAT only if isVat is true
             const total = orderPrice + vat;
             // Create the order and update inventory
             return await prisma.$transaction(async (tx) => {

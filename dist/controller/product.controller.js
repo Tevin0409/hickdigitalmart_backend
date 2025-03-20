@@ -309,7 +309,7 @@ exports.productController = {
     createOrder: async (req, res, next) => {
         try {
             const userId = req.user?.id;
-            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, } = req.body;
+            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, isVat } = req.body;
             if (!userId) {
                 throw new Error("User not authenticated");
             }
@@ -323,6 +323,7 @@ exports.productController = {
                 phone_number,
                 email,
                 products,
+                isVat
             };
             const order = await services_1.productService.createOrder(userId, orderData);
             res.status(201).json(order);
@@ -335,7 +336,7 @@ exports.productController = {
         try {
             const user = await services_1.userService.getUserByEmail("anonymous@yopmail.com");
             const userId = user.id;
-            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, } = req.body;
+            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, isVat } = req.body;
             if (!userId) {
                 throw new Error("User not authenticated");
             }
@@ -349,6 +350,7 @@ exports.productController = {
                 phone_number,
                 email,
                 products,
+                isVat
             };
             const order = await services_1.productService.createOrder(userId, orderData);
             res.status(201).json(order);

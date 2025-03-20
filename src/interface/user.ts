@@ -26,7 +26,7 @@ export interface TechnicianDTO {
   experienceAreas: string[];
   brandsWorkedWith: string[];
   integrationExperience: string;
-  purchaseSource: string;
+  purchaseSource: string[];
   purchaseHikvision: string;
   requiresTraining: string;
 }

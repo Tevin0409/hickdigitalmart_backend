@@ -205,17 +205,19 @@ model PricePercentage {
 }
 
 model TechnicianQuestionnaire {
-  id                    Int      @id @default(autoincrement())
-  businessName          String
-  phoneNumber           String
-  email                 String   @unique
-  location              String
-  businessType          String
-  experienceYears       Int?
-  experienceAreas       String[]
-  brandsWorkedWith      String[]
-  integrationExperience String
-  purchaseSource        String
-  purchaseHikvision     String
-  requiresTraining      String
+  id                      Int      @id @default(autoincrement())
+  businessName            String
+  phoneNumber             String
+  email                   String   @unique
+  location                String
+  businessType            String
+  experienceYears         Int?
+  experienceAreas         String[]
+  brandsWorkedWith        String[]
+  integrationExperience   String
+  familiarWithStandard    String?
+  purchaseSource          String[]
+  purchaseHikvision       String
+  requiresTraining        String?
 }
+

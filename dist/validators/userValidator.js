@@ -60,9 +60,10 @@ exports.technicianQuestionnaireSchema = joi_1.default.object({
     experienceAreas: joi_1.default.array().items(joi_1.default.string()).optional(),
     brandsWorkedWith: joi_1.default.array().items(joi_1.default.string()).optional(),
     integrationExperience: joi_1.default.string().required(),
-    purchaseSource: joi_1.default.string().required(),
+    familiarWithStandard: joi_1.default.string().valid("Yes, I'm certified", "No").required(),
+    purchaseSource: joi_1.default.array().items(joi_1.default.string()).required(),
     purchaseHikvision: joi_1.default.string().valid("Yes", "No").required(),
-    requiresTraining: joi_1.default.string().valid("Yes", "No").required(),
+    requiresTraining: joi_1.default.string().valid("Yes", "No").allow(null),
 });
 exports.changePasswordSchema = joi_1.default.object({
     oldPassword: joi_1.default.string().required(),

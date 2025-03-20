@@ -78,9 +78,10 @@ export const technicianQuestionnaireSchema = Joi.object({
   experienceAreas: Joi.array().items(Joi.string()).optional(),
   brandsWorkedWith: Joi.array().items(Joi.string()).optional(),
   integrationExperience: Joi.string().required(),
-  purchaseSource: Joi.string().required(),
+  familiarWithStandard: Joi.string().valid("Yes, I'm certified", "No").required(),
+  purchaseSource: Joi.array().items(Joi.string()).required(),
   purchaseHikvision: Joi.string().valid("Yes", "No").required(),
-  requiresTraining: Joi.string().valid("Yes", "No").required(),
+  requiresTraining: Joi.string().valid("Yes", "No").allow(null),
 });
 
 export const changePasswordSchema = Joi.object({

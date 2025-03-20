@@ -63,6 +63,7 @@ export const createOrderSchema = Joi.object({
     "any.required": '"street_address" is required',
   }),
   apartment: Joi.string().optional(),
+  isVat: Joi.boolean().required(),
   town: Joi.string().required().messages({
     "any.required": '"town" is required',
   }),

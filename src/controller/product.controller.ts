@@ -486,6 +486,7 @@ export const productController = {
         phone_number,
         email,
         products,
+        isVat
       } = req.body;
 
       if (!userId) {
@@ -502,6 +503,7 @@ export const productController = {
         phone_number,
         email,
         products,
+        isVat
       };
 
       const order = await productService.createOrder(userId, orderData);
@@ -528,6 +530,7 @@ export const productController = {
         phone_number,
         email,
         products,
+        isVat
       } = req.body;
 
       if (!userId) {
@@ -544,6 +547,7 @@ export const productController = {
         phone_number,
         email,
         products,
+        isVat
       };
 
       const order = await productService.createOrder(userId, orderData);

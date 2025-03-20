@@ -61,6 +61,7 @@ exports.createOrderSchema = joi_1.default.object({
         "any.required": '"street_address" is required',
     }),
     apartment: joi_1.default.string().optional(),
+    isVat: joi_1.default.boolean().required(),
     town: joi_1.default.string().required().messages({
         "any.required": '"town" is required',
     }),

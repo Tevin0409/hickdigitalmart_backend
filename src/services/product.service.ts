@@ -830,6 +830,7 @@ export const productService = {
       phone_number: string;
       email: string;
       products: { productModelId: string; quantity: number }[];
+      isVat: boolean;
     }
   ) => {
     try {
@@ -844,6 +845,7 @@ export const productService = {
         phone_number,
         email,
         products,
+        isVat,
       } = orderData;
 
       // Check stock and calculate order price
@@ -864,7 +866,7 @@ export const productService = {
         orderPrice += inventory.model.price * quantity;
       }
 
-      const vat = orderPrice * 0.16; // Assuming 16% VAT
+      const vat = isVat ? orderPrice * 0.16 : 0; // Apply VAT only if isVat is true
       const total = orderPrice + vat;
 
       // Create the order and update inventory
