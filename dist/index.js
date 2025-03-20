@@ -43,7 +43,7 @@ const cors_1 = __importDefault(require("cors"));
 const express_fileupload_1 = __importDefault(require("express-fileupload"));
 const middleware_1 = require("./middleware");
 const routes_1 = __importDefault(require("./routes"));
-require("../src/utils/cron");
+require("./utils/cron");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
