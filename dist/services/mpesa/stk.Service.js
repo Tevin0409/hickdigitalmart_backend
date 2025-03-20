@@ -82,8 +82,9 @@ exports.StkService = {
                     checkoutRequestID: CheckoutRequestID,
                 },
             });
-            if (exisiting)
-                return exisiting;
+            if (!exisiting) {
+                throw new Error("Transaction not found");
+            }
             const shortCode = mpesa_config_1.config.shortcode;
             const passKey = mpesa_config_1.config.passkey;
             const queryUrl = mpesa_config_1.url.queryUrl;
@@ -103,12 +104,13 @@ exports.StkService = {
                     Authorization: auth,
                 },
             });
+            console.log("query response", queryReq);
             const response = queryReq.data;
-            console.log("query response", response);
             await exports.StkService.saveQuery(response);
             return response;
         }
         catch (err) {
+            // console.log(err);
             throw new Error(`Error in queryStk: ${err.message}`);
         }
     },

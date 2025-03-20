@@ -102,8 +102,9 @@ export const StkService = {
           checkoutRequestID: CheckoutRequestID,
         },
       });
-
-      if (exisiting) return exisiting;
+      if (!exisiting) {
+        throw new Error("Transaction not found");
+      }
 
       const shortCode = config.shortcode;
       const passKey = config.passkey;
@@ -131,12 +132,14 @@ export const StkService = {
           },
         }
       );
+      console.log("query response", queryReq);
 
       const response = queryReq.data;
-      console.log("query response", response);
+
       await StkService.saveQuery(response);
       return response;
     } catch (err: any) {
+      // console.log(err);
       throw new Error(`Error in queryStk: ${err.message}`);
     }
   },

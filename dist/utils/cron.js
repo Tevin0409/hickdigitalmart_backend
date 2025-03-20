@@ -10,21 +10,29 @@ const prisma = new client_1.PrismaClient();
 // Run a task every minute
 node_cron_1.default.schedule("* * * * *", async () => {
     try {
+        console.log("Starting cron job...");
         const transactions = await prisma.transaction.findMany({
             where: {
-                responseDescription: "ResponseDescription",
+                responseDescription: "Success. Request accepted for processing",
             },
         });
+        console.log(`Found ${transactions.length} transactions to process.`);
         if (transactions.length === 0) {
             return;
         }
         for (const transaction of transactions) {
-            await stk_Service_1.StkService.queryStk(transaction.checkoutRequestID);
+            try {
+                const res = await stk_Service_1.StkService.queryStk(transaction.checkoutRequestID);
+                console.log(`Transaction ${transaction.id} processed successfully.`, res);
+            }
+            catch (error) {
+                console.error(`Error processing transaction ${transaction.id}:`, error);
+                continue; // Skip to the next transaction
+            }
         }
-        console.log("Cron job executed successfully:", new Date().toISOString());
+        console.log("Cron job executed successfully at", new Date().toISOString());
     }
     catch (error) {
         console.error("Error running cron job:", error);
     }
 });
-console.log("Cron job scheduled.");
