@@ -1,5 +1,10 @@
 import { PrismaClient, User, Prisma } from "@prisma/client";
-import { CreateUserDTO, LoginDTO, TechnicianDTO } from "../interface/user";
+import {
+  CreateUserDTO,
+  LoginDTO,
+  TechnicianDTO,
+  ShopOwnerDTO,
+} from "../interface/user";
 import { AppError } from "../middleware";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -511,6 +516,51 @@ export const userService = {
     } catch (error: any) {
       throw new Error(
         error.message || "Error creating Technician Questionnaire"
+      );
+    }
+  },
+  addShopOwnersQuestionnaire: async (shopOwnerDTO: ShopOwnerDTO) => {
+    try {
+      // Check if the email already exists
+      const existingShopOwner = await prisma.shopOwnerQuestionnaire.findUnique({
+        where: { email: shopOwnerDTO.email },
+      });
+
+      if (existingShopOwner) {
+        throw new Error(
+          "Email already exists. Please use a different email address."
+        );
+      }
+
+      // Create a new shop owner questionnaire
+      const newShopOwnerQuestionnaire =
+        await prisma.shopOwnerQuestionnaire.create({
+          data: {
+            companyName: shopOwnerDTO.companyName,
+            firstName: shopOwnerDTO.firstName,
+            lastName: shopOwnerDTO.lastName,
+            phoneNumber: shopOwnerDTO.phoneNumber,
+            phoneNumber2: shopOwnerDTO.phoneNumber2 ?? null,
+            email: shopOwnerDTO.email,
+            email2: shopOwnerDTO.email2 ?? null,
+            address: shopOwnerDTO.address,
+            selectedBusinessType: shopOwnerDTO.selectedBusinessType,
+            selectedBrands: shopOwnerDTO.selectedBrands,
+            selectedSecurityBrands: shopOwnerDTO.selectedSecurityBrands,
+            otherBrand: shopOwnerDTO.otherBrand ?? null,
+            selectedCategories: shopOwnerDTO.selectedCategories,
+            hikvisionChallenges: shopOwnerDTO.hikvisionChallenges ?? null,
+            adviceToSecureDigital: shopOwnerDTO.adviceToSecureDigital ?? null,
+          },
+        });
+
+      return {
+        message:
+          "Your submission has been successfully recorded. Our team is currently reviewing and verifying the details. You will be notified once the process is complete.",
+      };
+    } catch (error: any) {
+      throw new Error(
+        error.message || "Error creating Shop Owner Questionnaire"
       );
     }
   },

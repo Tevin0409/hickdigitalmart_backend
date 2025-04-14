@@ -1,5 +1,7 @@
 import Joi from "joi";
 
+const kenyanPhonePattern = /^(?:\+254|0|254)?(7[0-9]{8}|1[0-9]{8})$/;
+
 export const createUserSchema = Joi.object({
   firstName: Joi.string().min(3).max(50).required(),
   lastName: Joi.string().min(3).max(50).required(),
@@ -70,7 +72,11 @@ export const createRoleSchema = Joi.object({
 
 export const technicianQuestionnaireSchema = Joi.object({
   businessName: Joi.string().required(),
-  phoneNumber: Joi.string().required(),
+  phoneNumber: Joi.string()
+  .pattern(/^(?:\+254|0|254)?(7[0-9]{8}|1[0-9]{8})$/)
+  .message(
+    "Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)"
+  ).required(),
   email: Joi.string().email().required(),
   location: Joi.string().required(),
   businessType: Joi.string().required(),
@@ -82,6 +88,37 @@ export const technicianQuestionnaireSchema = Joi.object({
   purchaseSource: Joi.array().items(Joi.string()).required(),
   purchaseHikvision: Joi.string().valid("Yes", "No").required(),
   requiresTraining: Joi.string().valid("Yes", "No").allow(null),
+});
+
+
+
+export const shopOwnersQuestionnaireSchema = Joi.object({
+  companyName: Joi.string().required(),
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
+  phoneNumber: Joi.string()
+    .pattern(kenyanPhonePattern)
+    .message(
+      'Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)'
+    )
+    .required(),
+  phoneNumber2: Joi.string()
+    .pattern(kenyanPhonePattern)
+    .message(
+      'Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)'
+    )
+    .optional()
+    .allow('', null),
+  email: Joi.string().email().required(),
+  email2: Joi.string().email().optional().allow('', null),
+  address: Joi.string().required(),
+  selectedBusinessType: Joi.string().required(),
+  selectedBrands: Joi.array().items(Joi.string()).required(),
+  selectedSecurityBrands: Joi.array().items(Joi.string()).required(),
+  otherBrand: Joi.string().optional().allow('', null),
+  selectedCategories: Joi.array().items(Joi.string()).required(),
+  hikvisionChallenges: Joi.string().optional().allow('', null),
+  adviceToSecureDigital: Joi.string().optional().allow('', null),
 });
 
 export const changePasswordSchema = Joi.object({

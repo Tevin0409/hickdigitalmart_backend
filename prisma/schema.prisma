@@ -225,3 +225,25 @@ model TechnicianQuestionnaire {
   updatedAt  DateTime  @default(now())
 }
 
+model ShopOwnerQuestionnaire {
+  id                      Int      @id @default(autoincrement())
+  companyName             String
+  firstName              String
+  lastName               String
+  phoneNumber             String
+  phoneNumber2            String?
+  email                   String   @unique
+  email2                  String?
+  address                 String
+  selectedBusinessType    String
+  selectedBrands          String[]
+  selectedSecurityBrands  String[]
+  otherBrand              String?
+  selectedCategories      String[]
+  hikvisionChallenges     String?
+  adviceToSecureDigital   String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @default(now())
+}
+
+
