@@ -127,6 +127,20 @@ exports.productService = {
                                         },
                                     },
                                     images: true,
+                                    ReviewResponse: {
+                                        include: {
+                                            user: {
+                                                select: {
+                                                    firstName: true,
+                                                    lastName: true,
+                                                    email: true,
+                                                    role: {
+                                                        select: { name: true },
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 },
                             },
                         },
@@ -261,6 +275,20 @@ exports.productService = {
                                 },
                             },
                             images: true,
+                            ReviewResponse: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            firstName: true,
+                                            lastName: true,
+                                            email: true,
+                                            role: {
+                                                select: { name: true },
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         },
                     },
                 },
@@ -337,6 +365,20 @@ exports.productService = {
                                 },
                             },
                             images: true,
+                            ReviewResponse: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            firstName: true,
+                                            lastName: true,
+                                            email: true,
+                                            role: {
+                                                select: { name: true },
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         },
                     },
                 },
@@ -1206,12 +1248,68 @@ exports.productService = {
                         },
                     },
                     images: true,
+                    ReviewResponse: {
+                        include: {
+                            user: {
+                                select: {
+                                    firstName: true,
+                                    lastName: true,
+                                    email: true,
+                                    role: {
+                                        select: { name: true },
+                                    }
+                                }
+                            }
+                        }
+                    },
                 },
             });
             return reviews;
         }
         catch (error) {
             throw new Error(error.message || "An error occurred while fetching the reviews.");
+        }
+    },
+    respondToReview: async (reviewId, message, userId) => {
+        try {
+            const review = await prisma.review.findUnique({
+                where: { id: reviewId },
+            });
+            if (!review) {
+                throw new Error("Review not found.");
+            }
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { role: true },
+            });
+            if (!user || !user.role) {
+                throw new Error("User not found.");
+            }
+            if (!user || !["ADMIN", "SUDO"].includes(user.role?.name)) {
+                throw new Error("Only admins  users can respond to reviews.");
+            }
+            const existingResponse = await prisma.reviewResponse.findUnique({
+                where: { reviewId },
+            });
+            if (existingResponse) {
+                return await prisma.reviewResponse.update({
+                    where: { reviewId },
+                    data: {
+                        message,
+                        userId,
+                    },
+                });
+            }
+            return await prisma.reviewResponse.create({
+                data: {
+                    reviewId,
+                    userId,
+                    message,
+                },
+            });
+        }
+        catch (error) {
+            throw new Error(error.message || "An error occurred while responding to the review.");
         }
     },
 };

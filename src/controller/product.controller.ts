@@ -904,7 +904,7 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      const { productModelId, rating, comment,images } = req.body;
+      const { productModelId, rating, comment, images } = req.body;
       const userId = req.user?.id;
       if (!userId) {
         res.status(401).json({ message: "User not authenticated" });
@@ -931,6 +931,29 @@ export const productController = {
       const { productModelId } = req.params;
       const reviews = await productService.getReviews(productModelId);
       res.status(200).json(reviews);
+    } catch (error) {
+      next(error);
+    }
+  },
+  resondTOReview: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { reviewId } = req.params;
+      const { message } = req.body;
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: "User not authenticated" });
+        return;
+      }
+      const review = await productService.respondToReview(
+        reviewId,
+        message,
+        userId
+      );
+      res.status(201).json(review);
     } catch (error) {
       next(error);
     }

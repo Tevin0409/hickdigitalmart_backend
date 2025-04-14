@@ -8,29 +8,30 @@ datasource db {
 }
 
 model User {
-  id                    String       @id @unique @default(uuid())
-  phoneNumber           String?      @unique @db.VarChar(15)
-  email                 String       @unique @db.VarChar(320)
+  id                    String           @id @unique @default(uuid())
+  phoneNumber           String?          @unique @db.VarChar(15)
+  email                 String           @unique @db.VarChar(320)
   password              String
   firstName             String
   lastName              String
   otpHash               String?
   otpExpiresAt          DateTime?
-  isVerified            Boolean      @default(false)
-  technicianVerified    Boolean      @default(false)
-  shopOwnerVerified     Boolean      @default(false)
+  isVerified            Boolean          @default(false)
+  technicianVerified    Boolean          @default(false)
+  shopOwnerVerified     Boolean          @default(false)
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
-  inCorrectAttempts     Int          @default(0)
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @default(now())
+  inCorrectAttempts     Int              @default(0)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @default(now())
   roleId                String?
-  role                  Role?        @relation(fields: [roleId], references: [id])
-  permissions           Permission[] @relation("UserPermissions")
+  role                  Role?            @relation(fields: [roleId], references: [id])
+  permissions           Permission[]     @relation("UserPermissions")
   carts                 Cart[]
   wishlists             Wishlist[]
   orders                Order[]
   Review                Review[]
+  ReviewResponse        ReviewResponse[]
 }
 
 model Role {
@@ -251,16 +252,30 @@ model ShopOwnerQuestionnaire {
 }
 
 model Review {
-  id             String        @id @default(uuid())
+  id             String          @id @default(uuid())
   productModelId String
-  productModel   ProductModel  @relation(fields: [productModelId], references: [id])
+  productModel   ProductModel    @relation(fields: [productModelId], references: [id])
   userId         String
-  user           User          @relation(fields: [userId], references: [id])
-  rating         Int           @default(0) // e.g., 1–5 stars
+  user           User            @relation(fields: [userId], references: [id])
+  rating         Int             @default(0) // e.g., 1–5 stars
   comment        String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @default(now()) @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
   images         ReviewImage[]
+  ReviewResponse ReviewResponse?
+}
+
+model ReviewResponse {
+  id       String @id @default(uuid())
+  reviewId String @unique
+  review   Review @relation(fields: [reviewId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model ReviewImage {

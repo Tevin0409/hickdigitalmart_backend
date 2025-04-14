@@ -615,6 +615,22 @@ exports.productController = {
             next(error);
         }
     },
+    resondTOReview: async (req, res, next) => {
+        try {
+            const { reviewId } = req.params;
+            const { message } = req.body;
+            const userId = req.user?.id;
+            if (!userId) {
+                res.status(401).json({ message: "User not authenticated" });
+                return;
+            }
+            const review = await services_1.productService.respondToReview(reviewId, message, userId);
+            res.status(201).json(review);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
     callbackURl: async (req, res, next) => {
         try {
             console.log("req", req.body);
