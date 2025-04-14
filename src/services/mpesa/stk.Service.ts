@@ -5,6 +5,7 @@ import { AuthSercice } from "./auth";
 import { timestampFn } from "../../utils/util";
 import { url, config } from "../../config/mpesa.config";
 import { Result } from "../../interface/mpesa";
+import { sendLowStockNotification } from "../email.Service";
 
 const prisma = new PrismaClient();
 
@@ -165,6 +166,7 @@ export const StkService = {
             status: "Awaiting Shipment",
           },
         });
+        await reduceInventoryAndNotify(transaction.orderId);
       }
     } catch (err: any) {
       throw new Error(`Error updating query result: ${err.message}`);
@@ -206,6 +208,7 @@ export const StkService = {
             status: "Awaiting Shipment",
           },
         });
+        await reduceInventoryAndNotify(transaction.orderId);
       } catch (err: any) {
         throw new Error(err.message);
       }
@@ -226,3 +229,41 @@ export const StkService = {
     }
   },
 };
+
+async function reduceInventoryAndNotify(orderId: string) {
+  const orderItems = await prisma.orderItem.findMany({
+    where: { orderId },
+    include: {
+      productModel: {
+        include: {
+          inventory: true,
+        },
+      },
+    },
+  });
+
+  for (const item of orderItems) {
+    const { productModel } = item;
+    const inventory = productModel.inventory;
+    const modelId = productModel.id;
+    const minimumStock = productModel.minimumStock ?? 10;
+
+    if (!inventory) {
+      console.warn(`No inventory record found for modelId: ${modelId}`);
+      continue; // Skip this item if no inventory exists
+    }
+
+    const newQty = inventory.quantity - item.quantity;
+
+    // Update inventory
+    await prisma.inventory.update({
+      where: { modelId },
+      data: { quantity: newQty },
+    });
+
+    // Notify if stock is low
+    if (newQty <= minimumStock) {
+      await sendLowStockNotification(productModel.name, newQty, minimumStock);
+    }
+  }
+}

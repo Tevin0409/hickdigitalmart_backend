@@ -416,10 +416,12 @@ export const productService = {
                 price: number;
                 features: { description: string }[];
                 inventory: { quantity: number };
+                minimumStock: number;
               }) => ({
                 name: model.name,
                 description: model.description,
                 price: model.price,
+                minimumStock: model.minimumStock,
                 features: {
                   create: model.features.map((feature) => ({
                     description: feature.description,
@@ -896,12 +898,12 @@ export const productService = {
         });
 
         // Reduce inventory
-        for (const { productModelId, quantity } of products) {
-          await tx.inventory.update({
-            where: { modelId: productModelId },
-            data: { quantity: { decrement: quantity } },
-          });
-        }
+        // for (const { productModelId, quantity } of products) {
+        //   await tx.inventory.update({
+        //     where: { modelId: productModelId },
+        //     data: { quantity: { decrement: quantity } },
+        //   });
+        // }
 
         return order;
       });

@@ -9,6 +9,7 @@ const client_1 = require("@prisma/client");
 const auth_1 = require("./auth");
 const util_1 = require("../../utils/util");
 const mpesa_config_1 = require("../../config/mpesa.config");
+const email_Service_1 = require("../email.Service");
 const prisma = new client_1.PrismaClient();
 exports.StkService = {
     pushStk: async (data) => {
@@ -135,6 +136,7 @@ exports.StkService = {
                         status: "Awaiting Shipment",
                     },
                 });
+                await reduceInventoryAndNotify(transaction.orderId);
             }
         }
         catch (err) {
@@ -173,6 +175,7 @@ exports.StkService = {
                         status: "Awaiting Shipment",
                     },
                 });
+                await reduceInventoryAndNotify(transaction.orderId);
             }
             catch (err) {
                 throw new Error(err.message);
@@ -196,3 +199,35 @@ exports.StkService = {
         }
     },
 };
+async function reduceInventoryAndNotify(orderId) {
+    const orderItems = await prisma.orderItem.findMany({
+        where: { orderId },
+        include: {
+            productModel: {
+                include: {
+                    inventory: true,
+                },
+            },
+        },
+    });
+    for (const item of orderItems) {
+        const { productModel } = item;
+        const inventory = productModel.inventory;
+        const modelId = productModel.id;
+        const minimumStock = productModel.minimumStock ?? 10;
+        if (!inventory) {
+            console.warn(`No inventory record found for modelId: ${modelId}`);
+            continue; // Skip this item if no inventory exists
+        }
+        const newQty = inventory.quantity - item.quantity;
+        // Update inventory
+        await prisma.inventory.update({
+            where: { modelId },
+            data: { quantity: newQty },
+        });
+        // Notify if stock is low
+        if (newQty <= minimumStock) {
+            await (0, email_Service_1.sendLowStockNotification)(productModel.name, newQty, minimumStock);
+        }
+    }
+}

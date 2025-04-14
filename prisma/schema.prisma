@@ -81,6 +81,7 @@ model ProductModel {
   price       Float
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @default(now()) @updatedAt
+  minimumStock Int         @default(10)
   features    ProductFeature[]
   inventory   Inventory?
   OrderItem   OrderItem[]

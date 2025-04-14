@@ -309,7 +309,7 @@ exports.productController = {
     createOrder: async (req, res, next) => {
         try {
             const userId = req.user?.id;
-            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, isVat } = req.body;
+            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, isVat, } = req.body;
             if (!userId) {
                 throw new Error("User not authenticated");
             }
@@ -323,7 +323,7 @@ exports.productController = {
                 phone_number,
                 email,
                 products,
-                isVat
+                isVat,
             };
             const order = await services_1.productService.createOrder(userId, orderData);
             res.status(201).json(order);
@@ -336,7 +336,7 @@ exports.productController = {
         try {
             const user = await services_1.userService.getUserByEmail("anonymous@yopmail.com");
             const userId = user.id;
-            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, isVat } = req.body;
+            const { first_name, last_name, company_name, street_address, apartment, town, phone_number, email, products, isVat, } = req.body;
             if (!userId) {
                 throw new Error("User not authenticated");
             }
@@ -350,7 +350,7 @@ exports.productController = {
                 phone_number,
                 email,
                 products,
-                isVat
+                isVat,
             };
             const order = await services_1.productService.createOrder(userId, orderData);
             res.status(201).json(order);
@@ -564,6 +564,7 @@ exports.productController = {
                     description: String(modelDescription),
                     price: parseFloat(String(modelPrice)),
                     features,
+                    minimumStock: 10, // Default value
                     inventory: { quantity: parseInt(String(inventoryQuantity)) },
                 };
                 // Add model to the product (cast productName to string)

@@ -18,6 +18,7 @@ const modelSchema = joi_1.default.object({
     inventory: joi_1.default.object({
         quantity: joi_1.default.number().integer().min(0),
     }).required(),
+    minimumStock: joi_1.default.number().integer().min(0).required(),
 });
 // Main product schema
 exports.productSchema = joi_1.default.object({

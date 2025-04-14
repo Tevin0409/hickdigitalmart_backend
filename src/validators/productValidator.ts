@@ -14,6 +14,7 @@ const modelSchema = Joi.object({
   inventory: Joi.object({
     quantity: Joi.number().integer().min(0),
   }).required(),
+  minimumStock: Joi.number().integer().min(0).required(),
 });
 
 // Main product schema

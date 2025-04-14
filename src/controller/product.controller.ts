@@ -486,7 +486,7 @@ export const productController = {
         phone_number,
         email,
         products,
-        isVat
+        isVat,
       } = req.body;
 
       if (!userId) {
@@ -503,7 +503,7 @@ export const productController = {
         phone_number,
         email,
         products,
-        isVat
+        isVat,
       };
 
       const order = await productService.createOrder(userId, orderData);
@@ -530,7 +530,7 @@ export const productController = {
         phone_number,
         email,
         products,
-        isVat
+        isVat,
       } = req.body;
 
       if (!userId) {
@@ -547,7 +547,7 @@ export const productController = {
         phone_number,
         email,
         products,
-        isVat
+        isVat,
       };
 
       const order = await productService.createOrder(userId, orderData);
@@ -866,6 +866,7 @@ export const productController = {
           description: String(modelDescription),
           price: parseFloat(String(modelPrice)),
           features,
+          minimumStock: 10, // Default value
           inventory: { quantity: parseInt(String(inventoryQuantity)) },
         };
 

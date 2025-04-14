@@ -8,6 +8,7 @@ export interface CreateProductDTO {
     name: string;
     description?: string;
     price: number;
+    minimumStock: number;
     features: {
       description: string;
     }[];
