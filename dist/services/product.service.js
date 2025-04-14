@@ -110,10 +110,18 @@ exports.productService = {
                 include: {
                     subCategory: { include: { category: true } },
                     models: {
+                        // where: {
+                        //   status: "visible",
+                        // },
                         include: {
                             features: true,
                             inventory: true,
                             images: true,
+                            PricePercentage: {
+                                include: {
+                                    role: { select: { name: true } },
+                                },
+                            },
                             Review: {
                                 include: {
                                     user: {
@@ -136,11 +144,11 @@ exports.productService = {
                                                     email: true,
                                                     role: {
                                                         select: { name: true },
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
                                 },
                             },
                         },
@@ -165,6 +173,7 @@ exports.productService = {
     getAllProductsModels: async (searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page = 1, limit = 10) => {
         try {
             const conditions = [];
+            conditions.push({ status: "visible" });
             // Search term condition
             if (searchTerm) {
                 conditions.push({
@@ -262,6 +271,11 @@ exports.productService = {
                     features: true,
                     inventory: true,
                     images: true,
+                    PricePercentage: {
+                        include: {
+                            role: { select: { name: true } },
+                        },
+                    },
                     Review: {
                         include: {
                             user: {
@@ -284,11 +298,11 @@ exports.productService = {
                                             email: true,
                                             role: {
                                                 select: { name: true },
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                                            },
+                                        },
+                                    },
+                                },
+                            },
                         },
                     },
                 },
@@ -352,6 +366,11 @@ exports.productService = {
                     features: true,
                     inventory: true,
                     images: true,
+                    PricePercentage: {
+                        include: {
+                            role: { select: { name: true } },
+                        },
+                    },
                     Review: {
                         include: {
                             user: {
@@ -374,11 +393,11 @@ exports.productService = {
                                             email: true,
                                             role: {
                                                 select: { name: true },
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                                            },
+                                        },
+                                    },
+                                },
+                            },
                         },
                     },
                 },
@@ -1257,10 +1276,10 @@ exports.productService = {
                                     email: true,
                                     role: {
                                         select: { name: true },
-                                    }
-                                }
-                            }
-                        }
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
             });
@@ -1310,6 +1329,125 @@ exports.productService = {
         }
         catch (error) {
             throw new Error(error.message || "An error occurred while responding to the review.");
+        }
+    },
+    getPricePercentages: async () => {
+        try {
+            return await prisma.pricePercentage.findMany({
+                include: { role: { select: { name: true } } },
+            });
+        }
+        catch (error) {
+            throw new Error(error.message || "An error occurred while fetching price percentages.");
+        }
+    },
+    createPricePercentage: async (data) => {
+        try {
+            const pricePercentages = await prisma.pricePercentage.createMany({
+                data,
+                skipDuplicates: true, // optional
+            });
+            return pricePercentages;
+        }
+        catch (error) {
+            throw new Error(error.message || "An error occurred while creating price percentages.");
+        }
+    },
+    updatePricePercentage: async (percentagePriceId, percentage) => {
+        try {
+            const updated = await prisma.pricePercentage.update({
+                where: { id: percentagePriceId },
+                data: {
+                    percentage,
+                    updatedAt: new Date(),
+                },
+            });
+            return updated;
+        }
+        catch (error) {
+            throw new Error(error.message ||
+                "An error occurred while updating the price percentage.");
+        }
+    },
+    moveProductToLive: async (modelId) => {
+        try {
+            const productModel = await prisma.productModel.findUnique({
+                where: { id: modelId },
+                include: {
+                    product: {
+                        include: {
+                            subCategory: {
+                                include: {
+                                    category: true,
+                                },
+                            },
+                        },
+                    },
+                    inventory: true,
+                    images: true,
+                    features: true,
+                    PricePercentage: {
+                        include: {
+                            role: true,
+                        },
+                    },
+                },
+            });
+            if (!productModel) {
+                throw new Error("Product model not found.");
+            }
+            // Validation checks
+            const hasImage = productModel.images.length > 0;
+            const hasFeature = productModel.features.length > 0;
+            const hasPricePercent = productModel.PricePercentage.length > 0;
+            const hasSufficientInventory = productModel.inventory &&
+                productModel.inventory.quantity >= productModel.minimumStock;
+            if (!hasImage) {
+                throw new Error("At least one image is required.");
+            }
+            if (!hasFeature) {
+                throw new Error("At least one feature is required.");
+            }
+            if (!hasPricePercent) {
+                throw new Error("At least one price percentage is required.");
+            }
+            if (!hasSufficientInventory) {
+                throw new Error("Inventory must be greater than or equal to minimum stock.");
+            }
+            // Update status to "VISIBLE"
+            const updatedModel = await prisma.productModel.update({
+                where: { id: modelId },
+                data: {
+                    status: "visible",
+                },
+            });
+            return updatedModel;
+        }
+        catch (error) {
+            throw new Error(error.message || "An error occurred while publishing the product model.");
+        }
+    },
+    updateFeatureList: async (modelId) => {
+        try {
+            // Get the current value of isFeatured
+            const existingModel = await prisma.productModel.findUnique({
+                where: { id: modelId },
+                select: { isFeatured: true },
+            });
+            if (!existingModel) {
+                throw new Error("Product model not found.");
+            }
+            // Toggle isFeatured
+            const updatedModel = await prisma.productModel.update({
+                where: { id: modelId },
+                data: {
+                    isFeatured: !existingModel.isFeatured,
+                },
+            });
+            return updatedModel;
+        }
+        catch (error) {
+            throw new Error(error.message || "An error occurred while updating the feature list.");
         }
     },
 };

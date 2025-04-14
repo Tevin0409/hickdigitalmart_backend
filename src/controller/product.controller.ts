@@ -958,6 +958,84 @@ export const productController = {
       next(error);
     }
   },
+  getPricePercentages: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      
+      const pricePercentages = await productService.getPricePercentages(
+        
+      );
+      res.status(200).json(pricePercentages);
+    } catch (error) {
+      next(error);
+    }
+  },
+  createPricePercentage: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      
+      const pricePercentages = await productService.createPricePercentage(
+        req.body
+      );
+      res.status(200).json(pricePercentages);
+    } catch (error) {
+      next(error);
+    }
+  },
+  updatePercentagePrice: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { percentagePriceId } = req.params;
+      const { percentage } = req.body;
+      const updatedPercentage = await productService.updatePricePercentage(
+        percentagePriceId,
+        percentage
+      );
+      res.status(200).json(updatedPercentage);
+    } catch (error) {
+      next(error);
+    }
+  },
+  moveProductToLive: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { modelId } = req.params;
+      const updatedProduct = await productService.moveProductToLive(
+        modelId,
+        
+      );
+      res.status(200).json(updatedProduct);
+    } catch (error) {
+      next(error);
+    }
+  },
+  updateFeatureList: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { modelId } = req.params;
+      const updatedProduct = await productService.updateFeatureList(
+        modelId,
+      );
+      res.status(200).json(updatedProduct);
+    } catch (error) {
+      next(error);
+    }
+  },
   callbackURl: async (
     req: express.Request,
     res: express.Response,

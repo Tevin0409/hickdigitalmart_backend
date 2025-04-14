@@ -13,6 +13,8 @@ productRouter.delete("/delete/:id", authAdminMiddleware, productController.delet
 productRouter.get("/by-id/:id", authAdminMiddleware, productController.getProduct);
 productRouter.get("/model/by-id/:id",authAdminMiddleware, productController.getProductModel);
 productRouter.patch("/product-models/:modelId",authAdminMiddleware, productController.updateProductModdel);
+productRouter.patch("/publish-product/:modelId",authAdminMiddleware, productController.moveProductToLive);
+productRouter.patch("/update-feature-list/:modelId",authAdminMiddleware, productController.updateFeatureList);
 
 // Category Routes
 productRouter.get("/categories", authAdminMiddleware, productController.getAllCategories);
@@ -47,6 +49,11 @@ productRouter.get("/orders",authAdminMiddleware, productController.getAllOrders)
 //Reviews
 productRouter.get("/reviews/:productModelId",authAdminMiddleware, productController.getReviews);
 productRouter.post("/respond-review/:reviewId",authAdminMiddleware, productController.resondTOReview);
+
+//Price
+productRouter.get("/price-percentages",authAdminMiddleware, productController.getPricePercentages);
+productRouter.post("/create-price-percentages",authAdminMiddleware, productController.createPricePercentage);
+productRouter.patch("/update-price-percentages/:percentagePriceId",authAdminMiddleware, productController.updatePercentagePrice);
 
 
 

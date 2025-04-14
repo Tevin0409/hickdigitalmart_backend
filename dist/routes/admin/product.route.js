@@ -18,6 +18,8 @@ productRouter.delete("/delete/:id", middleware_1.authAdminMiddleware, controller
 productRouter.get("/by-id/:id", middleware_1.authAdminMiddleware, controller_1.productController.getProduct);
 productRouter.get("/model/by-id/:id", middleware_1.authAdminMiddleware, controller_1.productController.getProductModel);
 productRouter.patch("/product-models/:modelId", middleware_1.authAdminMiddleware, controller_1.productController.updateProductModdel);
+productRouter.patch("/publish-product/:modelId", middleware_1.authAdminMiddleware, controller_1.productController.moveProductToLive);
+productRouter.patch("/update-feature-list/:modelId", middleware_1.authAdminMiddleware, controller_1.productController.updateFeatureList);
 // Category Routes
 productRouter.get("/categories", middleware_1.authAdminMiddleware, controller_1.productController.getAllCategories);
 productRouter.post("/categories/create", middleware_1.authAdminMiddleware, controller_1.productController.createCategory);
@@ -44,3 +46,7 @@ productRouter.get("/orders", middleware_1.authAdminMiddleware, controller_1.prod
 //Reviews
 productRouter.get("/reviews/:productModelId", middleware_1.authAdminMiddleware, controller_1.productController.getReviews);
 productRouter.post("/respond-review/:reviewId", middleware_1.authAdminMiddleware, controller_1.productController.resondTOReview);
+//Price
+productRouter.get("/price-percentages", middleware_1.authAdminMiddleware, controller_1.productController.getPricePercentages);
+productRouter.post("/create-price-percentages", middleware_1.authAdminMiddleware, controller_1.productController.createPricePercentage);
+productRouter.patch("/update-price-percentages/:percentagePriceId", middleware_1.authAdminMiddleware, controller_1.productController.updatePercentagePrice);

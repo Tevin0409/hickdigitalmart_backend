@@ -54,14 +54,13 @@ model Permission {
 }
 
 model Product {
-  id              String            @id @default(uuid())
-  name            String            @db.VarChar(255)
-  subCategory     SubCategory       @relation(fields: [subCategoryId], references: [id])
-  subCategoryId   String
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @default(now())
-  PricePercentage PricePercentage[]
-  models          ProductModel[]
+  id            String         @id @default(uuid())
+  name          String         @db.VarChar(255)
+  subCategory   SubCategory    @relation(fields: [subCategoryId], references: [id])
+  subCategoryId String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
+  models        ProductModel[]
 }
 
 model ProductImage {
@@ -75,23 +74,25 @@ model ProductImage {
 }
 
 model ProductModel {
-  id           String           @id @default(uuid())
-  productId    String
-  product      Product          @relation(fields: [productId], references: [id])
-  name         String           @db.VarChar(255)
-  description  String?          @db.Text
-  price        Float
-  status       String           @default("draft") // status field (draft/visible)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @default(now()) @updatedAt
-  minimumStock Int              @default(10)
-  features     ProductFeature[]
-  inventory    Inventory?
-  OrderItem    OrderItem[]
-  images       ProductImage[]
-  cartItems    Cart[]
-  wishlists    Wishlist[]
-  Review       Review[]
+  id              String            @id @default(uuid())
+  productId       String
+  product         Product           @relation(fields: [productId], references: [id])
+  name            String            @db.VarChar(255)
+  description     String?           @db.Text
+  price           Float
+  status          String            @default("draft") // status field (draft/visible)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
+  minimumStock    Int               @default(10)
+  isFeatured   Boolean              @default(false)
+  features        ProductFeature[]
+  inventory       Inventory?
+  OrderItem       OrderItem[]
+  images          ProductImage[]
+  cartItems       Cart[]
+  wishlists       Wishlist[]
+  Review          Review[]
+  PricePercentage PricePercentage[]
 }
 
 model Inventory {
@@ -201,14 +202,14 @@ model Wishlist {
 }
 
 model PricePercentage {
-  id         String   @id @default(uuid())
-  roleId     String
-  role       Role     @relation(fields: [roleId], references: [id])
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id])
-  percentage Float
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+  id             String       @id @default(uuid())
+  roleId         String
+  role           Role         @relation(fields: [roleId], references: [id])
+  productModelId String
+  productModel   ProductModel @relation(fields: [productModelId], references: [id])
+  percentage     Float
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now()) @updatedAt
 }
 
 model TechnicianQuestionnaire {

@@ -631,6 +631,55 @@ exports.productController = {
             next(error);
         }
     },
+    getPricePercentages: async (req, res, next) => {
+        try {
+            const pricePercentages = await services_1.productService.getPricePercentages();
+            res.status(200).json(pricePercentages);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    createPricePercentage: async (req, res, next) => {
+        try {
+            const pricePercentages = await services_1.productService.createPricePercentage(req.body);
+            res.status(200).json(pricePercentages);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    updatePercentagePrice: async (req, res, next) => {
+        try {
+            const { percentagePriceId } = req.params;
+            const { percentage } = req.body;
+            const updatedPercentage = await services_1.productService.updatePricePercentage(percentagePriceId, percentage);
+            res.status(200).json(updatedPercentage);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    moveProductToLive: async (req, res, next) => {
+        try {
+            const { modelId } = req.params;
+            const updatedProduct = await services_1.productService.moveProductToLive(modelId);
+            res.status(200).json(updatedProduct);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    updateFeatureList: async (req, res, next) => {
+        try {
+            const { modelId } = req.params;
+            const updatedProduct = await services_1.productService.updateFeatureList(modelId);
+            res.status(200).json(updatedProduct);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
     callbackURl: async (req, res, next) => {
         try {
             console.log("req", req.body);
