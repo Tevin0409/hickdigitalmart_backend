@@ -140,6 +140,21 @@ export const productService = {
               features: true,
               inventory: true,
               images: true,
+              Review: {
+                include: {
+                  user: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                      email: true,
+                      role: {
+                        select: { name: true },
+                      },
+                    },
+                  },
+                  images: true,
+                },
+              },
             },
           },
         },
@@ -277,6 +292,21 @@ export const productService = {
           features: true,
           inventory: true,
           images: true,
+          Review: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  role: {
+                    select: { name: true },
+                  },
+                },
+              },
+              images: true,
+            },
+          },
         },
         skip: (page - 1) * limit,
         take: limit,
@@ -308,6 +338,20 @@ export const productService = {
               features: true,
               inventory: true,
               images: true,
+              Review: {
+                include: {
+                  user: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                      email: true,
+                      role: {
+                        select: { name: true },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -325,6 +369,21 @@ export const productService = {
           features: true,
           inventory: true,
           images: true,
+          Review: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  role: {
+                    select: { name: true },
+                  },
+                },
+              },
+              images: true,
+            },
+          },
         },
       });
     } catch (error: any) {
@@ -1271,6 +1330,96 @@ export const productService = {
     } catch (error: any) {
       throw new Error(
         error.message || "An error occurred while removing the image."
+      );
+    }
+  },
+  addReview: async (
+    userId: string,
+    productModelId: string,
+    rating: number,
+    comment: string,
+    images: {
+      uploadUrl: string;
+      optimizeUrl?: string;
+      autoCropUrl?: string; // ignored in schema, unless you want to add it
+      isPrimary?: boolean;
+    }[]
+  ) => {
+    try {
+      // 1. Check if the product model exists
+      const productModel = await prisma.productModel.findUnique({
+        where: { id: productModelId },
+      });
+
+      if (!productModel) {
+        throw new Error("Product model not found.");
+      }
+
+      // 2. Check if the user has ordered this product model
+      const hasOrdered = await prisma.orderItem.findFirst({
+        where: {
+          productModelId,
+          order: {
+            userId,
+          },
+        },
+      });
+
+      if (!hasOrdered) {
+        // throw new Error("You can only review products you've purchased.");
+      }
+
+      // 3. Create the review
+      const review = await prisma.review.create({
+        data: {
+          userId,
+          productModelId,
+          rating,
+          comment,
+        },
+      });
+
+      // 4. Attach review images
+      if (images?.length) {
+        await prisma.reviewImage.createMany({
+          data: images.map((img) => ({
+            reviewId: review.id,
+            uploadUrl: img.uploadUrl,
+            optimizeUrl: img.optimizeUrl ?? null,
+            isPrimary: img.isPrimary ?? false,
+          })),
+        });
+      }
+
+      return review;
+    } catch (error: any) {
+      throw new Error(
+        error.message || "An error occurred while adding the review."
+      );
+    }
+  },
+  getReviews: async (productModelId: string) => {
+    try {
+      const reviews = await prisma.review.findMany({
+        where: { productModelId },
+        include: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: {
+                select: { name: true },
+              },
+            },
+          },
+          images: true,
+        },
+      });
+      return reviews;
+    } catch (error: any) {
+      throw new Error(
+        error.message || "An error occurred while fetching the reviews."
       );
     }
   },

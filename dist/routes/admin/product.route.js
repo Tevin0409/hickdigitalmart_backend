@@ -41,3 +41,5 @@ productRouter.delete('/remove-image/:imageId', middleware_1.authAdminMiddleware,
 productRouter.post('/upload-xslx', middleware_1.authAdminMiddleware, controller_1.productController.uploadBulkProducts);
 //orders
 productRouter.get("/orders", middleware_1.authAdminMiddleware, controller_1.productController.getAllOrders);
+//Reviews
+productRouter.get("/reviews/:productModelId", controller_1.productController.getReviews);

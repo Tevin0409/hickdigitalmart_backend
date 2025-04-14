@@ -18,7 +18,7 @@ model User {
   otpExpiresAt          DateTime?
   isVerified            Boolean      @default(false)
   technicianVerified    Boolean      @default(false)
-  shopOwnerVerified    Boolean      @default(false)
+  shopOwnerVerified     Boolean      @default(false)
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
   inCorrectAttempts     Int          @default(0)
@@ -30,6 +30,7 @@ model User {
   carts                 Cart[]
   wishlists             Wishlist[]
   orders                Order[]
+  Review                Review[]
 }
 
 model Role {
@@ -73,21 +74,23 @@ model ProductImage {
 }
 
 model ProductModel {
-  id          String           @id @default(uuid())
-  productId   String
-  product     Product          @relation(fields: [productId], references: [id])
-  name        String           @db.VarChar(255)
-  description String?          @db.Text
-  price       Float
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @default(now()) @updatedAt
-  minimumStock Int         @default(10)
-  features    ProductFeature[]
-  inventory   Inventory?
-  OrderItem   OrderItem[]
-  images      ProductImage[]
-  cartItems   Cart[]
-  wishlists   Wishlist[]
+  id           String           @id @default(uuid())
+  productId    String
+  product      Product          @relation(fields: [productId], references: [id])
+  name         String           @db.VarChar(255)
+  description  String?          @db.Text
+  price        Float
+  status       String           @default("draft") // status field (draft/visible)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @default(now()) @updatedAt
+  minimumStock Int              @default(10)
+  features     ProductFeature[]
+  inventory    Inventory?
+  OrderItem    OrderItem[]
+  images       ProductImage[]
+  cartItems    Cart[]
+  wishlists    Wishlist[]
+  Review       Review[]
 }
 
 model Inventory {
@@ -100,45 +103,44 @@ model Inventory {
 }
 
 model Order {
-  id         String      @id @default(uuid())
-  userId     String
-  user       User        @relation(fields: [userId], references: [id])
-  orderPrice Float
-  vat        Float
-  total      Float
-  first_name String
-  last_name String
-  company_name  String?
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  orderPrice     Float
+  vat            Float
+  total          Float
+  first_name     String
+  last_name      String
+  company_name   String?
   street_address String
-  apartment String?
-  town String
-  phone_number String
-  email String
-  orderItems OrderItem[]
-  status     String      @default("Awaiting Payment")
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @default(now()) @updatedAt
-  transactions Transaction[] 
+  apartment      String?
+  town           String
+  phone_number   String
+  email          String
+  orderItems     OrderItem[]
+  status         String        @default("Awaiting Payment")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now()) @updatedAt
+  transactions   Transaction[]
 }
 
 model Transaction {
-  id                  String      @id @default(uuid())
+  id                  String   @id @default(uuid())
   merchantRequestID   String
-  checkoutRequestID   String @unique
+  checkoutRequestID   String   @unique
   responseDescription String
   customerMessage     String
-  resultCode     Int?
-  resultDesc      String?
-  mpesaReceiptNumber String?
-  amount   Int?
-  phoneNumber String?
-  transactionDate String?
-  orderId    String     
-  order      Order       @relation(fields: [orderId], references: [id]) 
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @default(now())
+  resultCode          Int?
+  resultDesc          String?
+  mpesaReceiptNumber  String?
+  amount              Int?
+  phoneNumber         String?
+  transactionDate     String?
+  orderId             String
+  order               Order    @relation(fields: [orderId], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now())
 }
-
 
 model OrderItem {
   id             String       @id @default(uuid())
@@ -209,43 +211,63 @@ model PricePercentage {
 }
 
 model TechnicianQuestionnaire {
-  id                      Int      @id @default(autoincrement())
-  businessName            String
-  phoneNumber             String
-  email                   String   @unique
-  location                String
-  businessType            String
-  experienceYears         Int?
-  experienceAreas         String[]
-  brandsWorkedWith        String[]
-  integrationExperience   String
-  familiarWithStandard    String?
-  purchaseSource          String[]
-  purchaseHikvision       String
-  requiresTraining        String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @default(now())
+  id                    Int      @id @default(autoincrement())
+  businessName          String
+  phoneNumber           String
+  email                 String   @unique
+  location              String
+  businessType          String
+  experienceYears       Int?
+  experienceAreas       String[]
+  brandsWorkedWith      String[]
+  integrationExperience String
+  familiarWithStandard  String?
+  purchaseSource        String[]
+  purchaseHikvision     String
+  requiresTraining      String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @default(now())
 }
 
 model ShopOwnerQuestionnaire {
-  id                      Int      @id @default(autoincrement())
-  companyName             String
+  id                     Int      @id @default(autoincrement())
+  companyName            String
   firstName              String
   lastName               String
-  phoneNumber             String
-  phoneNumber2            String?
-  email                   String   @unique
-  email2                  String?
-  address                 String
-  selectedBusinessType    String
-  selectedBrands          String[]
-  selectedSecurityBrands  String[]
-  otherBrand              String?
-  selectedCategories      String[]
-  hikvisionChallenges     String?
-  adviceToSecureDigital   String?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @default(now())
+  phoneNumber            String
+  phoneNumber2           String?
+  email                  String   @unique
+  email2                 String?
+  address                String
+  selectedBusinessType   String
+  selectedBrands         String[]
+  selectedSecurityBrands String[]
+  otherBrand             String?
+  selectedCategories     String[]
+  hikvisionChallenges    String?
+  adviceToSecureDigital  String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @default(now())
 }
 
+model Review {
+  id             String        @id @default(uuid())
+  productModelId String
+  productModel   ProductModel  @relation(fields: [productModelId], references: [id])
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  rating         Int           @default(0) // e.g., 1–5 stars
+  comment        String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now()) @updatedAt
+  images         ReviewImage[]
+}
 
+model ReviewImage {
+  id          String  @id @default(uuid())
+  reviewId    String
+  review      Review  @relation(fields: [reviewId], references: [id])
+  uploadUrl   String  @db.VarChar(255)
+  optimizeUrl String? @db.VarChar(255)
+  isPrimary   Boolean @default(false)
+}

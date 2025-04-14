@@ -39,5 +39,9 @@ userProductRouter.post("/order/by-email", productController.getOrderByEmail);
 //checkout 
 userProductRouter.post("/checkout", validate(checkoutSchema), productController.checkout);
 
+//Review
+userProductRouter.post("/add-review", authMiddleware, productController.addReview);
+userProductRouter.get("/reviews/:productModelId", productController.getReviews);
+
 
 export { userProductRouter };

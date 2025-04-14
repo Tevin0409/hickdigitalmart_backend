@@ -898,6 +898,43 @@ export const productController = {
       next(error);
     }
   },
+  addReview: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { productModelId, rating, comment,images } = req.body;
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ message: "User not authenticated" });
+        return;
+      }
+      const review = await productService.addReview(
+        userId,
+        productModelId,
+        rating,
+        comment,
+        images
+      );
+      res.status(201).json(review);
+    } catch (error) {
+      next(error);
+    }
+  },
+  getReviews: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { productModelId } = req.params;
+      const reviews = await productService.getReviews(productModelId);
+      res.status(200).json(reviews);
+    } catch (error) {
+      next(error);
+    }
+  },
   callbackURl: async (
     req: express.Request,
     res: express.Response,

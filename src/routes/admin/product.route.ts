@@ -44,6 +44,9 @@ productRouter.post('/upload-xslx',authAdminMiddleware,productController.uploadBu
 //orders
 productRouter.get("/orders",authAdminMiddleware, productController.getAllOrders);
 
+//Reviews
+productRouter.get("/reviews/:productModelId", productController.getReviews);
+
 
 
 export { productRouter };

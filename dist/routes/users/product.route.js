@@ -37,3 +37,6 @@ userProductRouter.delete("/orders/:orderId", middleware_1.authMiddleware, contro
 userProductRouter.post("/order/by-email", controller_1.productController.getOrderByEmail);
 //checkout 
 userProductRouter.post("/checkout", (0, middleware_1.validate)(productValidator_1.checkoutSchema), controller_1.productController.checkout);
+//Review
+userProductRouter.post("/add-review", middleware_1.authMiddleware, controller_1.productController.addReview);
+userProductRouter.get("/reviews/:productModelId", controller_1.productController.getReviews);
