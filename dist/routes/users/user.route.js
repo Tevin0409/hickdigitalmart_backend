@@ -17,3 +17,4 @@ userRouter.get("/get-user/", middleware_1.authMiddleware, controller_1.userContr
 userRouter.get("/get-user-by-email/:email", middleware_1.authMiddleware, controller_1.userController.getUserByEmail);
 userRouter.get("/roles", controller_1.roleController.getUserRoles);
 userRouter.post("/technician-questionnaire", (0, middleware_1.validate)(userValidator_1.technicianQuestionnaireSchema), controller_1.userController.addTechnicianQuestionnaire);
+userRouter.post("/shop-owners-questionnaire", (0, middleware_1.validate)(userValidator_1.shopOwnersQuestionnaireSchema), controller_1.userController.addShopOwnersQuestionnaire);

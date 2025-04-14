@@ -18,6 +18,7 @@ model User {
   otpExpiresAt          DateTime?
   isVerified            Boolean      @default(false)
   technicianVerified    Boolean      @default(false)
+  shopOwnerVerified    Boolean      @default(false)
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
   inCorrectAttempts     Int          @default(0)

@@ -17,6 +17,8 @@ userAdminRouter.get("/get-user-by-email/:email", authAdminMiddleware, userContro
 userAdminRouter.post("/manage-permissions/:userId", authAdminMiddleware, userController.managePermissions);
 userAdminRouter.get("/technician-request", authAdminMiddleware, userController.getTechnicianRequest);
 userAdminRouter.post("/approve-technician/:id", authAdminMiddleware, userController.approveTechnician);
+userAdminRouter.get("/shop-owners-requests", authAdminMiddleware, userController.getShopOwnwersRequest);
+userAdminRouter.post("/approve-shopowner/:id", authAdminMiddleware, userController.approveShopOwner);
 
 
 export { userAdminRouter };

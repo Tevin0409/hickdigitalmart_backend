@@ -412,6 +412,43 @@ exports.userService = {
             throw new Error(error.message || "Error creating Technician Questionnaire");
         }
     },
+    addShopOwnersQuestionnaire: async (shopOwnerDTO) => {
+        try {
+            // Check if the email already exists
+            const existingShopOwner = await prisma.shopOwnerQuestionnaire.findUnique({
+                where: { email: shopOwnerDTO.email },
+            });
+            if (existingShopOwner) {
+                throw new Error("Email already exists. Please use a different email address.");
+            }
+            // Create a new shop owner questionnaire
+            const newShopOwnerQuestionnaire = await prisma.shopOwnerQuestionnaire.create({
+                data: {
+                    companyName: shopOwnerDTO.companyName,
+                    firstName: shopOwnerDTO.firstName,
+                    lastName: shopOwnerDTO.lastName,
+                    phoneNumber: shopOwnerDTO.phoneNumber,
+                    phoneNumber2: shopOwnerDTO.phoneNumber2 ?? null,
+                    email: shopOwnerDTO.email,
+                    email2: shopOwnerDTO.email2 ?? null,
+                    address: shopOwnerDTO.address,
+                    selectedBusinessType: shopOwnerDTO.selectedBusinessType,
+                    selectedBrands: shopOwnerDTO.selectedBrands,
+                    selectedSecurityBrands: shopOwnerDTO.selectedSecurityBrands,
+                    otherBrand: shopOwnerDTO.otherBrand ?? null,
+                    selectedCategories: shopOwnerDTO.selectedCategories,
+                    hikvisionChallenges: shopOwnerDTO.hikvisionChallenges ?? null,
+                    adviceToSecureDigital: shopOwnerDTO.adviceToSecureDigital ?? null,
+                },
+            });
+            return {
+                message: "Your submission has been successfully recorded. Our team is currently reviewing and verifying the details. You will be notified once the process is complete.",
+            };
+        }
+        catch (error) {
+            throw new Error(error.message || "Error creating Shop Owner Questionnaire");
+        }
+    },
     getTechnicianRequest: async (page = 1, limit = 10, searchTerm) => {
         try {
             // Define pagination
@@ -461,10 +498,72 @@ exports.userService = {
             throw new Error(error.message || "Error fetching Technician Questionnaire");
         }
     },
-    approveTechnician: async (technicianId) => {
+    getShopOwnersRequest: async (page = 1, limit = 10, searchTerm) => {
+        try {
+            // Define pagination
+            const skip = (page - 1) * limit;
+            // Construct search conditions dynamically
+            const searchConditions = [];
+            if (searchTerm) {
+                searchConditions.push({
+                    email: { contains: searchTerm, mode: "insensitive" },
+                });
+                searchConditions.push({
+                    phoneNumber: { contains: searchTerm, mode: "insensitive" },
+                });
+                searchConditions.push({
+                    companyName: { contains: searchTerm, mode: "insensitive" },
+                });
+                searchConditions.push({
+                    firstName: { contains: searchTerm, mode: "insensitive" },
+                });
+                searchConditions.push({
+                    lastName: { contains: searchTerm, mode: "insensitive" },
+                });
+            }
+            const whereCondition = searchConditions.length ? { OR: searchConditions } : {};
+            // Fetch total count for pagination
+            const totalResults = await prisma.shopOwnerQuestionnaire.count({
+                where: whereCondition,
+            });
+            const totalPages = Math.ceil(totalResults / limit);
+            // Fetch shop owner questionnaire with pagination & search
+            const shopOwnerRequests = await prisma.shopOwnerQuestionnaire.findMany({
+                where: whereCondition,
+                skip,
+                take: limit,
+                orderBy: { createdAt: "desc" }, // Optional: order by latest
+            });
+            // Optionally enrich with user data if relevant (remove if not needed)
+            const enrichedRequests = await Promise.all(shopOwnerRequests.map(async (request) => {
+                const user = await prisma.user.findUnique({
+                    where: { email: request.email },
+                });
+                return { ...request, user };
+            }));
+            // Return paginated response
+            return {
+                page,
+                limit,
+                totalPages,
+                totalResults,
+                results: enrichedRequests,
+            };
+        }
+        catch (error) {
+            throw new Error(error.message || "Error fetching Shop Owner Questionnaires");
+        }
+    },
+    approveTechnician: async (userId) => {
         return await prisma.user.update({
-            where: { id: technicianId },
+            where: { id: userId },
             data: { technicianVerified: true },
+        });
+    },
+    approveShopOwner: async (userId) => {
+        return await prisma.user.update({
+            where: { id: userId },
+            data: { shopOwnerVerified: true },
         });
     },
     changePassword: async (email, changePasswordDTO) => {

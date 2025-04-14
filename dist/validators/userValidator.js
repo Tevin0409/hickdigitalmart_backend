@@ -3,8 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.changePasswordSchema = exports.technicianQuestionnaireSchema = exports.createRoleSchema = exports.updateUserSchema = exports.updateUserAdminSchema = exports.createUserSchema = void 0;
+exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.changePasswordSchema = exports.shopOwnersQuestionnaireSchema = exports.technicianQuestionnaireSchema = exports.createRoleSchema = exports.updateUserSchema = exports.updateUserAdminSchema = exports.createUserSchema = void 0;
 const joi_1 = __importDefault(require("joi"));
+const kenyanPhonePattern = /^(?:\+254|0|254)?(7[0-9]{8}|1[0-9]{8})$/;
 exports.createUserSchema = joi_1.default.object({
     firstName: joi_1.default.string().min(3).max(50).required(),
     lastName: joi_1.default.string().min(3).max(50).required(),
@@ -52,7 +53,9 @@ exports.createRoleSchema = joi_1.default.object({
 });
 exports.technicianQuestionnaireSchema = joi_1.default.object({
     businessName: joi_1.default.string().required(),
-    phoneNumber: joi_1.default.string().required(),
+    phoneNumber: joi_1.default.string()
+        .pattern(/^(?:\+254|0|254)?(7[0-9]{8}|1[0-9]{8})$/)
+        .message("Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)").required(),
     email: joi_1.default.string().email().required(),
     location: joi_1.default.string().required(),
     businessType: joi_1.default.string().required(),
@@ -64,6 +67,30 @@ exports.technicianQuestionnaireSchema = joi_1.default.object({
     purchaseSource: joi_1.default.array().items(joi_1.default.string()).required(),
     purchaseHikvision: joi_1.default.string().valid("Yes", "No").required(),
     requiresTraining: joi_1.default.string().valid("Yes", "No").allow(null),
+});
+exports.shopOwnersQuestionnaireSchema = joi_1.default.object({
+    companyName: joi_1.default.string().required(),
+    firstName: joi_1.default.string().required(),
+    lastName: joi_1.default.string().required(),
+    phoneNumber: joi_1.default.string()
+        .pattern(kenyanPhonePattern)
+        .message('Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)')
+        .required(),
+    phoneNumber2: joi_1.default.string()
+        .pattern(kenyanPhonePattern)
+        .message('Phone number must be a valid Kenyan number (07xxxxxxxx, 01xxxxxxxx, or +2547xxxxxxxx)')
+        .optional()
+        .allow('', null),
+    email: joi_1.default.string().email().required(),
+    email2: joi_1.default.string().email().optional().allow('', null),
+    address: joi_1.default.string().required(),
+    selectedBusinessType: joi_1.default.string().required(),
+    selectedBrands: joi_1.default.array().items(joi_1.default.string()).required(),
+    selectedSecurityBrands: joi_1.default.array().items(joi_1.default.string()).required(),
+    otherBrand: joi_1.default.string().optional().allow('', null),
+    selectedCategories: joi_1.default.array().items(joi_1.default.string()).required(),
+    hikvisionChallenges: joi_1.default.string().optional().allow('', null),
+    adviceToSecureDigital: joi_1.default.string().optional().allow('', null),
 });
 exports.changePasswordSchema = joi_1.default.object({
     oldPassword: joi_1.default.string().required(),

@@ -124,6 +124,15 @@ exports.userController = {
             next(error);
         }
     },
+    addShopOwnersQuestionnaire: async (req, res, next) => {
+        try {
+            const user = await services_1.userService.addShopOwnersQuestionnaire(req.body);
+            res.status(200).json(user);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
     getTechnicianRequest: async (req, res, next) => {
         try {
             const page = parseInt(req.query.page) || 1;
@@ -136,10 +145,32 @@ exports.userController = {
             next(error);
         }
     },
+    getShopOwnwersRequest: async (req, res, next) => {
+        try {
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const searchTerm = req.query.searchTerm;
+            const response = await services_1.userService.getShopOwnersRequest(page, limit, searchTerm);
+            res.status(200).json(response);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
     approveTechnician: async (req, res, next) => {
         try {
             const userId = req.params.id;
             const response = await services_1.userService.approveTechnician(userId);
+            res.status(200).json(response);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    approveShopOwner: async (req, res, next) => {
+        try {
+            const userId = req.params.id;
+            const response = await services_1.userService.approveShopOwner(userId);
             res.status(200).json(response);
         }
         catch (error) {

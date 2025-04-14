@@ -202,11 +202,35 @@ export const userController = {
       next(error);
     }
   },
+  getShopOwnwersRequest: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const searchTerm = req.query.searchTerm as string | undefined;
+
+      const response = await userService.getShopOwnersRequest(page, limit, searchTerm);
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  },
   approveTechnician: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
       const userId = req.params.id as string;
 
       const response = await userService.approveTechnician(userId);
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  },
+  approveShopOwner: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      const userId = req.params.id as string;
+
+      const response = await userService.approveShopOwner(userId);
 
       res.status(200).json(response);
     } catch (error) {
