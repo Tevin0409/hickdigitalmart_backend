@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendLowStockNotification = exports.sendPasswordChangeEmail = exports.sendOTPEmail = void 0;
+exports.sendOrderCancellationEmail = exports.sendOrderStatusUpdateEmail = exports.sendOrderConfirmationEmail = exports.sendLowStockNotification = exports.sendPasswordChangeEmail = exports.sendOTPEmail = void 0;
 const email_config_1 = require("../config/email.config");
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
@@ -47,7 +47,7 @@ const generatePasswordChangedTemplate = (firstName) => `
     </body>
   </html>
 `;
-const generateLowStockTemplate = ({ modelName, quantity, threshold, recipientName }) => `
+const generateLowStockTemplate = ({ modelName, quantity, threshold, recipientName, }) => `
   <div style="font-family: Arial, sans-serif; padding: 20px;">
     <h2 style="color: #e63946;">⚠️ Low Stock Alert</h2>
     ${recipientName ? `<p>Hi ${recipientName},</p>` : ""}
@@ -59,6 +59,33 @@ const generateLowStockTemplate = ({ modelName, quantity, threshold, recipientNam
     </table>
     <p>Please take the necessary action to restock this item.</p>
     <p>Best regards,<br />Hickdigital Inventory Monitor</p>
+  </div>
+`;
+const generateOrderConfirmationTemplate = (customerName, orderId) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2 style="color: #007bff;">🎉 Order Confirmed</h2>
+    <p>Hi ${customerName},</p>
+    <p>Thank you for your purchase! Your order <strong>#${orderId}</strong> has been confirmed.</p>
+    <p>We'll notify you when it's shipped. You can track your order in your account.</p>
+    <p>Cheers,<br>Hickdigital Team</p>
+  </div>
+`;
+const generateOrderStatusUpdateTemplate = ({ customerName, orderId, newStatus, }) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2 style="color: #34a853;">📦 Order Status Updated</h2>
+    <p>Hi ${customerName},</p>
+    <p>The status of your order <strong>#${orderId}</strong> has been updated to <strong>${newStatus}</strong>.</p>
+    <p>You can view more details by logging into your account.</p>
+    <p>Thanks for choosing Hickdigital!</p>
+  </div>
+`;
+const generateOrderCancellationTemplate = ({ customerName, orderId, }) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2 style="color: #e63946;">❌ Order Cancelled</h2>
+    <p>Hi ${customerName},</p>
+    <p>We're sorry to inform you that your order <strong>#${orderId}</strong> has been cancelled.</p>
+    <p>If this was a mistake or you need help, please contact our support team.</p>
+    <p>Best regards,<br>Hickdigital Support Team</p>
   </div>
 `;
 const sendEmail = async (mailOptions) => {
@@ -117,3 +144,50 @@ const sendLowStockNotification = async (modelName, quantity, threshold) => {
     }
 };
 exports.sendLowStockNotification = sendLowStockNotification;
+const sendOrderConfirmationEmail = async (orderId) => {
+    const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+            email: true,
+            first_name: true,
+        },
+    });
+    if (!order) {
+        console.error(`Order with ID ${orderId} not found.`);
+        return;
+    }
+    const { email, first_name } = order;
+    if (!email) {
+        console.error(`Missing email for order ${orderId}`);
+        return;
+    }
+    const mailOptions = {
+        to: email,
+        subject: `Order #${orderId} Confirmed - Hickdigital`,
+        html: generateOrderConfirmationTemplate(first_name || "Customer", orderId),
+    };
+    await sendEmail(mailOptions);
+};
+exports.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+const sendOrderStatusUpdateEmail = async (email, customerName, orderId, newStatus) => {
+    const mailOptions = {
+        to: email,
+        subject: `Order #${orderId} Status Updated - Hickdigital`,
+        html: generateOrderStatusUpdateTemplate({
+            customerName,
+            orderId,
+            newStatus,
+        }),
+    };
+    await sendEmail(mailOptions);
+};
+exports.sendOrderStatusUpdateEmail = sendOrderStatusUpdateEmail;
+const sendOrderCancellationEmail = async (email, customerName, orderId) => {
+    const mailOptions = {
+        to: email,
+        subject: `Order #${orderId} Cancelled - Hickdigital`,
+        html: generateOrderCancellationTemplate({ customerName, orderId }),
+    };
+    await sendEmail(mailOptions);
+};
+exports.sendOrderCancellationEmail = sendOrderCancellationEmail;

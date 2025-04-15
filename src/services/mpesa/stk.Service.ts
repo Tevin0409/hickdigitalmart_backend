@@ -5,7 +5,7 @@ import { AuthSercice } from "./auth";
 import { timestampFn } from "../../utils/util";
 import { url, config } from "../../config/mpesa.config";
 import { Result } from "../../interface/mpesa";
-import { sendLowStockNotification } from "../email.Service";
+import { sendLowStockNotification, sendOrderConfirmationEmail } from "../email.Service";
 
 const prisma = new PrismaClient();
 
@@ -266,4 +266,6 @@ async function reduceInventoryAndNotify(orderId: string) {
       await sendLowStockNotification(productModel.name, newQty, minimumStock);
     }
   }
+  //send order confirmation email
+  await sendOrderConfirmationEmail(orderId)
 }

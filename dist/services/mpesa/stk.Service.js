@@ -230,4 +230,6 @@ async function reduceInventoryAndNotify(orderId) {
             await (0, email_Service_1.sendLowStockNotification)(productModel.name, newQty, minimumStock);
         }
     }
+    //send order confirmation email
+    await (0, email_Service_1.sendOrderConfirmationEmail)(orderId);
 }

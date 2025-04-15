@@ -49,7 +49,17 @@ const generatePasswordChangedTemplate = (firstName: string) => `
   </html>
 `;
 
-const generateLowStockTemplate = ({ modelName, quantity, threshold, recipientName }: { modelName: string; quantity: number; threshold: number; recipientName?: string }) => `
+const generateLowStockTemplate = ({
+  modelName,
+  quantity,
+  threshold,
+  recipientName,
+}: {
+  modelName: string;
+  quantity: number;
+  threshold: number;
+  recipientName?: string;
+}) => `
   <div style="font-family: Arial, sans-serif; padding: 20px;">
     <h2 style="color: #e63946;">⚠️ Low Stock Alert</h2>
     ${recipientName ? `<p>Hi ${recipientName},</p>` : ""}
@@ -64,6 +74,53 @@ const generateLowStockTemplate = ({ modelName, quantity, threshold, recipientNam
   </div>
 `;
 
+const generateOrderConfirmationTemplate = (
+  customerName: string,
+  orderId: string
+) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2 style="color: #007bff;">🎉 Order Confirmed</h2>
+    <p>Hi ${customerName},</p>
+    <p>Thank you for your purchase! Your order <strong>#${orderId}</strong> has been confirmed.</p>
+    <p>We'll notify you when it's shipped. You can track your order in your account.</p>
+    <p>Cheers,<br>Hickdigital Team</p>
+  </div>
+`;
+
+const generateOrderStatusUpdateTemplate = ({
+  customerName,
+  orderId,
+  newStatus,
+}: {
+  customerName: string;
+  orderId: string;
+  newStatus: string;
+}) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2 style="color: #34a853;">📦 Order Status Updated</h2>
+    <p>Hi ${customerName},</p>
+    <p>The status of your order <strong>#${orderId}</strong> has been updated to <strong>${newStatus}</strong>.</p>
+    <p>You can view more details by logging into your account.</p>
+    <p>Thanks for choosing Hickdigital!</p>
+  </div>
+`;
+
+const generateOrderCancellationTemplate = ({
+  customerName,
+  orderId,
+}: {
+  customerName: string;
+  orderId: string;
+}) => `
+  <div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2 style="color: #e63946;">❌ Order Cancelled</h2>
+    <p>Hi ${customerName},</p>
+    <p>We're sorry to inform you that your order <strong>#${orderId}</strong> has been cancelled.</p>
+    <p>If this was a mistake or you need help, please contact our support team.</p>
+    <p>Best regards,<br>Hickdigital Support Team</p>
+  </div>
+`;
+
 const sendEmail = async (mailOptions: Options) => {
   try {
     await sendMail(mailOptions);
@@ -74,7 +131,8 @@ const sendEmail = async (mailOptions: Options) => {
 };
 
 export const sendOTPEmail = async (email: string, otp: string) => {
-  if (!email || !otp) throw new Error("Email and OTP are required to send Email");
+  if (!email || !otp)
+    throw new Error("Email and OTP are required to send Email");
 
   const mailOptions = {
     to: email,
@@ -84,8 +142,12 @@ export const sendOTPEmail = async (email: string, otp: string) => {
   await sendEmail(mailOptions);
 };
 
-export const sendPasswordChangeEmail = async (email: string, firstName: string) => {
-  if (!email || !firstName) throw new Error("Email and firstName are required to send emails");
+export const sendPasswordChangeEmail = async (
+  email: string,
+  firstName: string
+) => {
+  if (!email || !firstName)
+    throw new Error("Email and firstName are required to send emails");
 
   const mailOptions = {
     to: email,
@@ -95,7 +157,11 @@ export const sendPasswordChangeEmail = async (email: string, firstName: string) 
   await sendEmail(mailOptions);
 };
 
-export const sendLowStockNotification = async (modelName: string, quantity: number, threshold: number) => {
+export const sendLowStockNotification = async (
+  modelName: string,
+  quantity: number,
+  threshold: number
+) => {
   try {
     const admins = await prisma.user.findMany({
       where: { role: { name: { in: ["ADMIN", "SUDO"] } } },
@@ -118,4 +184,65 @@ export const sendLowStockNotification = async (modelName: string, quantity: numb
   } catch (error) {
     console.error("Failed to send low stock notifications:", error);
   }
+};
+
+export const sendOrderConfirmationEmail = async (orderId: string) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      email: true,
+      first_name: true,
+    },
+  });
+
+  if (!order) {
+    console.error(`Order with ID ${orderId} not found.`);
+    return;
+  }
+
+  const { email, first_name } = order;
+
+  if (!email) {
+    console.error(`Missing email for order ${orderId}`);
+    return;
+  }
+
+  const mailOptions = {
+    to: email,
+    subject: `Order #${orderId} Confirmed - Hickdigital`,
+    html: generateOrderConfirmationTemplate(first_name || "Customer", orderId),
+  };
+
+  await sendEmail(mailOptions);
+};
+
+export const sendOrderStatusUpdateEmail = async (
+  email: string,
+  customerName: string,
+  orderId: string,
+  newStatus: string
+) => {
+  const mailOptions = {
+    to: email,
+    subject: `Order #${orderId} Status Updated - Hickdigital`,
+    html: generateOrderStatusUpdateTemplate({
+      customerName,
+      orderId,
+      newStatus,
+    }),
+  };
+  await sendEmail(mailOptions);
+};
+
+export const sendOrderCancellationEmail = async (
+  email: string,
+  customerName: string,
+  orderId: string
+) => {
+  const mailOptions = {
+    to: email,
+    subject: `Order #${orderId} Cancelled - Hickdigital`,
+    html: generateOrderCancellationTemplate({ customerName, orderId }),
+  };
+  await sendEmail(mailOptions);
 };
