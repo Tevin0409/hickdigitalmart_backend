@@ -964,10 +964,7 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      
-      const pricePercentages = await productService.getPricePercentages(
-        
-      );
+      const pricePercentages = await productService.getPricePercentages();
       res.status(200).json(pricePercentages);
     } catch (error) {
       next(error);
@@ -979,7 +976,6 @@ export const productController = {
     next: express.NextFunction
   ) => {
     try {
-      
       const pricePercentages = await productService.createPricePercentage(
         req.body
       );
@@ -1012,10 +1008,7 @@ export const productController = {
   ) => {
     try {
       const { modelId } = req.params;
-      const updatedProduct = await productService.moveProductToLive(
-        modelId,
-        
-      );
+      const updatedProduct = await productService.moveProductToLive(modelId);
       res.status(200).json(updatedProduct);
     } catch (error) {
       next(error);
@@ -1028,14 +1021,91 @@ export const productController = {
   ) => {
     try {
       const { modelId } = req.params;
-      const updatedProduct = await productService.updateFeatureList(
+      const updatedProduct = await productService.updateFeatureList(modelId);
+      res.status(200).json(updatedProduct);
+    } catch (error) {
+      next(error);
+    }
+  },
+  schedulePriceChange: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { modelId, subCategoryId, percentage, startDate, endDate, reason } =
+        req.body;
+      const updatedProduct = await productService.schedulePriceChange(
         modelId,
+        subCategoryId,
+        percentage,
+        new Date(startDate),
+        new Date(endDate),
+        reason
       );
       res.status(200).json(updatedProduct);
     } catch (error) {
       next(error);
     }
   },
+  updateScheduledPriceChange: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { pricePercentageId } = req.params;
+      const { modelId, subCategoryId, percentage, startDate, endDate, reason } =
+        req.body;
+      const updatedProduct = await productService.updateScheduledPriceChange(
+        pricePercentageId,
+        modelId,
+        subCategoryId,
+        percentage,
+        new Date(startDate),
+        new Date(endDate),
+        reason
+      );
+      res.status(200).json(updatedProduct);
+    } catch (error) {
+      next(error);
+    }
+  },
+  getScheduledPriceChange: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { startDate, endDate, isActive } = req.query;
+
+      const filters: {
+        startDate?: Date;
+        endDate?: Date;
+        isActive?: boolean;
+      } = {};
+
+      if (startDate) {
+        filters.startDate = new Date(startDate as string);
+      }
+
+      if (endDate) {
+        filters.endDate = new Date(endDate as string);
+      }
+
+      if (isActive !== undefined) {
+        filters.isActive = isActive === "true";
+      }
+
+      const scheduledPriceChange =
+        await productService.getScheduledPriceChanges(filters);
+
+      res.status(200).json(scheduledPriceChange);
+    } catch (error) {
+      next(error);
+    }
+  },
+  // MPESA STK Callback
   callbackURl: async (
     req: express.Request,
     res: express.Response,

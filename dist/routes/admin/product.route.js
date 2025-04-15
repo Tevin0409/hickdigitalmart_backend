@@ -50,3 +50,6 @@ productRouter.post("/respond-review/:reviewId", middleware_1.authAdminMiddleware
 productRouter.get("/price-percentages", middleware_1.authAdminMiddleware, controller_1.productController.getPricePercentages);
 productRouter.post("/create-price-percentages", middleware_1.authAdminMiddleware, controller_1.productController.createPricePercentage);
 productRouter.patch("/update-price-percentages/:percentagePriceId", middleware_1.authAdminMiddleware, controller_1.productController.updatePercentagePrice);
+productRouter.post("/schedule-price-change", middleware_1.authAdminMiddleware, controller_1.productController.schedulePriceChange);
+productRouter.patch("/update-schedule-price-change/:pricePercentageId", middleware_1.authAdminMiddleware, controller_1.productController.updateScheduledPriceChange);
+productRouter.get('/get-scheduled-price-changes', middleware_1.authAdminMiddleware, controller_1.productController.getScheduledPriceChange);

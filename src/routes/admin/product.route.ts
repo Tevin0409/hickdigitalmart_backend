@@ -55,6 +55,10 @@ productRouter.get("/price-percentages",authAdminMiddleware, productController.ge
 productRouter.post("/create-price-percentages",authAdminMiddleware, productController.createPricePercentage);
 productRouter.patch("/update-price-percentages/:percentagePriceId",authAdminMiddleware, productController.updatePercentagePrice);
 
+productRouter.post("/schedule-price-change",authAdminMiddleware, productController.schedulePriceChange);
+productRouter.patch("/update-schedule-price-change/:pricePercentageId",authAdminMiddleware, productController.updateScheduledPriceChange);
+productRouter.get('/get-scheduled-price-changes',authAdminMiddleware, productController.getScheduledPriceChange);
+
 
 
 export { productRouter };

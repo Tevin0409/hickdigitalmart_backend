@@ -8,30 +8,31 @@ datasource db {
 }
 
 model User {
-  id                    String           @id @unique @default(uuid())
-  phoneNumber           String?          @unique @db.VarChar(15)
-  email                 String           @unique @db.VarChar(320)
+  id                    String             @id @unique @default(uuid())
+  phoneNumber           String?            @unique @db.VarChar(15)
+  email                 String             @unique @db.VarChar(320)
   password              String
   firstName             String
   lastName              String
   otpHash               String?
   otpExpiresAt          DateTime?
-  isVerified            Boolean          @default(false)
-  technicianVerified    Boolean          @default(false)
-  shopOwnerVerified     Boolean          @default(false)
+  isVerified            Boolean            @default(false)
+  technicianVerified    Boolean            @default(false)
+  shopOwnerVerified     Boolean            @default(false)
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
-  inCorrectAttempts     Int              @default(0)
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @default(now())
+  inCorrectAttempts     Int                @default(0)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @default(now())
   roleId                String?
-  role                  Role?            @relation(fields: [roleId], references: [id])
-  permissions           Permission[]     @relation("UserPermissions")
+  role                  Role?              @relation(fields: [roleId], references: [id])
+  permissions           Permission[]       @relation("UserPermissions")
   carts                 Cart[]
   wishlists             Wishlist[]
   orders                Order[]
   Review                Review[]
   ReviewResponse        ReviewResponse[]
+  UserNotification      UserNotification[]
 }
 
 model Role {
@@ -74,25 +75,26 @@ model ProductImage {
 }
 
 model ProductModel {
-  id              String            @id @default(uuid())
-  productId       String
-  product         Product           @relation(fields: [productId], references: [id])
-  name            String            @db.VarChar(255)
-  description     String?           @db.Text
-  price           Float
-  status          String            @default("draft") // status field (draft/visible)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @default(now()) @updatedAt
-  minimumStock    Int               @default(10)
-  isFeatured   Boolean              @default(false)
-  features        ProductFeature[]
-  inventory       Inventory?
-  OrderItem       OrderItem[]
-  images          ProductImage[]
-  cartItems       Cart[]
-  wishlists       Wishlist[]
-  Review          Review[]
-  PricePercentage PricePercentage[]
+  id                   String                 @id @default(uuid())
+  productId            String
+  product              Product                @relation(fields: [productId], references: [id])
+  name                 String                 @db.VarChar(255)
+  description          String?                @db.Text
+  price                Float
+  status               String                 @default("draft") // status field (draft/visible)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @default(now()) @updatedAt
+  minimumStock         Int                    @default(10)
+  isFeatured           Boolean                @default(false)
+  features             ProductFeature[]
+  inventory            Inventory?
+  OrderItem            OrderItem[]
+  images               ProductImage[]
+  cartItems            Cart[]
+  wishlists            Wishlist[]
+  Review               Review[]
+  PricePercentage      PricePercentage[]
+  ScheduledPriceChange ScheduledPriceChange[]
 }
 
 model Inventory {
@@ -163,13 +165,14 @@ model ProductFeature {
 }
 
 model SubCategory {
-  id         String    @id @default(uuid())
-  name       String    @db.VarChar(255)
-  category   Category  @relation(fields: [categoryId], references: [id])
-  categoryId String
-  products   Product[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @default(now())
+  id                   String                 @id @default(uuid())
+  name                 String                 @db.VarChar(255)
+  category             Category               @relation(fields: [categoryId], references: [id])
+  categoryId           String
+  products             Product[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @default(now())
+  ScheduledPriceChange ScheduledPriceChange[]
 }
 
 model Category {
@@ -286,4 +289,32 @@ model ReviewImage {
   uploadUrl   String  @db.VarChar(255)
   optimizeUrl String? @db.VarChar(255)
   isPrimary   Boolean @default(false)
+}
+
+model ScheduledPriceChange {
+  id             String        @id @default(uuid())
+  productModelId String? // optional if targeting subcategory
+  productModel   ProductModel? @relation(fields: [productModelId], references: [id])
+
+  subCategoryId String? // optional if targeting productModel
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id])
+
+  percentage Float // positive for increase, negative for discount
+  reason     String? @db.VarChar(255)
+
+  startsAt DateTime
+  endsAt   DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model UserNotification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }

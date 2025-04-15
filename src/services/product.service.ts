@@ -1698,4 +1698,179 @@ export const productService = {
       );
     }
   },
+  schedulePriceChange: async (
+    modelId?: string,
+    subCategoryId?: string,
+    percentage?: number,
+    startDate?: Date,
+    endDate?: Date,
+    reason?: string
+  ) => {
+    try {
+      // Ensure exactly one target is provided
+      if ((modelId && subCategoryId) || (!modelId && !subCategoryId)) {
+        throw new Error(
+          "Provide either modelId or subCategoryId, but not both."
+        );
+      }
+
+      if (
+        percentage === undefined ||
+        startDate === undefined ||
+        endDate === undefined
+      ) {
+        throw new Error(
+          "Percentage, startDate, and endDate are required for scheduling."
+        );
+      }
+
+      const data: any = {
+        percentage,
+        startsAt: startDate,
+        endsAt: endDate,
+        reason,
+      };
+
+      if (modelId) {
+        data.productModelId = modelId;
+      } else if (subCategoryId) {
+        data.subCategoryId = subCategoryId;
+      }
+
+      const scheduledChange = await prisma.scheduledPriceChange.create({
+        data,
+      });
+
+      return scheduledChange;
+    } catch (error: any) {
+      throw new Error(
+        error.message || "An error occurred while scheduling the price change."
+      );
+    }
+  },
+  updateScheduledPriceChange: async (
+    priceChangeId: string,
+    modelId?: string,
+    subCategoryId?: string,
+    percentage?: number,
+    startDate?: Date,
+    endDate?: Date,
+    reason?: string
+  ) => {
+    try {
+      // Ensure only one of modelId or subCategoryId is provided
+      if ((modelId && subCategoryId) || (!modelId && !subCategoryId)) {
+        throw new Error(
+          "Provide either modelId or subCategoryId, but not both."
+        );
+      }
+
+      const updateData: any = {};
+
+      if (modelId) {
+        updateData.productModelId = modelId;
+        updateData.subCategoryId = null; // Clear other if switching
+      } else if (subCategoryId) {
+        updateData.subCategoryId = subCategoryId;
+        updateData.productModelId = null; // Clear other if switching
+      }
+
+      if (percentage !== undefined) {
+        updateData.percentage = percentage;
+      }
+
+      if (startDate !== undefined) {
+        updateData.startsAt = startDate;
+      }
+
+      if (endDate !== undefined) {
+        updateData.endsAt = endDate;
+      }
+
+      if (reason !== undefined) {
+        updateData.reason = reason;
+      }
+
+      const updatedChange = await prisma.scheduledPriceChange.update({
+        where: { id: priceChangeId },
+        data: updateData,
+      });
+
+      return updatedChange;
+    } catch (error: any) {
+      throw new Error(
+        error.message ||
+          "An error occurred while updating the scheduled price change."
+      );
+    }
+  },
+  getScheduledPriceChanges: async (
+    filters?: {
+      startDate?: Date;
+      endDate?: Date;
+      isActive?: boolean;
+    }
+  ) => {
+    try {
+      const { startDate, endDate, isActive } = filters || {};
+  
+      const whereClause: any = {};
+  
+      if (startDate && endDate) {
+        // Filter where schedule overlaps the range
+        whereClause.OR = [
+          {
+            startsAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          {
+            endsAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          {
+            AND: [
+              { startsAt: { lte: startDate } },
+              { endsAt: { gte: endDate } },
+            ],
+          },
+        ];
+      }
+  
+      if (isActive !== undefined) {
+        const now = new Date();
+        if (isActive) {
+          whereClause.startsAt = { lte: now };
+          whereClause.endsAt = { gte: now };
+        } else {
+          whereClause.OR = [
+            { startsAt: { gt: now } },
+            { endsAt: { lt: now } },
+          ];
+        }
+      }
+  
+      const scheduledChanges = await prisma.scheduledPriceChange.findMany({
+        where: whereClause,
+        orderBy: {
+          startsAt: 'asc',
+        },
+        include: {
+          productModel: true,
+          subCategory: true,
+        },
+      });
+  
+      return scheduledChanges;
+    } catch (error: any) {
+      throw new Error(
+        error.message || "An error occurred while fetching scheduled price changes."
+      );
+    }
+  }
+  
+    
 };

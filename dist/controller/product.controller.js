@@ -680,6 +680,48 @@ exports.productController = {
             next(error);
         }
     },
+    schedulePriceChange: async (req, res, next) => {
+        try {
+            const { modelId, subCategoryId, percentage, startDate, endDate, reason } = req.body;
+            const updatedProduct = await services_1.productService.schedulePriceChange(modelId, subCategoryId, percentage, new Date(startDate), new Date(endDate), reason);
+            res.status(200).json(updatedProduct);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    updateScheduledPriceChange: async (req, res, next) => {
+        try {
+            const { pricePercentageId } = req.params;
+            const { modelId, subCategoryId, percentage, startDate, endDate, reason } = req.body;
+            const updatedProduct = await services_1.productService.updateScheduledPriceChange(pricePercentageId, modelId, subCategoryId, percentage, new Date(startDate), new Date(endDate), reason);
+            res.status(200).json(updatedProduct);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    getScheduledPriceChange: async (req, res, next) => {
+        try {
+            const { startDate, endDate, isActive } = req.query;
+            const filters = {};
+            if (startDate) {
+                filters.startDate = new Date(startDate);
+            }
+            if (endDate) {
+                filters.endDate = new Date(endDate);
+            }
+            if (isActive !== undefined) {
+                filters.isActive = isActive === "true";
+            }
+            const scheduledPriceChange = await services_1.productService.getScheduledPriceChanges(filters);
+            res.status(200).json(scheduledPriceChange);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    // MPESA STK Callback
     callbackURl: async (req, res, next) => {
         try {
             console.log("req", req.body);
