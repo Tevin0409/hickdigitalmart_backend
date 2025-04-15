@@ -70,6 +70,8 @@ export const productController = {
         limit,
       } = req.query;
 
+      const roleId = req.user?.roleId;
+
       const products = await productService.getAllProductsModels(
         searchTerm as string | undefined,
         categoryIds
@@ -90,7 +92,8 @@ export const productController = {
         minPrice ? parseFloat(minPrice as string) : undefined,
         maxPrice ? parseFloat(maxPrice as string) : undefined,
         page ? parseInt(page as string, 10) : 1,
-        limit ? parseInt(limit as string, 10) : 10
+        limit ? parseInt(limit as string, 10) : 10,
+        roleId
       );
       res.status(200).json(products);
     } catch (error) {

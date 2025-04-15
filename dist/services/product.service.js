@@ -170,20 +170,17 @@ exports.productService = {
             throw error;
         }
     },
-    getAllProductsModels: async (searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page = 1, limit = 10) => {
+    getAllProductsModels: async (searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page = 1, limit = 10, roleId) => {
         try {
             const conditions = [];
             conditions.push({ status: "visible" });
-            // Search term condition
             if (searchTerm) {
                 conditions.push({
                     OR: [
                         { name: { contains: searchTerm, mode: "insensitive" } },
                         { description: { contains: searchTerm, mode: "insensitive" } },
                         {
-                            product: {
-                                name: { contains: searchTerm, mode: "insensitive" },
-                            },
+                            product: { name: { contains: searchTerm, mode: "insensitive" } },
                         },
                         {
                             product: {
@@ -214,8 +211,7 @@ exports.productService = {
                     ],
                 });
             }
-            // Filter by multiple categories
-            if (categoryIds && categoryIds.length > 0) {
+            if (categoryIds?.length) {
                 conditions.push({
                     product: {
                         subCategory: {
@@ -224,16 +220,14 @@ exports.productService = {
                     },
                 });
             }
-            // Filter by multiple subcategories
-            if (subCategoryIds && subCategoryIds.length > 0) {
+            if (subCategoryIds?.length) {
                 conditions.push({
                     product: {
                         subCategoryId: { in: subCategoryIds },
                     },
                 });
             }
-            // Filter by multiple features
-            if (featureIds && featureIds.length > 0) {
+            if (featureIds?.length) {
                 conditions.push({
                     features: {
                         some: {
@@ -242,24 +236,20 @@ exports.productService = {
                     },
                 });
             }
-            // Filter by price range
             if (minPrice !== undefined || maxPrice !== undefined) {
                 conditions.push({
                     price: {
-                        gte: minPrice ?? 0, // Greater than or equal to minPrice, default to 0
-                        lte: maxPrice ?? Number.MAX_SAFE_INTEGER, // Less than or equal to maxPrice
+                        gte: minPrice ?? 0,
+                        lte: maxPrice ?? Number.MAX_SAFE_INTEGER,
                     },
                 });
             }
-            // Construct final where condition
-            const whereCondition = conditions.length > 0 ? { AND: conditions } : {};
-            // Get total matching models count
+            const whereCondition = conditions.length ? { AND: conditions } : {};
             const totalResults = await prisma.productModel.count({
                 where: whereCondition,
             });
-            // Calculate total pages
             const totalPages = Math.ceil(totalResults / limit);
-            // Fetch paginated product models
+            const now = new Date();
             const models = await prisma.productModel.findMany({
                 where: whereCondition,
                 include: {
@@ -273,7 +263,7 @@ exports.productService = {
                     images: true,
                     PricePercentage: {
                         include: {
-                            role: { select: { name: true } },
+                            role: { select: { name: true, id: true } },
                         },
                     },
                     Review: {
@@ -283,9 +273,7 @@ exports.productService = {
                                     firstName: true,
                                     lastName: true,
                                     email: true,
-                                    role: {
-                                        select: { name: true },
-                                    },
+                                    role: { select: { name: true } },
                                 },
                             },
                             images: true,
@@ -296,9 +284,7 @@ exports.productService = {
                                             firstName: true,
                                             lastName: true,
                                             email: true,
-                                            role: {
-                                                select: { name: true },
-                                            },
+                                            role: { select: { name: true } },
                                         },
                                     },
                                 },
@@ -309,12 +295,52 @@ exports.productService = {
                 skip: (page - 1) * limit,
                 take: limit,
             });
+            const results = await Promise.all(models.map(async (model) => {
+                const originalPrice = model.price;
+                let roleAdjustedPrice = originalPrice;
+                let discountedPrice = null;
+                // Apply role-based percentage if roleId provided
+                if (roleId) {
+                    const rolePercentage = model.PricePercentage.find((p) => p.roleId === roleId);
+                    if (rolePercentage) {
+                        roleAdjustedPrice =
+                            originalPrice * (rolePercentage.percentage / 100);
+                    }
+                }
+                // Check for active scheduled price change
+                let activeChange = await prisma.scheduledPriceChange.findFirst({
+                    where: {
+                        productModelId: model.id,
+                        startsAt: { lte: now },
+                        endsAt: { gte: now },
+                    },
+                });
+                if (!activeChange) {
+                    activeChange = await prisma.scheduledPriceChange.findFirst({
+                        where: {
+                            subCategoryId: model.product.subCategoryId,
+                            startsAt: { lte: now },
+                            endsAt: { gte: now },
+                        },
+                    });
+                }
+                if (activeChange) {
+                    discountedPrice =
+                        roleAdjustedPrice * (activeChange.percentage / 100);
+                }
+                return {
+                    ...model,
+                    originalPrice,
+                    roleAdjustedPrice,
+                    discountedPrice,
+                };
+            }));
             return {
                 page,
                 limit,
                 totalPages,
                 totalResults,
-                results: models,
+                results,
             };
         }
         catch (error) {
@@ -1554,16 +1580,13 @@ exports.productService = {
                     whereClause.endsAt = { gte: now };
                 }
                 else {
-                    whereClause.OR = [
-                        { startsAt: { gt: now } },
-                        { endsAt: { lt: now } },
-                    ];
+                    whereClause.OR = [{ startsAt: { gt: now } }, { endsAt: { lt: now } }];
                 }
             }
             const scheduledChanges = await prisma.scheduledPriceChange.findMany({
                 where: whereClause,
                 orderBy: {
-                    startsAt: 'asc',
+                    startsAt: "asc",
                 },
                 include: {
                     productModel: true,
@@ -1573,7 +1596,8 @@ exports.productService = {
             return scheduledChanges;
         }
         catch (error) {
-            throw new Error(error.message || "An error occurred while fetching scheduled price changes.");
+            throw new Error(error.message ||
+                "An error occurred while fetching scheduled price changes.");
         }
-    }
+    },
 };

@@ -205,23 +205,20 @@ export const productService = {
     minPrice?: number,
     maxPrice?: number,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    roleId?: string
   ) => {
     try {
       const conditions: Prisma.ProductModelWhereInput[] = [];
-
       conditions.push({ status: "visible" });
 
-      // Search term condition
       if (searchTerm) {
         conditions.push({
           OR: [
             { name: { contains: searchTerm, mode: "insensitive" } },
             { description: { contains: searchTerm, mode: "insensitive" } },
             {
-              product: {
-                name: { contains: searchTerm, mode: "insensitive" },
-              },
+              product: { name: { contains: searchTerm, mode: "insensitive" } },
             },
             {
               product: {
@@ -253,8 +250,7 @@ export const productService = {
         });
       }
 
-      // Filter by multiple categories
-      if (categoryIds && categoryIds.length > 0) {
+      if (categoryIds?.length) {
         conditions.push({
           product: {
             subCategory: {
@@ -264,8 +260,7 @@ export const productService = {
         });
       }
 
-      // Filter by multiple subcategories
-      if (subCategoryIds && subCategoryIds.length > 0) {
+      if (subCategoryIds?.length) {
         conditions.push({
           product: {
             subCategoryId: { in: subCategoryIds },
@@ -273,8 +268,7 @@ export const productService = {
         });
       }
 
-      // Filter by multiple features
-      if (featureIds && featureIds.length > 0) {
+      if (featureIds?.length) {
         conditions.push({
           features: {
             some: {
@@ -284,31 +278,26 @@ export const productService = {
         });
       }
 
-      // Filter by price range
       if (minPrice !== undefined || maxPrice !== undefined) {
         conditions.push({
           price: {
-            gte: minPrice ?? 0, // Greater than or equal to minPrice, default to 0
-            lte: maxPrice ?? Number.MAX_SAFE_INTEGER, // Less than or equal to maxPrice
+            gte: minPrice ?? 0,
+            lte: maxPrice ?? Number.MAX_SAFE_INTEGER,
           },
         });
       }
 
-      // Construct final where condition
-      const whereCondition = conditions.length > 0 ? { AND: conditions } : {};
+      const whereCondition = conditions.length ? { AND: conditions } : {};
 
-      // Get total matching models count
       const totalResults = await prisma.productModel.count({
         where: whereCondition,
       });
-
-      // Calculate total pages
       const totalPages = Math.ceil(totalResults / limit);
 
-      // Fetch paginated product models
+      const now = new Date();
+
       const models = await prisma.productModel.findMany({
         where: whereCondition,
-
         include: {
           product: {
             include: {
@@ -320,7 +309,7 @@ export const productService = {
           images: true,
           PricePercentage: {
             include: {
-              role: { select: { name: true } },
+              role: { select: { name: true, id: true } },
             },
           },
           Review: {
@@ -330,9 +319,7 @@ export const productService = {
                   firstName: true,
                   lastName: true,
                   email: true,
-                  role: {
-                    select: { name: true },
-                  },
+                  role: { select: { name: true } },
                 },
               },
               images: true,
@@ -343,9 +330,7 @@ export const productService = {
                       firstName: true,
                       lastName: true,
                       email: true,
-                      role: {
-                        select: { name: true },
-                      },
+                      role: { select: { name: true } },
                     },
                   },
                 },
@@ -357,19 +342,68 @@ export const productService = {
         take: limit,
       });
 
+      const results = await Promise.all(
+        models.map(async (model) => {
+          const originalPrice = model.price;
+          let roleAdjustedPrice = originalPrice;
+          let discountedPrice: number | null = null;
+
+          // Apply role-based percentage if roleId provided
+          if (roleId) {
+            const rolePercentage = model.PricePercentage.find(
+              (p) => p.roleId === roleId
+            );
+            if (rolePercentage) {
+              roleAdjustedPrice =
+                originalPrice * (rolePercentage.percentage / 100);
+            }
+          }
+
+          // Check for active scheduled price change
+          let activeChange = await prisma.scheduledPriceChange.findFirst({
+            where: {
+              productModelId: model.id,
+              startsAt: { lte: now },
+              endsAt: { gte: now },
+            },
+          });
+
+          if (!activeChange) {
+            activeChange = await prisma.scheduledPriceChange.findFirst({
+              where: {
+                subCategoryId: model.product.subCategoryId,
+                startsAt: { lte: now },
+                endsAt: { gte: now },
+              },
+            });
+          }
+
+          if (activeChange) {
+            discountedPrice =
+              roleAdjustedPrice * (activeChange.percentage / 100);
+          }
+
+          return {
+            ...model,
+            originalPrice,
+            roleAdjustedPrice,
+            discountedPrice,
+          };
+        })
+      );
+
       return {
         page,
         limit,
         totalPages,
         totalResults,
-        results: models,
+        results,
       };
     } catch (error) {
       console.error("Error fetching product models:", error);
       throw error;
     }
   },
-
   getProductById: async (id: string) => {
     try {
       return await prisma.product.findUnique({
@@ -1804,18 +1838,16 @@ export const productService = {
       );
     }
   },
-  getScheduledPriceChanges: async (
-    filters?: {
-      startDate?: Date;
-      endDate?: Date;
-      isActive?: boolean;
-    }
-  ) => {
+  getScheduledPriceChanges: async (filters?: {
+    startDate?: Date;
+    endDate?: Date;
+    isActive?: boolean;
+  }) => {
     try {
       const { startDate, endDate, isActive } = filters || {};
-  
+
       const whereClause: any = {};
-  
+
       if (startDate && endDate) {
         // Filter where schedule overlaps the range
         whereClause.OR = [
@@ -1839,38 +1871,34 @@ export const productService = {
           },
         ];
       }
-  
+
       if (isActive !== undefined) {
         const now = new Date();
         if (isActive) {
           whereClause.startsAt = { lte: now };
           whereClause.endsAt = { gte: now };
         } else {
-          whereClause.OR = [
-            { startsAt: { gt: now } },
-            { endsAt: { lt: now } },
-          ];
+          whereClause.OR = [{ startsAt: { gt: now } }, { endsAt: { lt: now } }];
         }
       }
-  
+
       const scheduledChanges = await prisma.scheduledPriceChange.findMany({
         where: whereClause,
         orderBy: {
-          startsAt: 'asc',
+          startsAt: "asc",
         },
         include: {
           productModel: true,
           subCategory: true,
         },
       });
-  
+
       return scheduledChanges;
     } catch (error: any) {
       throw new Error(
-        error.message || "An error occurred while fetching scheduled price changes."
+        error.message ||
+          "An error occurred while fetching scheduled price changes."
       );
     }
-  }
-  
-    
+  },
 };

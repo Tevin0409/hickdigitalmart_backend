@@ -34,6 +34,7 @@ exports.productController = {
     getAllProductsModels: async (req, res, next) => {
         try {
             const { searchTerm, categoryIds, subCategoryIds, featureIds, minPrice, maxPrice, page, limit, } = req.query;
+            const roleId = req.user?.roleId;
             const products = await services_1.productService.getAllProductsModels(searchTerm, categoryIds
                 ? (Array.isArray(categoryIds)
                     ? categoryIds
@@ -46,7 +47,7 @@ exports.productController = {
                 ? (Array.isArray(featureIds)
                     ? featureIds
                     : [featureIds])
-                : undefined, minPrice ? parseFloat(minPrice) : undefined, maxPrice ? parseFloat(maxPrice) : undefined, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10);
+                : undefined, minPrice ? parseFloat(minPrice) : undefined, maxPrice ? parseFloat(maxPrice) : undefined, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10, roleId);
             res.status(200).json(products);
         }
         catch (error) {
