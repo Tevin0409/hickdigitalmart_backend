@@ -318,3 +318,21 @@ model UserNotification {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
+
+model Banner {
+  id            String   @id @default(uuid())
+  title         String   @db.VarChar(255)
+  description   String?  @db.Text
+  imageUrl      String   @db.VarChar(255) 
+  mobileImageUrl String? @db.VarChar(255) 
+  linkUrl       String?  @db.VarChar(255) 
+  isVisibleWeb  Boolean  @default(true)
+  isVisibleMobile Boolean @default(true)
+  priority      Int      @default(0) 
+  status        String   @default("draft")
+  startsAt      DateTime?
+  endsAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+}
+
