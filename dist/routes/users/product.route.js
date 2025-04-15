@@ -40,3 +40,6 @@ userProductRouter.post("/checkout", (0, middleware_1.validate)(productValidator_
 //Review
 userProductRouter.post("/add-review", middleware_1.authMiddleware, controller_1.productController.addReview);
 userProductRouter.get("/reviews/:productModelId", controller_1.productController.getReviews);
+//Quaotation
+userProductRouter.post("/quotation", (0, middleware_1.validate)(productValidator_1.QuotationSchema), middleware_1.authMiddleware, controller_1.productController.createQuotation);
+userProductRouter.get("/quotation", middleware_1.authMiddleware, controller_1.productController.getUserQuotations);

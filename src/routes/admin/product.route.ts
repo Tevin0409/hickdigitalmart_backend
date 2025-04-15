@@ -59,6 +59,9 @@ productRouter.post("/schedule-price-change",authAdminMiddleware, productControll
 productRouter.patch("/update-schedule-price-change/:pricePercentageId",authAdminMiddleware, productController.updateScheduledPriceChange);
 productRouter.get('/get-scheduled-price-changes',authAdminMiddleware, productController.getScheduledPriceChange);
 
+//Quotation
+productRouter.get("/quotation", authAdminMiddleware, productController.getAllQuotations);
+
 
 
 export { productRouter };

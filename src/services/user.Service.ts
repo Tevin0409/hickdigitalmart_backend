@@ -163,12 +163,26 @@ export const userService = {
         },
       });
 
+      //remove password from the response
+      const {
+        password:ignoredPassword,
+        otpHash,
+        otpExpiresAt,
+        refreshToken:ignore,
+        refreshTokenExpiresAt: ignoredRefreshTokenExpiresAt, // renamed
+        inCorrectAttempts,
+        ...safeUser
+      } = existingUser;
+      
+      
+      
+
       return {
         accessToken,
         accessTokenExpiresAt,
         refreshToken,
         refreshTokenExpiresAt,
-        user: existingUser,
+        user: safeUser,
       };
     } catch (err: any) {
       const statusCode = err instanceof AppError ? err.statusCode : 500;
@@ -223,12 +237,23 @@ export const userService = {
       },
     });
 
+     //remove password from the response
+     const {
+      password:ignoredPassword,
+      otpHash,
+      otpExpiresAt,
+      refreshToken:ignore,
+      refreshTokenExpiresAt: ignoredRefreshTokenExpiresAt, // renamed
+      inCorrectAttempts,
+      ...safeUser
+    } = existingUser;
+
     return {
       accessToken,
       accessTokenExpiresAt,
       refreshToken,
       refreshTokenExpiresAt,
-      user: existingUser,
+      user: safeUser,
     };
   },
   refresh: async (id: string, refresh_token: string) => {
@@ -263,12 +288,23 @@ export const userService = {
         },
       });
 
+       //remove password from the response
+       const {
+        password:ignoredPassword,
+        otpHash,
+        otpExpiresAt,
+        refreshToken:ignore,
+        refreshTokenExpiresAt: ignoredRefreshTokenExpiresAt, // renamed
+        inCorrectAttempts,
+        ...safeUser
+      } = user;
+
       return {
         accessToken,
         accessTokenExpiresAt,
         refreshToken,
         refreshTokenExpiresAt,
-        user: user,
+        user: safeUser,
       };
     } catch (err: any) {
       const statusCode = err instanceof AppError ? err.statusCode : 500;
@@ -336,10 +372,34 @@ export const userService = {
       // Fetch paginated users
       const users = await prisma.user.findMany({
         where: filters,
-        include: { role: true, permissions: true },
+        select: {
+          id: true,
+          phoneNumber: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          isVerified: true,
+          technicianVerified: true,
+          shopOwnerVerified: true,
+          createdAt: true,
+          updatedAt: true,
+          role: {
+            select: {
+              id: true,
+              name: true, // Include whatever role fields you need
+            },
+          },
+          permissions: {
+            select: {
+              id: true, // Include whatever permission fields you need
+              name: true,
+            },
+          },
+        },
         skip,
         take: limit,
       });
+      
 
       const totalPages = Math.ceil(totalResults / limit);
 
@@ -362,6 +422,7 @@ export const userService = {
       const user = await prisma.user.findUnique({
         where: { id },
         include: { role: true, permissions: true },
+        
       });
 
       if (!user) {
@@ -379,6 +440,7 @@ export const userService = {
     try {
       const user = await prisma.user.findUnique({
         where: { email },
+        
         include: { role: true, permissions: true },
       });
 

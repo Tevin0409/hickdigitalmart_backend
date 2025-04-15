@@ -1068,6 +1068,73 @@ export const productService = {
       throw new AppError(500, "Failed to create order: " + error.message);
     }
   },
+  createQuotation: async (
+    userId: string,
+    quotationData: {
+      message: string;
+      products: { productModelId: string; quantity: number }[];
+    }
+  ) => {
+    try {
+      // 0. Verify that the user exists and is a verified shop owner
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { shopOwnerVerified: true },
+      });
+
+      if (!user || !user.shopOwnerVerified) {
+        throw new AppError(
+          403,
+          "Only verified shop owners can request a quotation."
+        );
+      }
+
+      // 1. Create the quotation request
+      const quotation = await prisma.quotationRequest.create({
+        data: {
+          userId,
+          message: quotationData.message,
+          quotationItems: {
+            create: quotationData.products.map((item) => ({
+              productModelId: item.productModelId,
+              quantity: item.quantity,
+            })),
+          },
+        },
+        include: {
+          quotationItems: true,
+        },
+      });
+
+      return quotation;
+    } catch (error: any) {
+      throw new AppError(500, "Failed to create quotation: " + error.message);
+    }
+  },
+  getUserQuotations: async (userId: string) => {
+    try {
+      return await prisma.quotationRequest.findMany({
+        where: { userId },
+        include: {
+          quotationItems: {
+            include: {
+              productModel: {
+                include: {
+                  images: true,
+                  features: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error: any) {
+      throw new AppError(
+        500,
+        "Failed to retrieve quotations: " + error.message
+      );
+    }
+  },
   updateOrderStatus: async (orderId: string, status: string) => {
     try {
       return await prisma.order.update({
@@ -1900,5 +1967,79 @@ export const productService = {
           "An error occurred while fetching scheduled price changes."
       );
     }
+  },
+  getAllQuotations: async ({
+    searchTerm,
+    status,
+    page,
+    limit,
+  }: {
+    searchTerm?: string;
+    status?: string;
+    page: number;
+    limit: number;
+  }) => {
+    const where: Prisma.QuotationRequestWhereInput = {
+      AND: [
+        status ? { status: { equals: status } } : {},
+        searchTerm
+          ? {
+              OR: [
+                {
+                  user: {
+                    firstName: { contains: searchTerm, mode: "insensitive" },
+                  },
+                },
+                {
+                  user: {
+                    lastName: { contains: searchTerm, mode: "insensitive" },
+                  },
+                },
+                {
+                  user: {
+                    email: { contains: searchTerm, mode: "insensitive" },
+                  },
+                },
+                { message: { contains: searchTerm, mode: "insensitive" } },
+              ],
+            }
+          : {},
+      ],
+    };
+
+    const [results, totalResults] = await Promise.all([
+      prisma.quotationRequest.findMany({
+        where,
+        include: {
+          user: {
+            select: {
+              email: true,
+              firstName: true,
+              lastName: true,
+              phoneNumber: true,
+            },
+          },
+          quotationItems: {
+            include: {
+              productModel: true,
+            },
+          },
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.quotationRequest.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(totalResults / limit);
+
+    return {
+      page,
+      limit,
+      totalPages,
+      totalResults,
+      results,
+    };
   },
 };

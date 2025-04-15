@@ -33,6 +33,7 @@ model User {
   Review                Review[]
   ReviewResponse        ReviewResponse[]
   UserNotification      UserNotification[]
+  QuotationRequest      QuotationRequest[]
 }
 
 model Role {
@@ -95,6 +96,7 @@ model ProductModel {
   Review               Review[]
   PricePercentage      PricePercentage[]
   ScheduledPriceChange ScheduledPriceChange[]
+  QuotationRequestItem QuotationRequestItem[]
 }
 
 model Inventory {
@@ -320,19 +322,42 @@ model UserNotification {
 }
 
 model Banner {
-  id            String   @id @default(uuid())
-  title         String   @db.VarChar(255)
-  description   String?  @db.Text
-  imageUrl      String   @db.VarChar(255) 
-  mobileImageUrl String? @db.VarChar(255) 
-  linkUrl       String?  @db.VarChar(255) 
-  isVisibleWeb  Boolean  @default(true)
-  isVisibleMobile Boolean @default(true)
-  priority      Int      @default(0) 
-  status        String   @default("draft")
-  startsAt      DateTime?
-  endsAt        DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now()) @updatedAt
+  id              String    @id @default(uuid())
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  imageUrl        String    @db.VarChar(255)
+  mobileImageUrl  String?   @db.VarChar(255)
+  linkUrl         String?   @db.VarChar(255)
+  isVisibleWeb    Boolean   @default(true)
+  isVisibleMobile Boolean   @default(true)
+  priority        Int       @default(0)
+  status          String    @default("draft")
+  startsAt        DateTime?
+  endsAt          DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
 }
 
+model QuotationRequest {
+  id             String                 @id @default(uuid())
+  userId         String
+  user           User                   @relation(fields: [userId], references: [id])
+  status         String                 @default("pending") // e.g., pending, reviewed, quoted, rejected
+  message        String?                @db.Text // optional note from the user
+  response       String?                @db.Text // optional reply/quote from admin
+  quotationItems QuotationRequestItem[]
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @default(now()) @updatedAt
+}
+
+model QuotationRequestItem {
+  id               String           @id @default(uuid())
+  quotationId      String
+  quotationRequest QuotationRequest @relation(fields: [quotationId], references: [id])
+  productModelId   String
+  productModel     ProductModel     @relation(fields: [productModelId], references: [id])
+  quantity         Int              @default(1)
+  notes            String?          @db.Text // optional: specific requirements for this item
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @default(now()) @updatedAt
+}

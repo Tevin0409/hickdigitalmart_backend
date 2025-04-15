@@ -102,3 +102,31 @@ export const createOrderSchema = Joi.object({
       "any.required": '"products" is required',
     }),
 });
+export const QuotationSchema = Joi.object({
+  message: Joi.string().required().messages({
+    "any.required": '"message" is required',
+  }),
+  products: Joi.array()
+    .items(
+      Joi.object({
+        productModelId: Joi.string()
+          .guid({ version: "uuidv4" })
+          .required()
+          .messages({
+            "string.guid": '"productModelId" must be a valid UUID',
+            "any.required": '"productModelId" is required',
+          }),
+        quantity: Joi.number().integer().positive().required().messages({
+          "number.integer": '"quantity" must be an integer',
+          "number.positive": '"quantity" must be a positive number',
+          "any.required": '"quantity" is required',
+        }),
+      })
+    )
+    .min(1)
+    .required()
+    .messages({
+      "array.min": '"products" must contain at least one product',
+      "any.required": '"products" is required',
+    }),
+});

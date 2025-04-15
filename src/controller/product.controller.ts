@@ -515,6 +515,68 @@ export const productController = {
       next(error);
     }
   },
+  createQuotation: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+      const { message, products } = req.body;
+
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+
+      const orderData = {
+        products,
+        message,
+      };
+
+      const order = await productService.createQuotation(userId, orderData);
+      res.status(201).json(order);
+    } catch (error) {
+      next(error);
+    }
+  },
+  getUserQuotations: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+
+      const order = await productService.getUserQuotations(userId);
+      res.status(201).json(order);
+    } catch (error) {
+      next(error);
+    }
+  },
+  getAllQuotations: async (
+    req: IUserRequest,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { searchTerm, status, page = 1, limit = 10 } = req.query;
+
+      const quotations = await productService.getAllQuotations({
+        searchTerm: searchTerm?.toString() || "",
+        status: status?.toString() || "",
+        page: parseInt(page as string, 10),
+        limit: parseInt(limit as string, 10),
+      });
+
+      res.status(200).json(quotations);
+    } catch (error) {
+      next(error);
+    }
+  },
   createAnonymousOrders: async (
     req: express.Request,
     res: express.Response,

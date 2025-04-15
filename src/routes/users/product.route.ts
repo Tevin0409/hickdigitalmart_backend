@@ -1,7 +1,7 @@
 import express from "express";
 import { productController } from "../../controller"; 
 import { authMiddleware, validate } from "../../middleware";
-import { addCartSchema, addWhishlisttSchema, checkoutSchema, createOrderSchema, updateCartSchema } from "../../validators/productValidator";
+import { addCartSchema, addWhishlisttSchema, checkoutSchema, createOrderSchema, QuotationSchema, updateCartSchema } from "../../validators/productValidator";
 
 const userProductRouter = express.Router();
 
@@ -42,6 +42,10 @@ userProductRouter.post("/checkout", validate(checkoutSchema), productController.
 //Review
 userProductRouter.post("/add-review", authMiddleware, productController.addReview);
 userProductRouter.get("/reviews/:productModelId", productController.getReviews);
+
+//Quaotation
+userProductRouter.post("/quotation",validate(QuotationSchema), authMiddleware, productController.createQuotation);
+userProductRouter.get("/quotation", authMiddleware, productController.getUserQuotations);
 
 
 export { userProductRouter };

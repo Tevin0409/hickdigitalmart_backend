@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createOrderSchema = exports.checkoutSchema = exports.addWhishlisttSchema = exports.updateCartSchema = exports.addCartSchema = exports.productSchema = void 0;
+exports.QuotationSchema = exports.createOrderSchema = exports.checkoutSchema = exports.addWhishlisttSchema = exports.updateCartSchema = exports.addCartSchema = exports.productSchema = void 0;
 const joi_1 = __importDefault(require("joi"));
 // Feature schema
 const featureSchema = joi_1.default.object({
@@ -73,6 +73,32 @@ exports.createOrderSchema = joi_1.default.object({
     email: joi_1.default.string().email().required().messages({
         "string.email": '"email" must be a valid email',
         "any.required": '"email" is required',
+    }),
+    products: joi_1.default.array()
+        .items(joi_1.default.object({
+        productModelId: joi_1.default.string()
+            .guid({ version: "uuidv4" })
+            .required()
+            .messages({
+            "string.guid": '"productModelId" must be a valid UUID',
+            "any.required": '"productModelId" is required',
+        }),
+        quantity: joi_1.default.number().integer().positive().required().messages({
+            "number.integer": '"quantity" must be an integer',
+            "number.positive": '"quantity" must be a positive number',
+            "any.required": '"quantity" is required',
+        }),
+    }))
+        .min(1)
+        .required()
+        .messages({
+        "array.min": '"products" must contain at least one product',
+        "any.required": '"products" is required',
+    }),
+});
+exports.QuotationSchema = joi_1.default.object({
+    message: joi_1.default.string().required().messages({
+        "any.required": '"message" is required',
     }),
     products: joi_1.default.array()
         .items(joi_1.default.object({

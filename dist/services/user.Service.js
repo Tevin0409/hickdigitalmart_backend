@@ -116,12 +116,15 @@ exports.userService = {
                     refreshTokenExpiresAt,
                 },
             });
+            //remove password from the response
+            const { password: ignoredPassword, otpHash, otpExpiresAt, refreshToken: ignore, refreshTokenExpiresAt: ignoredRefreshTokenExpiresAt, // renamed
+            inCorrectAttempts, ...safeUser } = existingUser;
             return {
                 accessToken,
                 accessTokenExpiresAt,
                 refreshToken,
                 refreshTokenExpiresAt,
-                user: existingUser,
+                user: safeUser,
             };
         }
         catch (err) {
@@ -161,12 +164,15 @@ exports.userService = {
                 isVerified: true,
             },
         });
+        //remove password from the response
+        const { password: ignoredPassword, otpHash, otpExpiresAt, refreshToken: ignore, refreshTokenExpiresAt: ignoredRefreshTokenExpiresAt, // renamed
+        inCorrectAttempts, ...safeUser } = existingUser;
         return {
             accessToken,
             accessTokenExpiresAt,
             refreshToken,
             refreshTokenExpiresAt,
-            user: existingUser,
+            user: safeUser,
         };
     },
     refresh: async (id, refresh_token) => {
@@ -191,12 +197,15 @@ exports.userService = {
                     refreshTokenExpiresAt,
                 },
             });
+            //remove password from the response
+            const { password: ignoredPassword, otpHash, otpExpiresAt, refreshToken: ignore, refreshTokenExpiresAt: ignoredRefreshTokenExpiresAt, // renamed
+            inCorrectAttempts, ...safeUser } = user;
             return {
                 accessToken,
                 accessTokenExpiresAt,
                 refreshToken,
                 refreshTokenExpiresAt,
-                user: user,
+                user: safeUser,
             };
         }
         catch (err) {
@@ -253,7 +262,30 @@ exports.userService = {
             // Fetch paginated users
             const users = await prisma.user.findMany({
                 where: filters,
-                include: { role: true, permissions: true },
+                select: {
+                    id: true,
+                    phoneNumber: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    isVerified: true,
+                    technicianVerified: true,
+                    shopOwnerVerified: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    role: {
+                        select: {
+                            id: true,
+                            name: true, // Include whatever role fields you need
+                        },
+                    },
+                    permissions: {
+                        select: {
+                            id: true, // Include whatever permission fields you need
+                            name: true,
+                        },
+                    },
+                },
                 skip,
                 take: limit,
             });
