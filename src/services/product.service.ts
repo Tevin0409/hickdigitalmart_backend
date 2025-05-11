@@ -1618,7 +1618,9 @@ export const productService = {
         filters.OR = [
           { comment: { contains: searchTerm, mode: "insensitive" } },
           { user: { email: { contains: searchTerm, mode: "insensitive" } } },
-          { user: { firstName: { contains: searchTerm, mode: "insensitive" } } },
+          {
+            user: { firstName: { contains: searchTerm, mode: "insensitive" } },
+          },
           { user: { lastName: { contains: searchTerm, mode: "insensitive" } } },
         ];
       }
@@ -1626,6 +1628,11 @@ export const productService = {
       const reviews = await prisma.review.findMany({
         where: filters,
         include: {
+          productModel: {
+            select: {
+              name: true,
+            },
+          },
           user: {
             select: {
               firstName: true,
