@@ -153,9 +153,7 @@ function setupCors() {
         "https://admin.hikvisionkenyashop.com",
         "http://localhost:3000",
     ];
-    const originsWithoutCredentials = [
-        "https://www.hikvisionkenyashop.com", // client frontend
-    ];
+    const originsWithoutCredentials = ["https://hikvisionkenyashop.com"];
     const corsOptionsDelegate = (req, callback) => {
         const requestOrigin = req.header("Origin");
         if (!requestOrigin) {
