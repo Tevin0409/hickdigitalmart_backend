@@ -62,6 +62,7 @@ export const userController = {
     next: express.NextFunction
   ) => {
     try {
+      console.log("reefreshTOken", req.cookies.refreshToken);
       const user = await userService.refresh(
         req.body.id,
         req.cookies.refreshToken || req.body.refreshToken
