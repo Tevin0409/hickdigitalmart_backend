@@ -2,7 +2,6 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import cors from "cors";
 import fileUpload from "express-fileupload";
 import path from "path";
 
@@ -11,13 +10,14 @@ import {
   errorLogger,
   errorResponder,
   invalidPathHandler,
+  setupCors,
 } from "./middleware";
 import router from "./routes";
-import "./utils/cron"
+import "./utils/cron";
 
 const app = express();
 
-app.use(cors());
+app.use(setupCors());
 app.use(express.json());
 app.use(
   fileUpload({

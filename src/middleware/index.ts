@@ -3,6 +3,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "../config/index";
 import { ObjectSchema } from "joi";
 import { userService } from "../services/index";
+import cors, { CorsOptions } from "cors";
 
 export interface IUserRequest extends Request {
   user?: any;
@@ -190,3 +191,46 @@ export const validate = (schema: ObjectSchema) => {
     next();
   };
 };
+
+export function setupCors() {
+  const originsWithCredentials = [
+    "https://admin.hikvisionkenyashop.com",
+    "http://localhost:3000",
+  ];
+
+  const originsWithoutCredentials = [
+    "https://www.hikvisionkenyashop.com", // client frontend
+  ];
+
+  const corsOptionsDelegate = (
+    req: Request,
+    callback: (err: Error | null, options?: CorsOptions) => void
+  ) => {
+    const requestOrigin = req.header("Origin");
+
+    if (!requestOrigin) {
+      return callback(null, { origin: false });
+    }
+
+    let corsOptions: CorsOptions;
+
+    if (originsWithCredentials.includes(requestOrigin)) {
+      corsOptions = {
+        origin: requestOrigin,
+        credentials: true,
+      };
+    } else if (originsWithoutCredentials.includes(requestOrigin)) {
+      corsOptions = {
+        origin: requestOrigin,
+        credentials: false,
+      };
+    } else {
+      // Not allowed
+      corsOptions = { origin: false };
+    }
+
+    callback(null, corsOptions);
+  };
+
+  return cors(corsOptionsDelegate);
+}
