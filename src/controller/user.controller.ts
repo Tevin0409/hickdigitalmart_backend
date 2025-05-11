@@ -62,10 +62,10 @@ export const userController = {
     next: express.NextFunction
   ) => {
     try {
-      console.log("reefreshTOken", req.cookies.refreshToken);
+      console.log("refreshTOken", req.cookies);
       const user = await userService.refresh(
         req.body.id,
-        req.cookies.refreshToken || req.body.refreshToken
+        req.body.refreshToken || req.cookies.refreshToken
       );
       if (user.refreshToken) {
         res.cookie("refreshToken", user.refreshToken, {

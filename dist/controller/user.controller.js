@@ -46,8 +46,8 @@ exports.userController = {
     // User login
     refresh: async (req, res, next) => {
         try {
-            console.log("reefreshTOken", req.cookies.refreshToken);
-            const user = await services_1.userService.refresh(req.body.id, req.cookies.refreshToken || req.body.refreshToken);
+            console.log("refreshTOken", req.cookies);
+            const user = await services_1.userService.refresh(req.body.id, req.body.refreshToken || req.cookies.refreshToken);
             if (user.refreshToken) {
                 res.cookie("refreshToken", user.refreshToken, {
                     httpOnly: true,
