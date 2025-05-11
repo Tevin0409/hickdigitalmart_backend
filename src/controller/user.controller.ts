@@ -28,6 +28,15 @@ export const userController = {
     try {
       const data = req.body;
       const user = await userService.loginUser(data);
+      if (user.refreshToken) {
+        res.cookie("refreshToken", user.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
+
       res.status(200).json(user);
     } catch (error) {
       next(error);
@@ -57,6 +66,15 @@ export const userController = {
         req.body.id,
         req.body.refreshToken
       );
+      if (user.refreshToken) {
+        res.cookie("refreshToken", user.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
+
       res.status(200).json(user);
     } catch (error) {
       next(error);
@@ -189,33 +207,53 @@ export const userController = {
       next(error);
     }
   },
-  getTechnicianRequest: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  getTechnicianRequest: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const searchTerm = req.query.searchTerm as string | undefined;
 
-      const response = await userService.getTechnicianRequest(page, limit, searchTerm);
+      const response = await userService.getTechnicianRequest(
+        page,
+        limit,
+        searchTerm
+      );
 
       res.status(200).json(response);
     } catch (error) {
       next(error);
     }
   },
-  getShopOwnwersRequest: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  getShopOwnwersRequest: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const searchTerm = req.query.searchTerm as string | undefined;
 
-      const response = await userService.getShopOwnersRequest(page, limit, searchTerm);
+      const response = await userService.getShopOwnersRequest(
+        page,
+        limit,
+        searchTerm
+      );
 
       res.status(200).json(response);
     } catch (error) {
       next(error);
     }
   },
-  approveTechnician: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  approveTechnician: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     try {
       const userId = req.params.id as string;
 
@@ -226,7 +264,11 @@ export const userController = {
       next(error);
     }
   },
-  approveShopOwner: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  approveShopOwner: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     try {
       const userId = req.params.id as string;
 
