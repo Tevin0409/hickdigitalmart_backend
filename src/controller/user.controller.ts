@@ -28,12 +28,14 @@ export const userController = {
     try {
       const data = req.body;
       const user = await userService.loginUser(data);
-      res.cookie("refreshToken", user.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      if (user.refreshToken) {
+        res.cookie("refreshToken", user.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
 
       res.status(200).json(user);
     } catch (error) {
@@ -64,12 +66,15 @@ export const userController = {
         req.body.id,
         req.body.refreshToken
       );
-      res.cookie("refreshToken", user.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      if (user.refreshToken) {
+        res.cookie("refreshToken", user.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
+
       res.status(200).json(user);
     } catch (error) {
       next(error);
