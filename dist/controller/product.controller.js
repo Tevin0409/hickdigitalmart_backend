@@ -662,6 +662,16 @@ exports.productController = {
             next(error);
         }
     },
+    getAllReviews: async (req, res, next) => {
+        try {
+            const { searchTerm, status, page = 1, limit = 10 } = req.query;
+            const reviews = await services_1.productService.getAllReviews(page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10, searchTerm, status);
+            res.status(200).json(reviews);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
     resondTOReview: async (req, res, next) => {
         try {
             const { reviewId } = req.params;

@@ -1000,6 +1000,24 @@ export const productController = {
       next(error);
     }
   },
+  getAllReviews: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const { searchTerm, status, page = 1, limit = 10 } = req.query;
+      const reviews = await productService.getAllReviews(
+        page ? parseInt(page as string, 10) : 1,
+        limit ? parseInt(limit as string, 10) : 10,
+        searchTerm as string | undefined,
+        status as string | undefined
+      );
+      res.status(200).json(reviews);
+    } catch (error) {
+      next(error);
+    }
+  },
   resondTOReview: async (
     req: IUserRequest,
     res: express.Response,

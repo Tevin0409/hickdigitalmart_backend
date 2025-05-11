@@ -1602,6 +1602,73 @@ export const productService = {
       );
     }
   },
+  getAllReviews: async (
+    page: number = 1,
+    limit: number = 10,
+    searchTerm?: string,
+    status?: string
+  ) => {
+    try {
+      const skip = (page - 1) * limit;
+      const filters: any = {};
+      if (status) {
+        filters.status = status;
+      }
+      if (searchTerm) {
+        filters.OR = [
+          { comment: { contains: searchTerm, mode: "insensitive" } },
+          { user: { email: { contains: searchTerm, mode: "insensitive" } } },
+          { user: { firstName: { contains: searchTerm, mode: "insensitive" } } },
+          { user: { lastName: { contains: searchTerm, mode: "insensitive" } } },
+        ];
+      }
+      const totalResults = await prisma.review.count({ where: filters });
+      const reviews = await prisma.review.findMany({
+        where: filters,
+        include: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: {
+                select: { name: true },
+              },
+            },
+          },
+          images: true,
+          ReviewResponse: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  role: {
+                    select: { name: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+        skip,
+        take: limit,
+      });
+      const totalPages = Math.ceil(totalResults / limit);
+      return {
+        page,
+        limit,
+        totalPages,
+        totalResults,
+        results: reviews,
+      };
+    } catch (error: any) {
+      throw new Error(
+        error.message || "An error occurred while fetching the reviews."
+      );
+    }
+  },
   respondToReview: async (
     reviewId: string,
     message: string,
