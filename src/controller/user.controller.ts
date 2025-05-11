@@ -64,7 +64,7 @@ export const userController = {
     try {
       const user = await userService.refresh(
         req.body.id,
-        req.body.refreshToken
+        req.cookies.refreshToken || req.body.refreshToken
       );
       if (user.refreshToken) {
         res.cookie("refreshToken", user.refreshToken, {
