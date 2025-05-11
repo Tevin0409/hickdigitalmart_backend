@@ -4,6 +4,7 @@ dotenv.config();
 import express from "express";
 import fileUpload from "express-fileupload";
 import path from "path";
+import cookieParser from "cookie-parser";
 
 import {
   requestLogger,
@@ -19,6 +20,7 @@ const app = express();
 
 app.use(setupCors());
 app.use(express.json());
+app.use(cookieParser());
 app.use(
   fileUpload({
     useTempFiles: true,
