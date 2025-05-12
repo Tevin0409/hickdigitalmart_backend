@@ -4,7 +4,7 @@ dotenv.config();
 import express from "express";
 import fileUpload from "express-fileupload";
 import path from "path";
-// import cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 
 import {
   requestLogger,
@@ -15,13 +15,12 @@ import {
 } from "./middleware";
 import router from "./routes";
 import "./utils/cron";
-import cors from "cors";
 
 const app = express();
 
-app.use(cors());
+app.use(setupCors());
 app.use(express.json());
-// app.use(cookieParser());
+app.use(cookieParser());
 app.use(
   fileUpload({
     useTempFiles: true,

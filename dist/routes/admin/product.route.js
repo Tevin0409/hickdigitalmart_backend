@@ -35,14 +35,15 @@ productRouter.post("/add-stock", middleware_1.authAdminMiddleware, controller_1.
 productRouter.patch("/update-stock", middleware_1.authAdminMiddleware, controller_1.productController.updateStock);
 productRouter.get("/check-stock/:productModelId", middleware_1.authAdminMiddleware, controller_1.productController.checkStock);
 //upload images
-productRouter.post('/upload', middleware_1.authAdminMiddleware, controller_1.productController.uploadFile);
-productRouter.post('/add-images', middleware_1.authAdminMiddleware, controller_1.productController.addProductImages);
-productRouter.post('/set-primary-image', middleware_1.authAdminMiddleware, controller_1.productController.setPrimaryImage);
-productRouter.delete('/remove-image/:imageId', middleware_1.authAdminMiddleware, controller_1.productController.removeImage);
-//bulk upload 
-productRouter.post('/upload-xslx', middleware_1.authAdminMiddleware, controller_1.productController.uploadBulkProducts);
+productRouter.post("/upload", middleware_1.authAdminMiddleware, controller_1.productController.uploadFile);
+productRouter.post("/add-images", middleware_1.authAdminMiddleware, controller_1.productController.addProductImages);
+productRouter.post("/set-primary-image", middleware_1.authAdminMiddleware, controller_1.productController.setPrimaryImage);
+productRouter.delete("/remove-image/:imageId", middleware_1.authAdminMiddleware, controller_1.productController.removeImage);
+//bulk upload
+productRouter.post("/upload-xslx", middleware_1.authAdminMiddleware, controller_1.productController.uploadBulkProducts);
 //orders
 productRouter.get("/orders", middleware_1.authAdminMiddleware, controller_1.productController.getAllOrders);
+productRouter.put("/orders/update/:orderId", middleware_1.authAdminMiddleware, controller_1.productController.updateOrderStatus);
 //Reviews
 productRouter.get("/reviews", middleware_1.authAdminMiddleware, controller_1.productController.getAllReviews);
 productRouter.get("/reviews/:productModelId", middleware_1.authAdminMiddleware, controller_1.productController.getReviews);
@@ -53,6 +54,6 @@ productRouter.post("/create-price-percentages", middleware_1.authAdminMiddleware
 productRouter.patch("/update-price-percentages/:percentagePriceId", middleware_1.authAdminMiddleware, controller_1.productController.updatePercentagePrice);
 productRouter.post("/schedule-price-change", middleware_1.authAdminMiddleware, controller_1.productController.schedulePriceChange);
 productRouter.patch("/update-schedule-price-change/:pricePercentageId", middleware_1.authAdminMiddleware, controller_1.productController.updateScheduledPriceChange);
-productRouter.get('/get-scheduled-price-changes', middleware_1.authAdminMiddleware, controller_1.productController.getScheduledPriceChange);
+productRouter.get("/get-scheduled-price-changes", middleware_1.authAdminMiddleware, controller_1.productController.getScheduledPriceChange);
 //Quotation
 productRouter.get("/quotation", middleware_1.authAdminMiddleware, controller_1.productController.getAllQuotations);
