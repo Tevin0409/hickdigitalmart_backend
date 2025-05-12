@@ -316,4 +316,20 @@ export const userController = {
       next(error);
     }
   },
+  logout: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+      });
+      res.status(200).json({ message: "Logout successful" });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
