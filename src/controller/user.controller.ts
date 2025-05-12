@@ -28,6 +28,15 @@ export const userController = {
     try {
       const data = req.body;
       const user = await userService.loginUser(data);
+      if (user.refreshToken) {
+        res.cookie("refreshToken", user.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
+
       res.status(200).json(user);
     } catch (error) {
       next(error);
@@ -55,8 +64,17 @@ export const userController = {
     try {
       const user = await userService.refresh(
         req.body.id,
-        req.body.refreshToken
+        req.body.refreshToken || req.cookies.refreshToken
       );
+      if (user.refreshToken) {
+        res.cookie("refreshToken", user.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
+
       res.status(200).json(user);
     } catch (error) {
       next(error);
@@ -316,6 +334,22 @@ export const userController = {
     try {
       const user = await userService.resetPassword(req.body);
       res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  },
+  logout: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+      });
+      res.status(200).json({ message: "Logout successful" });
     } catch (error) {
       next(error);
     }

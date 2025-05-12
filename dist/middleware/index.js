@@ -4,9 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validate = exports.authAdminMiddleware = exports.authMiddleware = exports.invalidPathHandler = exports.errorResponder = exports.errorLogger = exports.requestLogger = exports.AppError = void 0;
+exports.setupCors = setupCors;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const index_1 = require("../config/index");
 const index_2 = require("../services/index");
+const cors_1 = __importDefault(require("cors"));
 // Error object used in error handling middleware function
 class AppError extends Error {
     statusCode;
@@ -146,3 +148,38 @@ const validate = (schema) => {
     };
 };
 exports.validate = validate;
+function setupCors() {
+    const originsWithCredentials = [
+        "https://admin.hikvisionkenyashop.com",
+        "http://localhost:3000",
+    ];
+    const originsWithoutCredentials = [
+        "https://hikvisionkenyashop.com",
+        "http://localhost:8000",
+    ];
+    const corsOptionsDelegate = (req, callback) => {
+        const requestOrigin = req.header("Origin");
+        if (!requestOrigin) {
+            return callback(null, { origin: false });
+        }
+        let corsOptions;
+        if (originsWithCredentials.includes(requestOrigin)) {
+            corsOptions = {
+                origin: requestOrigin,
+                credentials: true,
+            };
+        }
+        else if (originsWithoutCredentials.includes(requestOrigin)) {
+            corsOptions = {
+                origin: requestOrigin,
+                credentials: false,
+            };
+        }
+        else {
+            // Not allowed
+            corsOptions = { origin: false };
+        }
+        callback(null, corsOptions);
+    };
+    return (0, cors_1.default)(corsOptionsDelegate);
+}

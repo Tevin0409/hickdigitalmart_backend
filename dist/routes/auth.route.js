@@ -17,3 +17,4 @@ authRouter.post("/verify", controller_1.userController.verify);
 authRouter.post("/change-password", (0, middleware_1.validate)(userValidator_1.changePasswordSchema), middleware_1.authMiddleware, controller_1.userController.ChangePassword);
 authRouter.post("/forgot-password", (0, middleware_1.validate)(userValidator_1.forgotPasswordSchema), controller_1.userController.forgotPassword);
 authRouter.post("/reset-password", (0, middleware_1.validate)(userValidator_1.resetPasswordSchema), controller_1.userController.resetPassword);
+authRouter.post("/logout", controller_1.userController.logout);

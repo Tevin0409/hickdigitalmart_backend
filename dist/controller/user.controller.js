@@ -19,6 +19,14 @@ exports.userController = {
         try {
             const data = req.body;
             const user = await services_1.userService.loginUser(data);
+            if (user.refreshToken) {
+                res.cookie("refreshToken", user.refreshToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "strict",
+                    maxAge: 7 * 24 * 60 * 60 * 1000,
+                });
+            }
             res.status(200).json(user);
         }
         catch (error) {
@@ -38,7 +46,15 @@ exports.userController = {
     // User login
     refresh: async (req, res, next) => {
         try {
-            const user = await services_1.userService.refresh(req.body.id, req.body.refreshToken);
+            const user = await services_1.userService.refresh(req.body.id, req.body.refreshToken || req.cookies.refreshToken);
+            if (user.refreshToken) {
+                res.cookie("refreshToken", user.refreshToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "strict",
+                    maxAge: 7 * 24 * 60 * 60 * 1000,
+                });
+            }
             res.status(200).json(user);
         }
         catch (error) {
@@ -222,6 +238,19 @@ exports.userController = {
         try {
             const user = await services_1.userService.resetPassword(req.body);
             res.status(200).json(user);
+        }
+        catch (error) {
+            next(error);
+        }
+    },
+    logout: async (req, res, next) => {
+        try {
+            res.clearCookie("refreshToken", {
+                httpOnly: true,
+                secure: true,
+                sameSite: "strict",
+            });
+            res.status(200).json({ message: "Logout successful" });
         }
         catch (error) {
             next(error);

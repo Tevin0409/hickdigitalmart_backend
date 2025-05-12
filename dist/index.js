@@ -39,14 +39,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
 const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
 const express_fileupload_1 = __importDefault(require("express-fileupload"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const middleware_1 = require("./middleware");
 const routes_1 = __importDefault(require("./routes"));
 require("./utils/cron");
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)());
+app.use((0, middleware_1.setupCors)());
 app.use(express_1.default.json());
+app.use((0, cookie_parser_1.default)());
 app.use((0, express_fileupload_1.default)({
     useTempFiles: true,
     tempFileDir: "/tmp/",
