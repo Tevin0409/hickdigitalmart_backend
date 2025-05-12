@@ -117,7 +117,18 @@ exports.userController = {
     },
     addTechnicianQuestionnaire: async (req, res, next) => {
         try {
-            const user = await services_1.userService.addTechnicianQuestionnaire(req.body);
+            const technician = await services_1.userService.addTechnicianQuestionnaire(req.body);
+            //create user
+            const TechnicainRole = await services_1.roleService.getRoleByName("Technician");
+            const data = {
+                email: req.body.email,
+                password: req.body.password,
+                phoneNumber: req.body.phoneNumber,
+                firstName: req.body.firstName || "",
+                lastName: req.body.lastName || "",
+                roleId: req.body.roleId || TechnicainRole.id,
+            };
+            const user = await services_1.userService.createUser(data);
             res.status(200).json(user);
         }
         catch (error) {
@@ -126,7 +137,18 @@ exports.userController = {
     },
     addShopOwnersQuestionnaire: async (req, res, next) => {
         try {
-            const user = await services_1.userService.addShopOwnersQuestionnaire(req.body);
+            const shopOwner = await services_1.userService.addShopOwnersQuestionnaire(req.body);
+            //create user
+            const ShopOwnerRole = await services_1.roleService.getRoleByName("WHOLESALER");
+            const data = {
+                email: req.body.email,
+                password: req.body.password,
+                phoneNumber: req.body.phoneNumber,
+                firstName: req.body.firstName || "",
+                lastName: req.body.lastName || "",
+                roleId: req.body.roleId || ShopOwnerRole.id,
+            };
+            const user = await services_1.userService.createUser(data);
             res.status(200).json(user);
         }
         catch (error) {

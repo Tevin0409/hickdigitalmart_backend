@@ -22,7 +22,7 @@ export interface TechnicianDTO {
   email: string;
   location: string;
   businessType: string;
-  experienceYears: number | null;
+  experienceYears: string | null;
   experienceAreas: string[];
   brandsWorkedWith: string[];
   integrationExperience: string;

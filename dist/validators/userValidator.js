@@ -59,7 +59,7 @@ exports.technicianQuestionnaireSchema = joi_1.default.object({
     email: joi_1.default.string().email().required(),
     location: joi_1.default.string().required(),
     businessType: joi_1.default.string().required(),
-    experienceYears: joi_1.default.number().allow(null),
+    experienceYears: joi_1.default.string().allow(null),
     experienceAreas: joi_1.default.array().items(joi_1.default.string()).optional(),
     brandsWorkedWith: joi_1.default.array().items(joi_1.default.string()).optional(),
     integrationExperience: joi_1.default.string().required(),
@@ -67,6 +67,10 @@ exports.technicianQuestionnaireSchema = joi_1.default.object({
     purchaseSource: joi_1.default.array().items(joi_1.default.string()).required(),
     purchaseHikvision: joi_1.default.string().valid("Yes", "No").required(),
     requiresTraining: joi_1.default.string().valid("Yes", "No").allow(null),
+    password: joi_1.default.string()
+        .min(8)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+        .message("Password must be at least 8 characters long, contain one uppercase, one lowercase, one number, and one special character")
 });
 exports.shopOwnersQuestionnaireSchema = joi_1.default.object({
     companyName: joi_1.default.string().required(),
@@ -91,6 +95,10 @@ exports.shopOwnersQuestionnaireSchema = joi_1.default.object({
     selectedCategories: joi_1.default.array().items(joi_1.default.string()).required(),
     hikvisionChallenges: joi_1.default.string().optional().allow('', null),
     adviceToSecureDigital: joi_1.default.string().optional().allow('', null),
+    password: joi_1.default.string()
+        .min(8)
+        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+        .message("Password must be at least 8 characters long, contain one uppercase, one lowercase, one number, and one special character")
 });
 exports.changePasswordSchema = joi_1.default.object({
     oldPassword: joi_1.default.string().required(),

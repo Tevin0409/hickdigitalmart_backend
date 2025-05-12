@@ -39,6 +39,21 @@ export const roleService = {
       throw new AppError(500, "Failed to retrieve roles");
     }
   },
+
+  //get Role by Name
+  getRoleByName: async (name: string) => {
+    try {
+      const role = await prisma.role.findFirst({
+        where: { name: name.toUpperCase() },
+      });
+      if (!role) {
+        throw new AppError(404, "Role not found");
+      }
+      return role;
+    } catch (error) {
+      throw new AppError(500, "Failed to retrieve role");
+    }
+  },
   getUserRoles: async () => {
     try {
       const roles = await prisma.role.findMany({

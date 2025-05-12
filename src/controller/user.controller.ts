@@ -1,6 +1,6 @@
 import express from "express";
 import { CreateUserDTO } from "../interface/user";
-import { userService } from "../services";
+import { roleService, userService } from "../services";
 import { IUserRequest } from "../middleware";
 
 export const userController = {
@@ -171,7 +171,19 @@ export const userController = {
     next: express.NextFunction
   ) => {
     try {
-      const user = await userService.addTechnicianQuestionnaire(req.body);
+      const technician = await userService.addTechnicianQuestionnaire(req.body);
+      //create user
+      const TechnicainRole = await roleService.getRoleByName("Technician");
+      const data = {
+        email: req.body.email,
+        password: req.body.password,
+        phoneNumber: req.body.phoneNumber,
+        firstName: req.body.firstName || "",
+        lastName: req.body.lastName || "",
+        roleId: req.body.roleId || TechnicainRole.id,
+      };
+      
+      const user = await userService.createUser(data);
       res.status(200).json(user);
     } catch (error) {
       next(error);
@@ -183,39 +195,69 @@ export const userController = {
     next: express.NextFunction
   ) => {
     try {
-      const user = await userService.addShopOwnersQuestionnaire(req.body);
+      const shopOwner = await userService.addShopOwnersQuestionnaire(req.body);
+      //create user
+      const ShopOwnerRole = await roleService.getRoleByName("WHOLESALER");
+      const data = {
+        email: req.body.email,
+        password: req.body.password,
+        phoneNumber: req.body.phoneNumber,
+        firstName: req.body.firstName || "",
+        lastName: req.body.lastName || "",
+        roleId: req.body.roleId || ShopOwnerRole.id,
+      };
+      const user = await userService.createUser(data);
       res.status(200).json(user);
     } catch (error) {
       next(error);
     }
   },
-  getTechnicianRequest: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  getTechnicianRequest: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const searchTerm = req.query.searchTerm as string | undefined;
 
-      const response = await userService.getTechnicianRequest(page, limit, searchTerm);
+      const response = await userService.getTechnicianRequest(
+        page,
+        limit,
+        searchTerm
+      );
 
       res.status(200).json(response);
     } catch (error) {
       next(error);
     }
   },
-  getShopOwnwersRequest: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  getShopOwnwersRequest: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const searchTerm = req.query.searchTerm as string | undefined;
 
-      const response = await userService.getShopOwnersRequest(page, limit, searchTerm);
-
+      const response = await userService.getShopOwnersRequest(
+        page,
+        limit,
+        searchTerm
+      );
       res.status(200).json(response);
     } catch (error) {
       next(error);
     }
   },
-  approveTechnician: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  approveTechnician: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     try {
       const userId = req.params.id as string;
 
@@ -226,7 +268,11 @@ export const userController = {
       next(error);
     }
   },
-  approveShopOwner: async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  approveShopOwner: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     try {
       const userId = req.params.id as string;
 

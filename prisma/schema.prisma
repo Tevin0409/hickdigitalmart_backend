@@ -224,7 +224,7 @@ model TechnicianQuestionnaire {
   email                 String   @unique
   location              String
   businessType          String
-  experienceYears       Int?
+  experienceYears       String?
   experienceAreas       String[]
   brandsWorkedWith      String[]
   integrationExperience String

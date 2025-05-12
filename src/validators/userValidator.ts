@@ -80,7 +80,7 @@ export const technicianQuestionnaireSchema = Joi.object({
   email: Joi.string().email().required(),
   location: Joi.string().required(),
   businessType: Joi.string().required(),
-  experienceYears: Joi.number().allow(null),
+  experienceYears: Joi.string().allow(null),
   experienceAreas: Joi.array().items(Joi.string()).optional(),
   brandsWorkedWith: Joi.array().items(Joi.string()).optional(),
   integrationExperience: Joi.string().required(),
@@ -88,6 +88,14 @@ export const technicianQuestionnaireSchema = Joi.object({
   purchaseSource: Joi.array().items(Joi.string()).required(),
   purchaseHikvision: Joi.string().valid("Yes", "No").required(),
   requiresTraining: Joi.string().valid("Yes", "No").allow(null),
+  password: Joi.string()
+    .min(8)
+    .pattern(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    )
+    .message(
+      "Password must be at least 8 characters long, contain one uppercase, one lowercase, one number, and one special character"
+    )
 });
 
 
@@ -119,6 +127,14 @@ export const shopOwnersQuestionnaireSchema = Joi.object({
   selectedCategories: Joi.array().items(Joi.string()).required(),
   hikvisionChallenges: Joi.string().optional().allow('', null),
   adviceToSecureDigital: Joi.string().optional().allow('', null),
+  password: Joi.string()
+    .min(8)
+    .pattern(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    )
+    .message(
+      "Password must be at least 8 characters long, contain one uppercase, one lowercase, one number, and one special character"
+    )
 });
 
 export const changePasswordSchema = Joi.object({
