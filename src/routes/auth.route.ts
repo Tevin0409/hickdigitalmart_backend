@@ -16,6 +16,7 @@ authRouter.post(
   userController.createUser
 );
 authRouter.post("/login", userController.login);
+authRouter.post("/admin/login", userController.loginAdmin)
 authRouter.post("/refresh", userController.refresh);
 authRouter.post("/verify", userController.verify);
 authRouter.post(

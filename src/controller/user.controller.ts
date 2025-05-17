@@ -42,6 +42,41 @@ export const userController = {
       next(error);
     }
   },
+
+  loginAdmin: async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    try {
+      const data = req.body;
+      const user = await userService.loginUser(data);
+
+      if (
+        !user ||
+        !user.user ||
+        !user.user.role ||
+        !user.user.role.name ||
+        (user.user.role.name !== "Admin" && user.user.role.name !== "SUDO")
+      ) {
+        res.status(403).json({ message: "Access denied" });
+        return;
+      }
+
+      if (user.refreshToken) {
+        res.cookie("refreshToken", user.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      }
+
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  },
   verify: async (
     req: express.Request,
     res: express.Response,
@@ -200,7 +235,7 @@ export const userController = {
         lastName: req.body.lastName || "",
         roleId: req.body.roleId || TechnicainRole.id,
       };
-      
+
       const user = await userService.createUser(data);
       res.status(200).json(user);
     } catch (error) {
