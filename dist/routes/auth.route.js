@@ -12,6 +12,7 @@ const authRouter = express_1.default.Router();
 exports.authRouter = authRouter;
 authRouter.post("/create-user", (0, middleware_1.validate)(userValidator_1.createUserSchema), controller_1.userController.createUser);
 authRouter.post("/login", controller_1.userController.login);
+authRouter.post("/admin/login", controller_1.userController.loginAdmin);
 authRouter.post("/refresh", controller_1.userController.refresh);
 authRouter.post("/verify", controller_1.userController.verify);
 authRouter.post("/change-password", (0, middleware_1.validate)(userValidator_1.changePasswordSchema), middleware_1.authMiddleware, controller_1.userController.ChangePassword);
