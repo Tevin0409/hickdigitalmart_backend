@@ -31,18 +31,20 @@ jobs:
           username: ${{ secrets.DO_USER }}
           key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
           script: |
+            # Load NVM and use Node.js v24
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 24
+
+            echo "Using Node: $(node -v)"
+            echo "Using NPM: $(npm -v)"
+            echo "Using PM2: $(pm2 -v)"
+
             # Set project directory
             PROJECT_DIR="$HOME/backend"
-
-            # Ensure SSH agent is running
-            eval "$(ssh-agent -s)"
-            mkdir -p ~/.ssh
-            chmod 700 ~/.ssh
-
-            # Create the backend folder if it doesn't exist
             mkdir -p $PROJECT_DIR
 
-            # Clone repository if it doesn’t exist, otherwise pull updates
+            # Clone or pull latest changes
             if [ ! -d "$PROJECT_DIR/.git" ]; then
               echo "Repository not found. Cloning..."
               git clone https://github.com/Tevin0409/hickdigitalmart_backend.git $PROJECT_DIR
@@ -52,17 +54,8 @@ jobs:
               git pull origin main
             fi
 
-            # Navigate to project directory
+            # Navigate to the project
             cd $PROJECT_DIR
 
             # Install dependencies
             npm install --omit=optional
-
-            # Run database migrations
-            npm run migrate:prod
-
-            # Seed the database
-            npm run seed
-
-            # Restart the application using PM2
-            pm2 restart all || pm2 start npm --name "hickdigitalmart_backend" -- start
